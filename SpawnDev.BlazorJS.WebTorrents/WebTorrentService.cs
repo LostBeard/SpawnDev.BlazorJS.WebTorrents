@@ -26,8 +26,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
             BeenInit = true;
             if (IsDisposed) return;
             WebTorrentModule = await JS.Import(latestVersionSrc);
-            //JS.Set("_wtmodule", WebTorrentModule);
-            //JS.Log("WebTorrentModule exports", WebTorrentModule.GetExportNames());
+            if (WebTorrentModule == null) throw new Exception("WebTorrentService could not be initialized.");
             WebTorrentLibraryVersion = WebTorrentModule.GetExport<string?>("default.VERSION") ?? "";
             WebTorrent = WebTorrentModule.GetExport<Function>("default");
             // set WebTorrent on the global scope so it can be used globally
