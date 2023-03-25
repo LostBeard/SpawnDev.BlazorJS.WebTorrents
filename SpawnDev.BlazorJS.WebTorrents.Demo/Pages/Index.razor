@@ -1,0 +1,61 @@
+﻿@page "/"
+
+<PageTitle>Index</PageTitle>
+
+<h1>SpawnDev.BlazorJS.WebTorrent Example</h1>
+
+<div>
+    <div>WebTorrent Javascript library version: @WebTorrentService.WebTorrentLibraryVersion</div>
+    <div>
+        <video autoplay muted style="width: 1024px; height: 576px;" controls @ref=videoElRef></video>
+    </div>
+    <div>
+        <ul>
+            @foreach (var magnet in knownMagnets)
+            {
+                <li><a href="javascript:;" onclick="@(()=>_ = LoadTorrent(magnet.Value))">@magnet.Key</a></li>
+            }
+        </ul>
+    </div>
+    <div>
+        <div>
+            Magent:<br />
+            <input style="width: 1024px;" type="text" @bind=@torrentId @oninput="OnInputEvent"></input>
+        </div>
+        <div>
+            <button onclick="@(()=> _ = LoadTorrent())">Load</button>
+        </div>
+    </div>
+    <div>
+        Hash: @TorrentHash
+    </div>
+    <div>
+        Largest MP4: @(largestMp4File == null ? "" : largestMp4File.Name)
+    </div>
+    <div>
+        @StatusMsg
+    </div>
+    <div>
+        @if (Torrent != null)
+        {
+            <table style="width: 1024px;">
+                <tr>
+                    <th>Progress</th>
+                    <th>Name</th>
+                    <th>Size</th>
+                    <th>Path</th>
+                </tr>
+                @foreach (var f in TorrentFiles)
+                {
+                    var isPlaying = largestMp4File != null && f.Path == largestMp4File.Path;
+                    <tr style="font-weight: @(isPlaying ? "bold" : "normal");">
+                        <td>@(Math.Round(f.Progress * 100, 2)) %</td>
+                        <td>@f.Name</td>
+                        <td>@ToBytesCount(f.Length)</td>
+                        <td>@f.Path</td>
+                    </tr>
+                }
+            </table>
+        }
+    </div>
+</div>

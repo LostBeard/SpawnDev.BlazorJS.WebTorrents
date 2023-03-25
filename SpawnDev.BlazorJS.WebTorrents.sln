@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33513.286
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpawnDev.BlazorJS.WebTorrents", "SpawnDev.BlazorJS.WebTorrents\SpawnDev.BlazorJS.WebTorrents.csproj", "{F71C5353-5C2B-42B9-A95E-5CF9CC498A9E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpawnDev.BlazorJS.WebTorrents.Demo", "SpawnDev.BlazorJS.WebTorrents.Demo\SpawnDev.BlazorJS.WebTorrents.Demo.csproj", "{70616C27-5E12-4F1B-A44A-E93BA3821826}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F71C5353-5C2B-42B9-A95E-5CF9CC498A9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F71C5353-5C2B-42B9-A95E-5CF9CC498A9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F71C5353-5C2B-42B9-A95E-5CF9CC498A9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F71C5353-5C2B-42B9-A95E-5CF9CC498A9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70616C27-5E12-4F1B-A44A-E93BA3821826}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70616C27-5E12-4F1B-A44A-E93BA3821826}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70616C27-5E12-4F1B-A44A-E93BA3821826}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70616C27-5E12-4F1B-A44A-E93BA3821826}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {507563AC-1AEB-44AE-8E2B-67D54BC76597}
+	EndGlobalSection
+EndGlobal
