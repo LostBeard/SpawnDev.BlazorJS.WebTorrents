@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     # uses GitHub's checkout action to checkout code form the master branch
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2.7.0
     
     # sets up .NET Core SDK
     - name: Setup .NET Core SDK
@@ -32,6 +32,4 @@ jobs:
     - name: Commit wwwroot to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@v4.4.1
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        branch: gh-pages
         folder: publish/wwwroot
