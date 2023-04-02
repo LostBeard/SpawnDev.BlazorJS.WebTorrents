@@ -17,6 +17,10 @@ jobs:
       with:
         dotnet-version: 8.0.100-preview.2.23157.25
 
+    # Install dotnet wasm buildtools workload
+    - name: Install .NET WASM Build Tools
+      run: dotnet workload install wasm-tools        
+
     # publishes Blazor project to the publish-folder
     - name: Publish .NET Core Project
       run: dotnet publish --nologo --configuration Release --output publish ./SpawnDev.BlazorJS.WebTorrents.Demo/
@@ -32,4 +36,6 @@ jobs:
     - name: Commit wwwroot to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@v4.4.1
       with:
-        folder: publish/wwwroot
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BRANCH: gh-pages
+        FOLDER: publish/wwwroot    
