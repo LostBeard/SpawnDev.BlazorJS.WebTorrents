@@ -11,6 +11,9 @@ namespace SpawnDev.BlazorJS.WebTorrents
         BlazorJSRuntime JS;
         Function? WebTorrent { get; set; }
         public bool BeenInit { get; private set; }
+        // Latest release
+        // https://github.com/webtorrent/webtorrent/releases
+        // current version is 2.0.15
         string latestVersionSrc = $"./_content/SpawnDev.BlazorJS.WebTorrents/webtorrent.min.js";
         public bool ServiceWorkerEnabled { get; private set; }
         ModuleNamespaceObject? WebTorrentModule { get; set; } = null;
@@ -20,6 +23,8 @@ namespace SpawnDev.BlazorJS.WebTorrents
             JS = js;
         }
 
+        // to delete filssytem api data ....
+        // chrome://settings/content/all?searchSubpage=localhost
         public async Task InitAsync()
         {
             if (BeenInit) return;

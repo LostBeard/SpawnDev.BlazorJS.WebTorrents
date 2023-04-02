@@ -13,7 +13,8 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<RepositoryUrl>https://github.com/LostBeard/SpawnDev.BlazorJS.WebTorrents.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageTags>Blazor;WebTorrents;Torrents;DotNet</PackageTags>		
+		<PackageTags>Blazor;WebTorrents;Torrents;DotNet</PackageTags>
+		<Copyright>2023</Copyright>		
 	</PropertyGroup>
 
 	<ItemGroup>

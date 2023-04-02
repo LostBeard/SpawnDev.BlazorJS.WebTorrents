@@ -39,14 +39,17 @@ namespace SpawnDev.BlazorJS.WebTorrents
         {
             try
             {
-                var registration = await JS.CallAsync<JSObject?>("navigator.serviceWorker.getRegistration", "/");
+                var registration = await JS.CallAsync<JSObject?>("navigator.serviceWorker.getRegistration");
                 if (registration == null) return false;
                 //await JS.CallVoidAsync("navigator.serviceWorker.register", serverScriptPath);
                 var controller = await JS.GetAsync<JSObject>("navigator.serviceWorker.ready");
                 JSRef.CallVoid("createServer", new CreateServerOptions { Controller = controller });
                 return true;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR WebTorrent.CreateServer: {ex.Message} {ex.StackTrace}");
+            }
             return false;
         }
 
