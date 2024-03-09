@@ -1,5 +1,6 @@
 ﻿using Microsoft.JSInterop;
 using SpawnDev.BlazorJS;
+using SpawnDev.BlazorJS.JSObjects;
 using SpawnDev.BlazorJS.JsonConverters;
 using System;
 using System.Collections.Generic;
@@ -8,11 +9,16 @@ using System.Threading.Tasks;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
+    public class TorrentStore : JSObject
+    {
+        public TorrentStore(IJSInProcessObjectReference _ref) : base(_ref) { }
+    }
 
     // https://github.com/webtorrent/webtorrent/blob/master/docs/api.md#torrent-api
     public class Torrent : JSObject
     {
         public Torrent(IJSInProcessObjectReference _ref) : base(_ref) { }
+        public Wire[] Wires => JSRef.Get<Wire[]>("wires");
         /// <summary>
         /// Name of the torrent (string).
         /// </summary>
@@ -28,7 +34,15 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// .torrent file of the torrent (Uint8Array).
         /// </summary>
-        public JSObject TorrentFile => JSRef.Get<JSObject>("torrentFile");
+        public Uint8Array TorrentFile => JSRef.Get<Uint8Array>("torrentFile");
+        public byte[] TorrentFileBytes
+        {
+            get
+            {
+                using var tmp = TorrentFile;
+                return tmp.ReadBytes();
+            }
+        }
         /// <summary>
         /// .torrent file of the torrent (Blob). Useful for creating Blob URLs via URL.createObjectURL(blob)
         /// </summary>
@@ -126,6 +140,15 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// A comment optionnaly set by the author (string).
         /// </summary>
         public string Comment => JSRef.Get<string>("comment");
+        public class DestroyTorrentOptions
+        {
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public bool? DestroyStore { get; set; }
+        }
+        /// <summary>
+        /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
+        /// </summary>
+        public void Destroy(DestroyTorrentOptions options) => JSRef.CallVoid("destroy", options);
         /// <summary>
         /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
         /// </summary>
@@ -133,7 +156,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
         /// </summary>
-        /// <param name="callback"></param>
+
         public void Destroy(ActionCallback callback) => JSRef.CallVoid("destroy", callback);
         /// <summary>
         /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
@@ -174,57 +197,50 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         public void Resume() => JSRef.CallVoid("resume");
         // Events
+        public void On(string eventName, Callback callback) => JSRef.CallVoid("on", eventName, callback);
+        public void Off(string eventName, Callback callback) => JSRef.CallVoid("off", eventName, callback);
         /// <summary>
         /// Emitted when the info hash of the torrent has been determined.
         /// </summary>
-        /// <param name="callback"></param>
-        public void OnInfoHash(ActionCallback callback) => JSRef?.CallVoid("on", "infoHash", callback);
+       // public JSEventCallback OnInfoHash { get => _events.Get<JSEventCallback>("infohash", (o) => On("infohash", o), (o) => Off("infohash", o)); set { } }
+        public JSEventCallback OnInfoHash { get => new JSEventCallback(JSRef, "infohash", "on"); set { } }
         /// <summary>
         /// Emitted when the metadata of the torrent has been determined. This includes the full contents of the .torrent file, including list of files, torrent length, piece hashes, piece length, etc.
         /// </summary>
-        /// <param name="callback"></param>
-        public void OnMetadata(ActionCallback callback) => JSRef?.CallVoid("on", "metadata", callback);
+        public JSEventCallback OnMetadata { get => new JSEventCallback(JSRef, "metadata", "on"); set { } }
         /// <summary>
         /// Emitted when the torrent is ready to be used (i.e. metadata is available and store is ready).
         /// </summary>
-        /// <param name="callback"></param>
-        public void OnReady(ActionCallback callback) => JSRef?.CallVoid("on", "ready", callback);
+        public JSEventCallback OnReady { get => new JSEventCallback(JSRef, "ready", "on"); set { } }
         /// <summary>
         /// Emitted when there is a warning. This is purely informational and it is not necessary to listen to this event, but it may aid in debugging.
         /// </summary>
-        /// <param name="callback"></param>
-        public void OnWarning(ActionCallback callback) => JSRef?.CallVoid("on", "warning", callback);
+        public JSEventCallback OnWarning { get => new JSEventCallback(JSRef, "warning", "on"); set { } }
         /// <summary>
         /// Emitted when the torrent encounters a fatal error. The torrent is automatically destroyed and removed from the client when this occurs.
         /// </summary>
-        /// <param name="callback"></param>
-        public void OnError(ActionCallback callback) => JSRef?.CallVoid("on", "error", callback);
+        public JSEventCallback OnError { get => new JSEventCallback(JSRef, "error", "on"); set { } }
         /// <summary>
         /// Emitted when all the torrent files have been downloaded.
         /// </summary>
-        /// <param name="callback"></param>
-        public void OnDone(ActionCallback callback) => JSRef?.CallVoid("on", "done", callback);
+        public JSEventCallback OnDone { get => new JSEventCallback(JSRef, "done", "on"); set { } }
         /// <summary>
         /// Emitted whenever data is downloaded. Useful for reporting the current torrent status.
         /// </summary>
-        /// <param name="callback"></param>
-        public void OnDownload(ActionCallback<long> callback) => JSRef?.CallVoid("on", "download", callback);
+        public JSEventCallback<long> OnDownload { get => new JSEventCallback<long>(JSRef, "download", "on"); set { } }
         /// <summary>
         /// Emitted whenever data is uploaded. Useful for reporting the current torrent status.
         /// </summary>
-        /// <param name="callback"></param>
-        public void OnUpload(ActionCallback<long> callback) => JSRef?.CallVoid("on", "upload", callback);
+        public JSEventCallback<long> OnUpload { get => new JSEventCallback<long>(JSRef, "upload", "on"); set { } }
         /// <summary>
         /// Emitted whenever a new peer is connected for this torrent. wire is an instance of bittorrent-protocol, which is a node.js-style duplex stream to the remote peer. This event can be used to specify custom BitTorrent protocol extensions.
         /// </summary>
-        /// <param name="callback"></param>
-        public void OnWire(ActionCallback<Wire> callback) => JSRef?.CallVoid("on", "wire", callback);
+        public JSEventCallback<Wire> OnWire { get => new JSEventCallback<Wire>(JSRef, "wire", "on"); set { } }
         /// <summary>
         /// Emitted every couple of seconds when no peers have been found. announceType is either 'tracker', 'dht', 'lsd', or 'ut_pex' depending on which announce occurred to trigger this event. <br />
         /// Note that if you're attempting to discover peers from a tracker, a DHT, a LSD, and PEX you'll see this event separately for each.
         /// </summary>
-        /// <param name="callback"></param>
-        public void OnNoPeers(ActionCallback callback) => JSRef?.CallVoid("on", "noPeers", callback);
+        public JSEventCallback<string> OnNoPeers { get => new JSEventCallback<string>(JSRef, "noPeers", "on"); set { } }
         public void DeselectAll()
         {
             var files = Files;

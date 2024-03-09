@@ -1,4 +1,5 @@
 ﻿using Microsoft.JSInterop;
+using SpawnDev.BlazorJS.JSObjects;
 using SpawnDev.BlazorJS.JsonConverters;
 
 namespace SpawnDev.BlazorJS.WebTorrents
@@ -20,8 +21,8 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public WebTorrent() : base(JS.New("WebTorrent")) { }
         public WebTorrent(WebTorrentOptions options) : base(JS.New("WebTorrent", options)) { }
 
-        public void OnTorrent(ActionCallback<Torrent> callback) => JSRef?.CallVoid("on", "torrent", callback);
-        public void OnError(ActionCallback<JSObject> callback) => JSRef?.CallVoid("on", "error", callback);
+        public JSEventCallback<Torrent> OnTorrent { get => new JSEventCallback<Torrent>(JSRef, "torrent", "on"); set { } }
+        public JSEventCallback<JSObject> OnError { get => new JSEventCallback<JSObject>(JSRef, "error", "on"); set { } }
 
         public class CreateServerOptions
         {
@@ -48,47 +49,63 @@ namespace SpawnDev.BlazorJS.WebTorrents
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ERROR WebTorrent.CreateServer: {ex.Message} {ex.StackTrace}");
+                Console.WriteLine($"ERROR WebTorrent.CreateServer failed");
             }
             return false;
         }
 
-        public Task<Torrent> Seed(SpawnDev.BlazorJS.JSObjects.File file, SeedTorrentOptions options = null)
+        public Torrent Seed(Uint8Array file, SeedTorrentOptions? options = null) => JSRef.Call<Torrent>("seed", file, options);
+        public Task<Torrent> SeedAsync(Uint8Array file, SeedTorrentOptions? options = null)
         {
-            var t = new TaskCompletionSource<Torrent>();
-            JSRef.CallVoid("seed", file, options, Callback.CreateOne<Torrent>((s) => t.TrySetResult(s)));
-            return t.Task;
+            var tcs = new TaskCompletionSource<Torrent>();
+            JSRef.CallVoid("seed", file, options, Callback.CreateOne<Torrent>((torrent) => { tcs.TrySetResult(torrent); }));
+            return tcs.Task;
         }
 
-        public Task<Torrent> Seed(List<SpawnDev.BlazorJS.JSObjects.File> files, SeedTorrentOptions options = null)
-        {
-            var t = new TaskCompletionSource<Torrent>();
-            JSRef.CallVoid("seed", files, options, Callback.CreateOne<Torrent>((s) => t.TrySetResult(s)));
-            return t.Task;
-        }
+        public Torrent Seed(List<Uint8Array> files, SeedTorrentOptions? options = null) => JSRef.Call<Torrent>("seed", files, options);
+
+        public Torrent Seed(JSObjects.File file, SeedTorrentOptions? options = null) => JSRef.Call<Torrent>("seed", file, options);
+        public Torrent Seed(List<JSObjects.File> files, SeedTorrentOptions? options = null) => JSRef.Call<Torrent>("seed", files, options);
 
         public Task<Torrent?> Get(string torrentId) => JSRef.CallAsync<Torrent?>("get", torrentId);
+
         public Torrent Add(string torrentId, ActionCallback<Torrent> callback) => JSRef.Call<Torrent>("add", torrentId, callback);
         public Torrent Add(string torrentId, ActionCallback callback) => JSRef.Call<Torrent>("add", torrentId, callback);
         public Torrent Add(string torrentId) => JSRef.Call<Torrent>("add", torrentId);
-        public void AddVoid(string torrentId, ActionCallback<Torrent> callback) => JSRef.Call<Torrent>("add", torrentId, callback);
 
-        public Task<Torrent> AddAsync(string torrentId)
+        public Torrent Add(byte[] torrent) => JSRef.Call<Torrent>("add", torrent);
+        public Task<Torrent> AddAsync(byte[] torrent)
         {
             var tcs = new TaskCompletionSource<Torrent>();
-            var callbacks = new CallbackGroup();
-            using var torrentEarly = JSRef.Call<Torrent>("add", torrentId, Callback.Create<Torrent>((torrent) =>
-            {
-                callbacks.Dispose();
-                tcs.TrySetResult(torrent);
-            }, callbacks));
-            torrentEarly.OnError(Callback.Create(() =>
-            {
-                callbacks.Dispose();
-                tcs.TrySetException(new Exception());
-            }));
+            JSRef.CallVoid("add", torrent, Callback.CreateOne<Torrent>((torrent) => { tcs.TrySetResult(torrent); }));
             return tcs.Task;
         }
+
+        public Torrent Add(byte[] torrent, ActionCallback<Torrent> callback) => JSRef.Call<Torrent>("add", torrent, callback);
+        public Torrent Add(byte[] torrent, ActionCallback callback) => JSRef.Call<Torrent>("add", torrent, callback);
+
+        public Torrent Add(Uint8Array torrent) => JSRef.Call<Torrent>("add", torrent);
+        public Torrent Add(Uint8Array torrent, ActionCallback<Torrent> callback) => JSRef.Call<Torrent>("add", torrent, callback);
+        public Torrent Add(Uint8Array torrent, ActionCallback callback) => JSRef.Call<Torrent>("add", torrent, callback);
+
+        public void AddVoid(string torrentId, ActionCallback<Torrent> callback) => JSRef.Call<Torrent>("add", torrentId, callback);
+
+        //public Task<Torrent> AddAsync(string torrentId)
+        //{
+        //    var tcs = new TaskCompletionSource<Torrent>();
+        //    var callbacks = new CallbackGroup();
+        //    using var torrentEarly = JSRef.Call<Torrent>("add", torrentId, Callback.Create<Torrent>((torrent) =>
+        //    {
+        //        callbacks.Dispose();
+        //        tcs.TrySetResult(torrent);
+        //    }, callbacks));
+        //    torrentEarly.OnError(Callback.Create(() =>
+        //    {
+        //        callbacks.Dispose();
+        //        tcs.TrySetException(new Exception());
+        //    }));
+        //    return tcs.Task;
+        //}
         void Remove(string infoHash, Action? callback = null)
         {
             if (callback == null)

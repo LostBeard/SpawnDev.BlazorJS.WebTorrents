@@ -1,4 +1,5 @@
 ﻿using Microsoft.JSInterop;
+using SpawnDev.BlazorJS.JSObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,6 +50,21 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Close the connection with the peer. This however doesn't prevent the peer from simply re-connecting.
         /// </summary>
         public void Destroy() => JSRef.CallVoid("destroy");
+
+        public void Use(IWireExtensionFactory extensionFactory)
+        {
+            // the "use" method checks for extension.prototype.name
+            // verify set here
+            extensionFactory.SetName();
+            JSRef.CallVoid("use", extensionFactory.CreateWireExtension);
+        }
+
+        public void Extended(string extension, object data) => JSRef.CallVoid("extended", extension, data);
+
+        /// <summary>
+        /// ExtendedHandshake properties can be set when an extension is created and those properties will be sent to peers when an extendedHandshake occurs
+        /// </summary>
+        public ExtendedHandshake ExtendedHandshake => JSRef.Get<ExtendedHandshake>("extendedHandshake");
 
         // verify below
         public bool AllowHalfOpen => JSRef.Get<bool>("allowHalfOpen");

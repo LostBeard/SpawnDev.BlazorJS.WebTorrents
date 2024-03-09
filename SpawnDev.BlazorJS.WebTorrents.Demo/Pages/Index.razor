@@ -2,10 +2,7 @@
 
 <PageTitle>Index</PageTitle>
 
-<h1>SpawnDev.BlazorJS.WebTorrent Example</h1>
-
 <div>
-    <div>WebTorrent Javascript library version: @WebTorrentService.WebTorrentLibraryVersion</div>
     <div>
         <video autoplay muted style="width: 1024px; height: 576px;" controls @ref=videoElRef></video>
     </div>
@@ -25,6 +22,10 @@
         <div>
             <button onclick="@(()=> _ = LoadTorrent())">Load</button>
         </div>
+    </div>
+
+    <div>
+        WebTorrent Javascript library version: @WebTorrentService.WebTorrentLibraryVersion
     </div>
     <div>
         WebTorrent Service Worker: @(WebTorrentService.ServiceWorkerEnabled ? "Online" : "Offline")
