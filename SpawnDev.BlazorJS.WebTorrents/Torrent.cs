@@ -1,11 +1,6 @@
 ﻿using Microsoft.JSInterop;
-using SpawnDev.BlazorJS;
 using SpawnDev.BlazorJS.JSObjects;
-using SpawnDev.BlazorJS.JsonConverters;
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
@@ -46,7 +41,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// .torrent file of the torrent (Blob). Useful for creating Blob URLs via URL.createObjectURL(blob)
         /// </summary>
-        public string TorrentFileBlob => JSRef.Get<string>("torrentFileBlob");
+        public Blob TorrentFileBlob => JSRef.Get<Blob>("torrentFileBlob");
         /// <summary>
         /// Array of all tracker servers. Each announce is an URL (string).
         /// </summary>
@@ -137,7 +132,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         public string CreatedBy => JSRef.Get<string>("createdBy");
         /// <summary>
-        /// A comment optionnaly set by the author (string).
+        /// A comment optionally set by the author (string).
         /// </summary>
         public string Comment => JSRef.Get<string>("comment");
         public class DestroyTorrentOptions
@@ -165,7 +160,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public Task DestroyAsync()
         {
             var t = new TaskCompletionSource();
-            Destroy(Callback.CreateOne(() => { t.SetResult(); }));
+            Destroy(Callback.CreateOne(t.SetResult));
             return t.Task;
         }
         /// <summary>
@@ -196,13 +191,18 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Resume connecting to new peers.
         /// </summary>
         public void Resume() => JSRef.CallVoid("resume");
-        // Events
+        /// <summary>
+        /// Add an event handler
+        /// </summary>
+        /// <param name="eventName"></param>
+        /// <param name="callback"></param>
         public void On(string eventName, Callback callback) => JSRef.CallVoid("on", eventName, callback);
-        public void Off(string eventName, Callback callback) => JSRef.CallVoid("off", eventName, callback);
+        // Removing an eventHandler is not supported
+        //public void Off(string eventName, Callback callback) => JSRef.CallVoid("off", eventName, callback);
         /// <summary>
         /// Emitted when the info hash of the torrent has been determined.
         /// </summary>
-       // public JSEventCallback OnInfoHash { get => _events.Get<JSEventCallback>("infohash", (o) => On("infohash", o), (o) => Off("infohash", o)); set { } }
+        //public JSEventCallback OnInfoHash { get => new JSEventCallback((o) => On("infohash", o), (o) => Off("infohash", o)); set { } }
         public JSEventCallback OnInfoHash { get => new JSEventCallback(JSRef, "infohash", "on"); set { } }
         /// <summary>
         /// Emitted when the metadata of the torrent has been determined. This includes the full contents of the .torrent file, including list of files, torrent length, piece hashes, piece length, etc.

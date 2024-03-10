@@ -1,11 +1,4 @@
 ﻿using Microsoft.JSInterop;
-using SpawnDev.BlazorJS.JSObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
@@ -51,14 +44,25 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         public void Destroy() => JSRef.CallVoid("destroy");
 
+        /// <summary>
+        /// Tell the wire to use the given extension factory<br />
+        /// An "extension factory" 
+        /// </summary>
+        /// <param name="extensionFactory"></param>
         public void Use(IWireExtensionFactory extensionFactory)
         {
             // the "use" method checks for extension.prototype.name
             // verify set here
             extensionFactory.SetName();
-            JSRef.CallVoid("use", extensionFactory.CreateWireExtension);
+            JSRef!.CallVoid("use", extensionFactory.CreateWireExtension);
         }
-
+        /// <summary>
+        /// Send data to the named extension on the other end of the wire<br />
+        /// byte arrays and Uint8Array data will be sent, without change, as a Uint8Array<br />
+        /// all other data is BEncoded before being sent
+        /// </summary>
+        /// <param name="extension"></param>
+        /// <param name="data"></param>
         public void Extended(string extension, object data) => JSRef.CallVoid("extended", extension, data);
 
         /// <summary>
@@ -75,5 +79,16 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public bool PeerInterested => JSRef.Get<bool>("peerInterested");
         public bool Readable => JSRef.Get<bool>("readable");
         public bool Writable => JSRef.Get<bool>("writable");
+        /// <summary>
+        /// Add an event handler
+        /// </summary>
+        /// <param name="eventName"></param>
+        /// <param name="callback"></param>
+        public void On(string eventName, Callback callback) => JSRef.CallVoid("on", eventName, callback);
+        // Removing an eventHandler is not supported
+        //public void Off(string eventName, Callback callback) => JSRef.CallVoid("off", eventName, callback);
+
+        //public JSEventCallback OnClose { get => new JSEventCallback(JSRef, "ready", "on", "off"); set { } }
+        public JSEventCallback OnClose { get => new JSEventCallback((o) => On("close", o)); set { } }
     }
 }

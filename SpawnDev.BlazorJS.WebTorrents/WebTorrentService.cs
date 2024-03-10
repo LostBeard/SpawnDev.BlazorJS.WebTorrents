@@ -1,9 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SpawnDev.BlazorJS.JSObjects;
 using SpawnDev.BlazorJS.Toolbox;
-using System;
-using System.Net;
-using System.Text;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
@@ -78,54 +75,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
 #endif
             webtClient.OnError += _OnError;
             webtClient.OnTorrent += _OnTorrent;
-            //wireExtensionFactory = new WireExtensionFactory<WireExtension>("exolinguistics");
-            // try to start the ServiceWorker server (if possible)
-            // requires a registered service worker that imports the sw.min.js script from this project
-            //ServiceWorkerEnabled = await webtClient.CreateServer();
-            //await SeedAppKey();
         }
-
-        //WireExtensionFactory<WireExtension> wireExtensionFactory { get; set; }
-
-        //ActionCallback<Wire>? _onWire = null;
-        //ActionCallback? _onTOrrentMetadata = null;
-
-        //        Torrent? _appKeyTorrent = null;
-
-        //        string _appKeyTorrentMagnet = "";
-        //        string _appKeyTorrentInfohash = "";
-
-        //        async Task SeedAppKey()
-        //        {
-        //            if (webtClient == null) return;
-        //            using var buf = new Uint8Array(Encoding.UTF8.GetBytes(appKey));
-        //            buf.JSRef.Set("name", "SpawnDevKey.txt");
-        //            // this torrent is given to the WebTorrent tracker(s) to locate our app peers
-        //            _appKeyTorrent = webtClient.Seed(buf, new SeedTorrentOptions { Name = "SpawnDev" });
-        //#if DEBUG
-        //            JS.Set("__cmd", _callbacks.Add(new FuncCallback<string, object>(cmd)));
-        //#endif
-        //        }
-
-        //object cmd(string cmd)
-        //{
-        //    var ret = "";
-        //    if (cmd == "factory")
-        //    {
-        //        //return wireExtensionFactory.Create;
-        //    }
-        //    if (!string.IsNullOrEmpty(_appKeyTorrentMagnet) && !string.IsNullOrEmpty(_appKeyTorrentInfohash))
-        //    {
-        //        ret = _appKeyTorrentMagnet;
-        //        Torrents.Remove(_appKeyTorrentInfohash);
-        //        _appKeyTorrent?.Destroy(new Torrent.DestroyTorrentOptions { DestroyStore = true });
-        //        _appKeyTorrent = webtClient.Add(_appKeyTorrentMagnet);
-        //        Console.WriteLine("Adding tracking torrent magnet");
-        //    }
-        //    return ret;
-        //}
-
-        //static string appKey = typeof(WebTorrentService).FullName;
 
         void OnTorrentWire(Torrent torrent, Wire wire)
         {
@@ -164,17 +114,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
 
         void _OnNoPeersError(Torrent torrent, string announceType)
         {
-            //var wires = torrent.Wires;
-            //foreach (var wire in wires)
-            //{
-            //    var extLoaded = wireExtensionFactory.ExtensionLoaded(wire);
-            //    if (!extLoaded)
-            //    {
-            //        wireExtensionFactory.Use(wire);
-            //        Console.WriteLine($"ExtensionLoaded: {extLoaded}");
-            //    }
-            //}
-            //wires.DisposeAll();
             JS.Log("NoPeers", torrent.InfoHash, announceType);
         }
 
@@ -188,7 +127,8 @@ namespace SpawnDev.BlazorJS.WebTorrents
             {
                 torrent = JS.ReturnMe(torrent);
                 Torrents.Add(infohash, torrent);
-                Console.WriteLine($"TorrentSeen: {infohash}");
+                var comment = torrent.Comment ?? "[NULL_COMMENT]";
+                Console.WriteLine($"TorrentSeen: {infohash} Comment: {comment}");
                 torrent.OnMetadata += () => OnTorrentMetadata(torrent);
                 torrent.OnWire += (wire) => OnTorrentWire(torrent, wire);
                 torrent.OnNoPeers += (announceType) => _OnNoPeersError(torrent, announceType);
@@ -214,48 +154,30 @@ namespace SpawnDev.BlazorJS.WebTorrents
             _callbacks.Dispose();
         }
 
-        //public async Task<Torrent> SeedFile(FileSystemFileHandle fileHandle)
-        //{
-        //    if (fileHandle == null) return null;
-        //    using var file = await fileHandle.GetFile();
-        //    return await SeedFile(file);
-        //}
-
-        //public async Task<Torrent> SeedFile(JSObjects.File file, bool markPrivate = false)
-        //{
-        //    if (webtClient == null) throw new NullReferenceException(nameof(webtClient));
-        //    if (file == null) throw new ArgumentNullException(nameof(webtClient));
-        //    var options = new SeedTorrentOptions
-        //    {
-        //        AnnounceList = new List<List<string>> { AnnounceTrackers },
-        //    };
-        //    if (markPrivate)
-        //    {
-        //        options.Private = true;
-        //    }
-        //    Torrent torrent = webtClient.Seed(file, options);
-        //    Console.WriteLine($"Torrent: {torrent.MagnetURI}");
-        //    return torrent;
-        //}
-
         public async Task<bool> GetTorrentExists(string torrentId)
         {
             if (webtClient == null) return false;
             using var torrent = await webtClient.Get(torrentId);
             return torrent != null;
         }
-
-        public async Task<Torrent?> GetTorrent(string torrentId, bool allowLoad = true)
+        /// <summary>
+        /// Returns a torrent with the given torrentId if it exists,<br />
+        /// Else if allowAdd, it is created and added and then returned
+        /// </summary>
+        /// <param name="torrentId">usually the infoHash</param>
+        /// <param name="allowAdd">If not found the torrent will be added</param>
+        /// <returns></returns>
+        /// <exception cref="NullReferenceException"></exception>
+        public async Task<Torrent?> GetTorrent(string torrentId, bool allowAdd = true)
         {
             if (webtClient == null) throw new NullReferenceException(nameof(webtClient));
             var torrent = await webtClient.Get(torrentId);
             if (torrent != null) return torrent;
-            if (torrent == null && !allowLoad) return null;
+            if (torrent == null && !allowAdd) return null;
             Console.WriteLine("adding torrent");
             AddTorrentOptions options = new AddTorrentOptions();
             options.announce = AnnounceTrackers;
             return webtClient.Add(torrentId);
         }
-
     }
 }
