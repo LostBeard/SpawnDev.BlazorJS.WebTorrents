@@ -18,7 +18,6 @@
 		<RepositoryUrl>https://github.com/LostBeard/SpawnDev.BlazorJS.WebTorrents.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>Blazor;WebTorrents;Torrents</PackageTags>
-		<StaticWebAssetBasePath></StaticWebAssetBasePath>
 	</PropertyGroup>
 
 	<ItemGroup>
