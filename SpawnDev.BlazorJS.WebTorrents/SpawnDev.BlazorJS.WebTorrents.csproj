@@ -4,7 +4,7 @@
 		<TargetFrameworks>net8.0;net7.0;net6.0</TargetFrameworks>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<Version>1.0.1</Version>
+		<Version>1.0.2</Version>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>
@@ -29,7 +29,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="BencodeNET" Version="5.0.0" />
-		<PackageReference Include="SpawnDev.BlazorJS" Version="2.2.67-alpha1" />
+		<PackageReference Include="SpawnDev.BlazorJS" Version="2.2.67" />
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
