@@ -3,7 +3,8 @@
 namespace SpawnDev.BlazorJS.WebTorrents
 {
     // https://github.com/webtorrent/webtorrent/blob/master/docs/api.md#wire-api
-    public class Wire : JSObject
+    // https://github.com/webtorrent/bittorrent-protocol !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    public class Wire : EventEmitter
     {
         public Wire(IJSInProcessObjectReference _ref) : base(_ref) { }
         /// <summary>
@@ -43,7 +44,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Close the connection with the peer. This however doesn't prevent the peer from simply re-connecting.
         /// </summary>
         public void Destroy() => JSRef.CallVoid("destroy");
-
         /// <summary>
         /// Tell the wire to use the given extension factory<br />
         /// An "extension factory" 
@@ -65,6 +65,8 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <param name="data"></param>
         public void Extended(string extension, object data) => JSRef.CallVoid("extended", extension, data);
 
+        public void SetKeepAlive(bool enable) => JSRef.CallVoid("setKeepAlive", enable);
+
         /// <summary>
         /// ExtendedHandshake properties can be set when an extension is created and those properties will be sent to peers when an extendedHandshake occurs
         /// </summary>
@@ -79,16 +81,23 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public bool PeerInterested => JSRef.Get<bool>("peerInterested");
         public bool Readable => JSRef.Get<bool>("readable");
         public bool Writable => JSRef.Get<bool>("writable");
-        /// <summary>
-        /// Add an event handler
-        /// </summary>
-        /// <param name="eventName"></param>
-        /// <param name="callback"></param>
-        public void On(string eventName, Callback callback) => JSRef.CallVoid("on", eventName, callback);
-        // Removing an eventHandler is not supported
-        //public void Off(string eventName, Callback callback) => JSRef.CallVoid("off", eventName, callback);
 
-        //public JSEventCallback OnClose { get => new JSEventCallback(JSRef, "ready", "on", "off"); set { } }
-        public JSEventCallback OnClose { get => new JSEventCallback((o) => On("close", o)); set { } }
+        public JSEventCallback OnClose { get => new JSEventCallback("close", On, RemoveListener); set { } }
+
+        public JSEventCallback OnInterested { get => new JSEventCallback("interested", On, RemoveListener); set { } }
+
+        public JSEventCallback OnUninterested { get => new JSEventCallback("uninterested", On, RemoveListener); set { } }
+        public JSEventCallback OnBitfield { get => new JSEventCallback("bitfield", On, RemoveListener); set { } }
+
+        public JSEventCallback OnDownload { get => new JSEventCallback("download", On, RemoveListener); set { } }
+        public JSEventCallback OnUpload{ get => new JSEventCallback("upload", On, RemoveListener); set { } }
+
+        public JSEventCallback OnRequest { get => new JSEventCallback("request", On, RemoveListener); set { } }
+        public JSEventCallback OnPort { get => new JSEventCallback("port", On, RemoveListener); set { } }
+
+        public JSEventCallback OnHave { get => new JSEventCallback("have", On, RemoveListener); set { } }
+        public JSEventCallback OnChoke { get => new JSEventCallback("choke", On, RemoveListener); set { } }
+        public JSEventCallback OnUnchoke { get => new JSEventCallback("unchoke", On, RemoveListener); set { } }
+        public JSEventCallback<string, string, JSObject> OnHandshake { get => new JSEventCallback<string, string, JSObject>("handshake", On, RemoveListener); set { } }
     }
 }

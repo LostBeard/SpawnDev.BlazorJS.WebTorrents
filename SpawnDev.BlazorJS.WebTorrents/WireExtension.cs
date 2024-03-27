@@ -76,13 +76,14 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        protected virtual bool Send(object data) => Send(Name, data);
-        protected virtual bool Send(string toExtensionName, object data)
+        protected virtual bool Send(object data, string? extensionName = null)
         {
             if (Wire == null || !SupportedPeer) return false;
+            var destExt = string.IsNullOrEmpty(extensionName) ? Name : extensionName;
             try
             {
-                Wire.Extended(toExtensionName, data);
+                JS.Log(Name, "Send", destExt, data);
+                Wire.Extended(destExt, data);
                 return true;
             }
             catch (Exception ex)

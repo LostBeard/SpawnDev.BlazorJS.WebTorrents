@@ -2,9 +2,9 @@
 
 <PageTitle>Index</PageTitle>
 
-<div>
-    <div>
-        <video autoplay muted style="width: 1024px; height: 576px;" controls @ref=videoElRef></video>
+<div class="container" style="padding: 1rem;">
+    <div style="display: flex; flex-direction: row; justify-content: center;">
+        <video autoplay muted style="width: 512px; height: 288px;" controls @ref=videoElRef></video>
     </div>
     <div>
         <ul>
@@ -25,7 +25,7 @@
     </div>
 
     <div>
-        WebTorrent Javascript library version: @WebTorrentService.WebTorrentLibraryVersion
+        WebTorrent version: @WebTorrentService.WebTorrentLibraryVersionActual
     </div>
     <div>
         WebTorrent Service Worker: @(WebTorrentService.ServiceWorkerEnabled ? "Online" : "Offline")
@@ -49,15 +49,18 @@
                     <th>Size</th>
                     <th>Path</th>
                 </tr>
-                @foreach (var f in TorrentFiles)
+                @if (TorrentFiles != null)
                 {
-                    var isPlaying = largestMp4File != null && f.Path == largestMp4File.Path;
-                    <tr style="font-weight: @(isPlaying ? "bold" : "normal");">
-                        <td>@(Math.Round(f.Progress * 100, 2)) %</td>
-                        <td>@f.Name</td>
-                        <td>@ToBytesCount(f.Length)</td>
-                        <td>@f.Path</td>
-                    </tr>
+                    foreach (var f in TorrentFiles)
+                    {
+                        var isPlaying = largestMp4File != null && f.Path == largestMp4File.Path;
+                        <tr style="font-weight: @(isPlaying ? "bold" : "normal");">
+                            <td>@(Math.Round(f.Progress * 100, 2)) %</td>
+                            <td>@f.Name</td>
+                            <td>@ToBytesCount(f.Length)</td>
+                            <td>@f.Path</td>
+                        </tr>
+                    }
                 }
             </table>
         }

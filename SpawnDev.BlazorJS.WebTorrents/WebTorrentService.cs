@@ -1,163 +1,201 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SpawnDev.BlazorJS.JSObjects;
-using SpawnDev.BlazorJS.Toolbox;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
     // https://github.com/webtorrent/webtorrent/blob/master/docs/api.md
-    public class WebTorrentService : IDisposable, IAsyncBackgroundService
+    public class WebTorrentService : IAsyncBackgroundService, IDisposable
     {
-        public WebTorrent? webtClient { get; private set; } = null;
-        public List<string> AnnounceTrackers { get; private set; } = new List<string>();
+        public event Action<Torrent> OnTorrent;
+        public event Action<Torrent, Wire> OnWire;
+        /// <summary>
+        /// Returns true if the service worker server has been started
+        /// </summary>
+        public bool ServiceWorkerEnabled { get; private set; }
+        /// <summary>
+        /// WebTorrent instance
+        /// </summary>
+        public WebTorrent? WebTorrent { get; private set; } = null;
+        /// <summary>
+        /// Returns the library version reported by the library. This value does not always represent the actual release version.
+        /// </summary>
         public string WebTorrentLibraryVersion { get; private set; } = "";
-        BlazorJSRuntime JS;
-        Function? WebTorrent { get; set; }
-        public bool BeenInit { get; private set; }
+        /// <summary>
+        /// The version of the bundled WebTorrent library release
+        /// </summary>
+        public string WebTorrentLibraryVersionActual { get; } = "2.2.0";
+        private BlazorJSRuntime JS;
+        private bool BeenInit = false;
         // Latest release
         // https://github.com/webtorrent/webtorrent/releases
-        // current version is 2.0.15
-        string latestVersionSrc = $"./_content/SpawnDev.BlazorJS.WebTorrents/webtorrent.min.js";
-        public bool ServiceWorkerEnabled { get; private set; }
-        ModuleNamespaceObject? WebTorrentModule { get; set; } = null;
-        CallbackGroup _callbacks = new CallbackGroup();
-        IServiceProvider _serviceProvider;
-        IServiceCollection _serviceDescriptors;
-        List<ServiceDescriptor> _wireExtensionServices;
-
-        public bool Supported { get; private set; } 
-        public Cache DefaultCache { get; private set; }
+        // current version is 2.2.0 (2024-03-26) (it reports itself as 2.1.36)
+        private static string latestVersionSrc = $"./_content/SpawnDev.BlazorJS.WebTorrents/webtorrent.min.js";
+        private IServiceProvider ServiceProvider;
+        private List<ServiceDescriptor> WireExtensionServices;
+        // to delete FileSystem api data on chrome ....
+        // chrome://settings/content/all?searchSubpage=localhost
         public WebTorrentService(BlazorJSRuntime js, IServiceCollection serviceDescriptors, IServiceProvider serviceProvider)
         {
             JS = js;
-            _serviceDescriptors = serviceDescriptors;
-            _serviceProvider = serviceProvider;
-            _wireExtensionServices = _serviceDescriptors.Where(o =>
-                typeof(IWireExtensionFactory).IsAssignableFrom(o.ServiceType) || typeof(IWireExtensionFactory).IsAssignableFrom(o.ImplementationType)
-            ).ToList();
+            ServiceProvider = serviceProvider;
+            WireExtensionServices = serviceDescriptors.Where(o => typeof(IWireExtensionFactory).IsAssignableFrom(o.ServiceType) || typeof(IWireExtensionFactory).IsAssignableFrom(o.ImplementationType)).ToList();
+#if DEBUG
+            JS.Set("_clearTorrentStorage", new ActionCallback<string?>(async (string? name) =>
+            {
+                if (string.IsNullOrEmpty(name))
+                {
+                    await ClearTorrentStorage();
+                }
+                else
+                {
+                    await ClearTorrentStorage(name);
+                }
+            }));
+#endif
         }
-
-        public event Action<Torrent> OnTorrent;
-
-        public event Action<Torrent, Wire> OnWire;
-
-        // to delete FileSystem api data on chrome ....
-        // chrome://settings/content/all?searchSubpage=localhost
         public async Task InitAsync()
         {
             if (BeenInit) return;
             BeenInit = true;
             if (IsDisposed) return;
-            //
-            using var caches = new CacheStorage();
-            DefaultCache = await caches.Open("default");
-            //
-            WebTorrentModule = await JS.Import(latestVersionSrc);
+            var WebTorrentModule = await JS.Import(latestVersionSrc);
             if (WebTorrentModule == null) throw new Exception("WebTorrentService could not be initialized.");
             WebTorrentLibraryVersion = WebTorrentModule.GetExport<string?>("default.VERSION") ?? "";
-            WebTorrent = WebTorrentModule.GetExport<Function>("default");
+            var WebTorrentClass = WebTorrentModule.GetExport<Function>("default");
             // set WebTorrent on the global scope so it can be used globally
-            JS.Set("WebTorrent", WebTorrent);
-            try
+            JS.Set("WebTorrent", WebTorrentClass);
+            WebTorrent = new WebTorrent();
+            WebTorrent.OnError += WebTorrent_OnError;
+            WebTorrent.OnTorrent += WebTorrent_OnTorrent;
+        }
+        /// <summary>
+        /// Returns true of the service worker is already enable or if it was started
+        /// </summary>
+        /// <returns></returns>
+        public async Task<bool> EnableServer()
+        {
+            if (WebTorrent == null) return false;
+            if (ServiceWorkerEnabled) return true;
+            ServiceWorkerEnabled = await WebTorrent.CreateServer();
+            return ServiceWorkerEnabled;
+        }
+        /// <summary>
+        /// Remove all Torrent data from default Torrent store
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<string>> ClearTorrentStorage()
+        {
+            var ret = new List<string>();
+            using var navigator = JS.Get<Navigator>("navigator");
+            using var storageManager = navigator.Storage;
+            using var rootDir = await storageManager.GetDirectory();
+            var entries = await rootDir.Values();
+            foreach (var entry in entries!)
             {
-                webtClient = new WebTorrent();
+                var pos = entry.Name.LastIndexOf(" - ");
+                if (pos > -1 && entry.Kind == "directory")
+                {
+                    var entryTorrentName = entry.Name.Substring(0, pos);
+                    Console.WriteLine($"Deleting cache for: {entryTorrentName}");
+                    await rootDir.RemoveEntry(entry.Name, true);
+                    ret.Add(entryTorrentName);
+                }
             }
-            catch(Exception ex)
+            Console.WriteLine($"ClearTorrentStorage done");
+            return ret;
+        }
+        /// <summary>
+        /// Remove Torrent data from default Torrent store
+        /// </summary>
+        /// <param name="torrentName"></param>
+        /// <returns></returns>
+        public async Task<bool> ClearTorrentStorage(string torrentName)
+        {
+            using var navigator = JS.Get<Navigator>("navigator");
+            using var storageManager = navigator.Storage;
+            using var rootDir = await storageManager.GetDirectory();
+            var entries = await rootDir.Values();
+            foreach (var entry in entries!)
             {
-                Console.WriteLine("Failed to create WebTorrent instance");
+                var pos = entry.Name.LastIndexOf(" - ");
+                if (pos > -1 && entry.Kind == "directory")
+                {
+                    var entryTorrentName = entry.Name.Substring(0, pos);
+                    if (torrentName != entryTorrentName) continue;
+                    Console.WriteLine($"Deleting cache for: {entryTorrentName}");
+                    await rootDir.RemoveEntry(entry.Name, true);
+                    return true;
+                }
             }
-            if (webtClient == null || webtClient.JSRef == null)
+            return false;
+        }
+        public Dictionary<string, Torrent> Torrents { get; } = new Dictionary<string, Torrent>();
+        string WebTorrentSeenFlag => GetType().Name;
+        public void TorrentSeen(Torrent torrent)
+        {
+            var torrentUID = torrent.JSRef!.Get<string?>(WebTorrentSeenFlag);
+            if (!string.IsNullOrEmpty(torrentUID))
             {
+                // already seen this
                 return;
             }
-            Supported = true;
-#if DEBUG
-            JS.Set("_webtorrent", webtClient);
-#endif
-            webtClient.OnError += _OnError;
-            webtClient.OnTorrent += _OnTorrent;
+            JS.Log("new TorrentSeen", torrent);
+            torrentUID = Guid.NewGuid().ToString();
+            torrent.JSRef!.Set(WebTorrentSeenFlag, torrentUID);
+            torrent.OnMetadata += () => Torrent_OnMetadata(torrent);
+            torrent.OnWire += (wire) => Torrent_OnWire(torrent, wire);
+            torrent.OnNoPeers += (announceType) => Torrent_OnNoPeersError(torrent, announceType);
+            torrent.OnError += (error) => Torrent_OnError(torrent, error);
+            Torrents.Add(torrentUID, torrent);
         }
-
-        void OnTorrentWire(Torrent torrent, Wire wire)
+        void Torrent_OnMetadata(Torrent torrent)
+        {
+            JS.Log("OnTorrentMetadata", torrent.InfoHash);
+        }
+        void Torrent_OnWire(Torrent torrent, Wire wire)
         {
             JS.Log("OnWire", torrent.InfoHash, wire.PeerId);
-            var wireExtensionFactoryServices = _wireExtensionServices.Select(o => (IWireExtensionFactory)_serviceProvider.GetRequiredService(o.ServiceType)).ToList();
+            var wireExtensionFactoryServices = WireExtensionServices.Select(o => (IWireExtensionFactory)ServiceProvider.GetRequiredService(o.ServiceType)).ToList();
             foreach (var factory in wireExtensionFactoryServices)
             {
                 wire.Use(factory);
             }
             OnWire?.Invoke(torrent, wire);
         }
-
-        void OnTorrentMetadata(Torrent torrent)
-        {
-            JS.Log("OnTorrentMetadata", torrent.InfoHash);
-        }
-
-        void _OnTorrent(Torrent torrent)
-        {
-            _ = Task.Run(async () =>
-            {
-                using var torrentFile = torrent.TorrentFile;
-                var torrentFilename = $"/torrents/{torrent.InfoHash}.torrent";
-                using var buffer = torrentFile.Buffer;
-                await DefaultCache.WriteArrayBuffer(torrentFilename, buffer);
-            });
-
-            JS.Log("OnTorrent", torrent.InfoHash, torrent.Files.Count().ToString(), torrent.Name);
-            TorrentSeen(torrent);
-        }
-
-        void _OnError(JSObject error)
-        {
-            JS.Log("OnError", error);
-        }
-
-        void _OnNoPeersError(Torrent torrent, string announceType)
+        void Torrent_OnNoPeersError(Torrent torrent, string announceType)
         {
             JS.Log("NoPeers", torrent.InfoHash, announceType);
         }
-
-        public Dictionary<string, Torrent> Torrents { get; } = new Dictionary<string, Torrent>();
-
-        void TorrentSeen(Torrent torrent)
+        void Torrent_OnError(Torrent torrent, JSObject? error)
         {
-            var infohash = torrent.InfoHash;
-            if (string.IsNullOrEmpty(infohash)) return;
-            if (!Torrents.ContainsKey(infohash))
-            {
-                torrent = JS.ReturnMe(torrent);
-                Torrents.Add(infohash, torrent);
-                var comment = torrent.Comment ?? "[NULL_COMMENT]";
-                Console.WriteLine($"TorrentSeen: {infohash} Comment: {comment}");
-                torrent.OnMetadata += () => OnTorrentMetadata(torrent);
-                torrent.OnWire += (wire) => OnTorrentWire(torrent, wire);
-                torrent.OnNoPeers += (announceType) => _OnNoPeersError(torrent, announceType);
-                //if (string.IsNullOrEmpty(_appKeyTorrentMagnet) && _appKeyTorrent != null && _appKeyTorrent.InfoHash == infohash)
-                //{
-                //    _appKeyTorrentMagnet = _appKeyTorrent.MagnetURI;
-                //    _appKeyTorrentInfohash = _appKeyTorrent.InfoHash;
-                //    Console.WriteLine($"_appKeyTorrentInfohash: {_appKeyTorrentInfohash}");
-                //}
-                OnTorrent?.Invoke(torrent);
-            }
+            JS.Log("OnTorrentError", torrent, error);
         }
-
-        public bool IsDisposed { get; private set; } = false;
-
+        void WebTorrent_OnTorrent(Torrent torrent)
+        {
+            TorrentSeen(torrent);
+            OnTorrent?.Invoke(torrent);
+            JS.Log("OnTorrent?.Invoke(torrent);", torrent);
+        }
+        void WebTorrent_OnError(JSObject error)
+        {
+            JS.Log("OnError", error);
+        }
+        bool IsDisposed = false;
         public void Dispose()
         {
             if (IsDisposed) return;
             IsDisposed = true;
-            webtClient?.Dispose();
             WebTorrent?.Dispose();
-            WebTorrentModule?.Dispose();
-            _callbacks.Dispose();
         }
-
+        /// <summary>
+        /// Returns true if a torrent with the given torrentId exists
+        /// </summary>
+        /// <param name="torrentId"></param>
+        /// <returns></returns>
         public async Task<bool> GetTorrentExists(string torrentId)
         {
-            if (webtClient == null) return false;
-            using var torrent = await webtClient.Get(torrentId);
+            if (WebTorrent == null) return false;
+            using var torrent = await WebTorrent.Get(torrentId);
             return torrent != null;
         }
         /// <summary>
@@ -170,14 +208,31 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <exception cref="NullReferenceException"></exception>
         public async Task<Torrent?> GetTorrent(string torrentId, bool allowAdd = true)
         {
-            if (webtClient == null) throw new NullReferenceException(nameof(webtClient));
-            var torrent = await webtClient.Get(torrentId);
+            if (WebTorrent == null) throw new NullReferenceException(nameof(WebTorrent));
+            var torrent = await WebTorrent.Get(torrentId);
             if (torrent != null) return torrent;
             if (torrent == null && !allowAdd) return null;
             Console.WriteLine("adding torrent");
-            AddTorrentOptions options = new AddTorrentOptions();
-            options.announce = AnnounceTrackers;
-            return webtClient.Add(torrentId);
+            var options = new AddTorrentOptions();
+            //options.Announce = AnnounceTrackers;
+            return WebTorrent.Add(torrentId, options);
+        }
+        /// <summary>
+        /// Returns a torrent with the given torrentId if it exists,<br />
+        /// Else if allowAdd, it is created and added and then returned
+        /// </summary>
+        /// <param name="torrentId"></param>
+        /// <param name="addTorrentOptions"></param>
+        /// <returns></returns>
+        /// <exception cref="NullReferenceException"></exception>
+        public async Task<Torrent?> GetTorrent(string torrentId, AddTorrentOptions addTorrentOptions)
+        {
+            if (WebTorrent == null) throw new NullReferenceException(nameof(WebTorrent));
+            var torrent = await WebTorrent.Get(torrentId);
+            if (torrent != null) return torrent;
+            Console.WriteLine("adding torrent");
+            //options.Announce = AnnounceTrackers;
+            return WebTorrent.Add(torrentId, addTorrentOptions);
         }
     }
 }

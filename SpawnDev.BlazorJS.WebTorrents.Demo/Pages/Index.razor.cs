@@ -1,8 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using SpawnDev.BlazorJS.JSObjects;
-using SpawnDev.BlazorJS.JsonConverters;
-using System.Net.Http.Headers;
-using System.Runtime.InteropServices;
 using Timer = System.Timers.Timer;
 
 namespace SpawnDev.BlazorJS.WebTorrents.Demo.Pages
@@ -20,7 +17,6 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Pages
             { "Cosmos Laundromat", "magnet:?xt=urn:btih:c9e15763f722f23e98a29decdfae341b98d53056&dn=Cosmos+Laundromat&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fcosmos-laundromat.torrent" },
             { "Sintel", "magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fsintel.torrent" },
             { "Tears of Steel", "magnet:?xt=urn:btih:209c8226b299b308beaf2b9cd3fb49212dbd13ec&dn=Tears+of+Steel&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Ftears-of-steel.torrent" },
-            { "The WIRED CD - Rip. Sample. Mash. Share", "magnet:?xt=urn:btih:a88fda5954e89178c372716a6a78b8180ed4dad3&dn=The+WIRED+CD+-+Rip.+Sample.+Mash.+Share&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fwired-cd.torrent" },
         };
 
         ElementReference videoElRef { get; set; }
@@ -30,24 +26,11 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Pages
         string TorrentHash => Torrent == null ? "" : Torrent.InfoHash;
         HTMLVideoElement? videoEl = null;
         string StatusMsg = "";
-        string torrentId = "magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fsintel.torrent";
+        string torrentId = "";
         Timer tmr = new Timer();
         private void OnInputEvent(ChangeEventArgs changeEvent)
         {
             torrentId = (string)changeEvent.Value;
-        }
-        async Task LoadTorrent()
-        {
-            try
-            {
-                StatusMsg = "Loading torrent...";
-                await LoadTorrent(torrentId);
-                StatusMsg = "Torrent loaded";
-            }
-            catch
-            {
-                StatusMsg = "Failed to load torrent.";
-            }
         }
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -58,8 +41,8 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Pages
                 tmr.Enabled = true;
                 videoEl = new HTMLVideoElement(JS.ToJSRef(videoElRef));
                 StateHasChanged();
+                await WebTorrentService.EnableServer();
             }
-            await base.OnAfterRenderAsync(firstRender);
         }
 
         private void Tmr_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
@@ -76,23 +59,39 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Pages
             largestMp4File = null;
         }
 
+        async Task LoadTorrent()
+        {
+            try
+            {
+                StatusMsg = "Loading torrent...";
+                await LoadTorrent(torrentId);
+                StatusMsg = "Torrent loaded";
+            }
+            catch
+            {
+                StatusMsg = "Failed to load torrent.";
+            }
+        }
         async Task LoadTorrent(string torrentIdNew)
         {
-            if (videoEl == null) return;
-            DisposeTorrent();
-            torrentId = torrentIdNew;
-            Torrent = await WebTorrentService.GetTorrent(torrentId);
-            if (Torrent != null)
+            JS.Log($"LoadTorrent", WebTorrentService.ServiceWorkerEnabled);
+            try
             {
-                Torrent.DeselectAll();
+                if (videoEl == null) return;
+                DisposeTorrent();
+                torrentId = torrentIdNew;
+                Torrent = await WebTorrentService.GetTorrent(torrentId, new AddTorrentOptions { 
+                    Paused = true, 
+                    Deselect = true, 
+                });
+                await Torrent!.WhenReady();
                 TorrentFiles = Torrent.Files;
                 largestMp4File = TorrentFiles.Where(o => o.Name.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase)).OrderByDescending(o => o.Length).FirstOrDefault();
-                StateHasChanged();
                 if (largestMp4File != null)
                 {
-                    largestMp4File.Select(1);
                     if (WebTorrentService.ServiceWorkerEnabled)
                     {
+                        //largestMp4File.Select(1);
                         try
                         {
                             videoEl.Muted = true;
@@ -109,8 +108,12 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Pages
                         // streaming not available. fallback to playing after download...
                     }
                 }
+                StateHasChanged();
             }
-            StateHasChanged();
+            catch (Exception ex)
+            {
+                JS.Log($"LoadTorrent failed: {ex.Message}");
+            }
         }
 
         public void Dispose()

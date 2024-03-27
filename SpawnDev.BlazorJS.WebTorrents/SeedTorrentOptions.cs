@@ -7,12 +7,16 @@ namespace SpawnDev.BlazorJS.WebTorrents
     {
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public List<string>? Announce { get; set; } = null;
+
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Callback? GetAnnounceOpts { get; set; } = null;
+
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? MaxWebConns { get; set; } = null;
+
         //[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         //public string? Path { get; set; } = null;
+
         //[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         //public Callback Store { get; set; } = null;
     }
