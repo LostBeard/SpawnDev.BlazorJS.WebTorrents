@@ -43,7 +43,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public WireExtendedHandshakeEvent? ExtendedHandshake { get; private set; } = null;
 
         // https://github.com/Krusen/BencodeNET#encoding
-        BencodeParser parser = new BencodeParser();
+        /// <summary>
+        /// Used to encode and decode BEncoded data
+        /// </summary>
+        protected BencodeParser BencodeParser = new BencodeParser();
         public WireExtension(Wire wire, string extensionName)
         {
             JS = BlazorJSRuntime.JS;
@@ -67,7 +70,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
 
         private void _tmr_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
         {
-            Send($"........");
+            //Send($"........");
         }
 
         /// <summary>
@@ -75,6 +78,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// all other data is BEncoded before being sent
         /// </summary>
         /// <param name="data"></param>
+        /// <param name="extensionName">If specified, this is the target extension on the remote peer the message is for</param>
         /// <returns></returns>
         protected virtual bool Send(object data, string? extensionName = null)
         {
@@ -114,6 +118,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
             if (SupportedPeer)
             {
                 OnSupportedPeerConnected?.Invoke(this, extendedHandshake);
+                JS.Log($"Sending: Hello World Ext > {Name}");
                 Send($"Hello World Ext > {Name}");
             }
         }
@@ -126,7 +131,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         {
             try
             {
-                var txt = parser.Parse(buf).ToString();
+                var txt = BencodeParser.Parse(buf).ToString();
                 JS.Log(Name, "_OnMessage", txt);
             }
             catch (Exception ex)

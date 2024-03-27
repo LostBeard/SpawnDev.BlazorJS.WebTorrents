@@ -1,6 +1,5 @@
 ﻿using Microsoft.JSInterop;
 using SpawnDev.BlazorJS.JSObjects;
-using System.Text.Json.Serialization;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
@@ -8,6 +7,29 @@ namespace SpawnDev.BlazorJS.WebTorrents
     // https://github.com/webtorrent/webtorrent/blob/master/docs/api.md#torrent-api
     public class Torrent : EventEmitter
     {
+        private static Random random = new Random();
+        private static string NewInstanceId()
+        {
+            int length = 16;
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            return new string(Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+        /// <summary>
+        /// Returns the property instanceId, setting to a new value if not set
+        /// </summary>
+        public string InstanceId
+        {
+            get
+            {
+                var guid = JSRef.Get<string?>("instanceId");
+                if (string.IsNullOrEmpty(guid))
+                {
+                    guid = NewInstanceId();
+                    JSRef.Set("instanceId", guid);
+                }
+                return guid;
+            }
+        }
         /// <summary>
         /// Deserialization constructor
         /// </summary>
@@ -210,6 +232,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Emitted when the torrent encounters a fatal error. The torrent is automatically destroyed and removed from the client when this occurs.
         /// </summary>
         public JSEventCallback<JSObject?> OnError { get => new JSEventCallback<JSObject?>("error", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted when the torrent is closed
+        /// </summary>
+        public JSEventCallback OnClose { get => new JSEventCallback("close", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when all the torrent files have been downloaded.
         /// </summary>

@@ -80,10 +80,7 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Pages
                 if (videoEl == null) return;
                 DisposeTorrent();
                 torrentId = torrentIdNew;
-                Torrent = await WebTorrentService.GetTorrent(torrentId, new AddTorrentOptions { 
-                    Paused = true, 
-                    Deselect = true, 
-                });
+                Torrent = await WebTorrentService.GetTorrent(torrentId);
                 await Torrent!.WhenReady();
                 TorrentFiles = Torrent.Files;
                 largestMp4File = TorrentFiles.Where(o => o.Name.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase)).OrderByDescending(o => o.Length).FirstOrDefault();

@@ -12,7 +12,7 @@
             // torrent.use() checks for Extension.prototype.name
             // it throws an exception if it does not exist
             // the below line sets it
-            fn.JSRef!.Set("prototype.name", _this.WireExtensionName);
+            fn.JSRef!.Set("prototype.name", _this.RendezvousName);
         }
     }
 }

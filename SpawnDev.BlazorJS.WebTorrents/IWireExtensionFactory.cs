@@ -3,6 +3,6 @@
     public interface IWireExtensionFactory
     {
         FuncCallback<Wire, WireExtension> CreateWireExtension { get; }
-        string WireExtensionName { get; }
+        string RendezvousName { get; }
     }
 }

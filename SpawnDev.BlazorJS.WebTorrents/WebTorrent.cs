@@ -17,6 +17,27 @@ namespace SpawnDev.BlazorJS.WebTorrents
     public class WebTorrent : EventEmitter
     {
         /// <summary>
+        /// Location of the included WebTorretn library
+        /// </summary>
+        public static string LatestVersionSrc { get; } = $"./_content/SpawnDev.BlazorJS.WebTorrents/webtorrent.min.js";
+        /// <summary>
+        /// Imports WebTorrent library fro mthe given location or the default one included with the package
+        /// </summary>
+        /// <param name="webtorrentJsUrl"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static async Task ImportWebTorrent(string? webtorrentJsUrl = null)
+        {
+            webtorrentJsUrl = webtorrentJsUrl ?? LatestVersionSrc;
+            var isWebTorrentUndefined = JS.IsUndefined("WebTorrent");
+            if (!isWebTorrentUndefined) return;
+            var WebTorrentModule = await JS.Import(LatestVersionSrc);
+            if (WebTorrentModule == null) throw new Exception("WebTorrentService could not be initialized.");
+            var WebTorrentClass = WebTorrentModule.GetExport<Function>("default");
+            // set WebTorrent on the global scope so it can be used globally
+            JS.Set("WebTorrent", WebTorrentClass);
+        }
+        /// <summary>
         /// Returns true if WebTorrent is not undefined
         /// </summary>
         public static bool LibraryIsLoaded => !JS.IsUndefined("WebTorrent");
@@ -70,6 +91,14 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Emitted when the client encounters a fatal error. The client is automatically destroyed and all torrents are removed and cleaned up when this occurs.
         /// </summary>
         public JSEventCallback<JSObject> OnError { get => new JSEventCallback<JSObject>("error", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted when a torrent is added to client.torrents. This allows attaching to torrent events that may be emitted before the client 'torrent' event is emitted. See the torrent section for more info on what methods a `torrent` has.
+        /// </summary>
+        public JSEventCallback<Torrent> OnAdd { get => new JSEventCallback<Torrent>("add", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted when a torrent is removed from client.torrents. See the torrent section for more info on what methods a `torrent` has.
+        /// </summary>
+        public JSEventCallback<Torrent> OnRemove { get => new JSEventCallback<Torrent>("remove", On, RemoveListener); set { } }
         /// <summary>
         /// Starts the WebTorrent service worker web server to enable streaming torrents to the document<br />
         /// NOTE: Requires registering a service-worker.js script in the app's index.html and adding the below line<br /><br />

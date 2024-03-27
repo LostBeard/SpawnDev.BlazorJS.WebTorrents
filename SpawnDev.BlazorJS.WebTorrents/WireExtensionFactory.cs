@@ -21,14 +21,14 @@ namespace SpawnDev.BlazorJS.WebTorrents
     public abstract class WireExtensionFactory : IDisposable, IWireExtensionFactory
     {
         public FuncCallback<Wire, WireExtension> CreateWireExtension { get; protected set; }
-        public string WireExtensionName { get; protected set; }
+        public string RendezvousName { get; protected set; }
         /// <summary>
         /// The WireExtension Type that will be created for the wire
         /// </summary>
         public Type ExtensionType { get; protected set; }
         public WireExtensionFactory(string extensionName, Type extensionType)
         {
-            WireExtensionName = extensionName;
+            RendezvousName = extensionName;
             ExtensionType = extensionType;
             CreateWireExtension = new FuncCallback<Wire, WireExtension>(CreateExtension);
         }
@@ -49,7 +49,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <returns></returns>
         protected virtual WireExtension CreateExtension(Wire wire)
         {
-            var ret = (WireExtension)Activator.CreateInstance(ExtensionType, wire, WireExtensionName)!;
+            var ret = (WireExtension)Activator.CreateInstance(ExtensionType, wire, RendezvousName)!;
             ExtensionCreated?.Invoke(ret);
             return ret;
         }

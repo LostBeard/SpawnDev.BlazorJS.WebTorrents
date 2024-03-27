@@ -6,6 +6,33 @@ namespace SpawnDev.BlazorJS.WebTorrents
     // https://github.com/webtorrent/bittorrent-protocol !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     public class Wire : EventEmitter
     {
+        private static Random random = new Random();
+        private static string NewInstanceId()
+        {
+            int length = 16;
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            return new string(Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+        /// <summary>
+        /// Returns the property instanceId, setting to a new value if not set
+        /// </summary>
+        public string InstanceId
+        {
+            get
+            {
+                var guid = JSRef.Get<string?>("instanceId");
+                if (string.IsNullOrEmpty(guid))
+                {
+                    guid = NewInstanceId();
+                    JSRef.Set("instanceId", guid);
+                }
+                return guid;
+            }
+        }
+        /// <summary>
+        /// Deserialization constructor
+        /// </summary>
+        /// <param name="_ref"></param>
         public Wire(IJSInProcessObjectReference _ref) : base(_ref) { }
         /// <summary>
         /// Remote peer id (hex string)
