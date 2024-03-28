@@ -3,7 +3,7 @@
 @using SpawnDev.BlazorJS.VisNetwork
 @implements IDisposable
 
-<VisNetworkView Style="width: 100%; height: 100%;" @ref="_netVis" UpdateData=Update />
+<VisNetworkView Style="width: 100%; height: 100%; background-color: #101010;" @ref="_netVis" UpdateData=Update />
 
 @code {
     [Inject]
@@ -97,9 +97,9 @@
         }
     }
     Dictionary<string, string> InstanceIcons = new Dictionary<string, string> {
-            { "Window", "media/window-64.png" },
-            { "DedicatedWorkerGlobalScope", "media/blue-gear-64.png" },
-            { "SharedWorkerGlobalScope", "media/red-gear-64.png" },
+            { "torrent", "torrent.png" },
+            { "webSeed", "webSeed.png"},
+            { "webrtc", "webrtc.png"},
         };
     (VisNode, VisEdge) AddOrUpdateNodeWire(Torrent torrent, Wire wire)
     {
@@ -115,7 +115,7 @@
                     Id = nodeId,
                     Label = wire.PeerId,
                     Shape = "circularImage",
-                    Image = InstanceIcons["Window"],
+                    Image = InstanceIcons[wire.Type],
                     Font = tDone ? onlineNodeFont : offlineNodeFont,
                     Color = new VisNodeColor
                     {
@@ -183,8 +183,8 @@
                 {
                     Id = nodeId,
                     Label = torrent.Name,
-                    Shape = "square",
-                    Image = InstanceIcons["Window"],
+                    Shape = "circularImage",
+                    Image = InstanceIcons["torrent"],
                     Font = tDone ? onlineNodeFont : offlineNodeFont,
                     Color = new VisNodeColor
                     {
