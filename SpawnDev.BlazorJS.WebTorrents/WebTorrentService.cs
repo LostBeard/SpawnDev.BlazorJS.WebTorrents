@@ -113,7 +113,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         }
         void Torrent_OnNoPeers(Torrent torrent, string announceType)
         {
-            JS.Log("Torrent_OnNoPeersError", torrent.InfoHash, announceType);
+            //JS.Log("Torrent_OnNoPeers", torrent.InfoHash, announceType);
         }
         void Torrent_OnError(Torrent torrent, JSObject? error)
         {
