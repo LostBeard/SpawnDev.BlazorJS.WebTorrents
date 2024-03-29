@@ -9,6 +9,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
     // https://github.com/webtorrent/webtorrent/blob/master/docs/api.md
     public class WebTorrentService : IAsyncBackgroundService, IDisposable
     {
+        public bool Verbose { get; set; }   
         /// <summary>
         /// Called when a torrent is removed
         /// </summary>
@@ -32,7 +33,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// WebTorrent instance
         /// </summary>
-        public WebTorrent? WebTorrent { get; private set; } = null;
+        public WebTorrent? Client { get; private set; } = null;
         /// <summary>
         /// Returns the library version reported by the library. This value does not always represent the actual release version.
         /// </summary>
@@ -43,6 +44,15 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public string WebTorrentLibraryVersionActual { get; } = "2.2.0";
         private BlazorJSRuntime JS;
         private bool BeenInit = false;
+        internal WebTorrentOptions? WebTorrentOptions { get; set; }
+        /// <summary>
+        /// If true, recent torrents will be saved when metadata is ready and loaded on startup
+        /// </summary>
+        public bool EnableRecent { get; set; }
+        /// <summary>
+        /// if true and LoadRecentOnStartup is true, recent torrents will be loaded on startup in a paused state
+        /// </summary>
+        public bool LoadRecentPaused { get; set; }
         // Latest release
         // https://github.com/webtorrent/webtorrent/releases
         // current version is 2.2.0 (2024-03-26) (it reports itself as 2.1.36)
@@ -63,31 +73,34 @@ namespace SpawnDev.BlazorJS.WebTorrents
             BeenInit = true;
             if (IsDisposed) return;
             await WebTorrent.ImportWebTorrent();
-            WebTorrent = new WebTorrent();
-            WebTorrent.OnError += WebTorrent_OnError;
-            WebTorrent.OnTorrent += WebTorrent_OnTorrent;
-            WebTorrent.OnAdd += WebTorrent_OnAdd;
-            WebTorrent.OnRemove += WebTorrent_OnRemove;
+            Client = WebTorrentOptions == null ? new WebTorrent() : new WebTorrent(WebTorrentOptions);
+            Client.OnError += WebTorrent_OnError;
+            Client.OnTorrent += WebTorrent_OnTorrent;
+            Client.OnAdd += WebTorrent_OnAdd;
+            Client.OnRemove += WebTorrent_OnRemove;
             // storage
             using var navigator = JS.Get<Navigator>("navigator");
             using var storage = navigator.Storage;
             StorageDir = await storage.GetDirectory();
 #if DEBUG
-            JS.Set("_wt", WebTorrent);
+            JS.Set("_wt", Client);
             JS.Set("_clearTorrentStorage", new ActionCallback<string?>(async (string? name) =>
             {
                 if (string.IsNullOrEmpty(name))
                 {
-                    await WebTorrent.ClearTorrentStorage();
+                    await Client.ClearTorrentStorage();
                 }
                 else
                 {
-                    await WebTorrent.ClearTorrentStorage(name);
+                    await Client.ClearTorrentStorage(name);
                 }
             }));
-            JS.Set("_getTorrentStorage", new AsyncFuncCallback<List<string>>(WebTorrent.GetTorrentStorageNames));
+            JS.Set("_getTorrentStorage", new AsyncFuncCallback<List<string>>(Client.GetTorrentStorageNames));
 #endif
-            await ReloadRecent();
+            if (EnableRecent)
+            {
+                await LoadRecent(LoadRecentPaused);
+            }
         }
         /// <summary>
         /// Returns true of the service worker is already enable or if it was started
@@ -95,21 +108,21 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <returns></returns>
         public async Task<bool> EnableServer()
         {
-            if (WebTorrent == null) return false;
+            if (Client == null) return false;
             if (ServiceWorkerEnabled) return true;
-            ServiceWorkerEnabled = await WebTorrent.CreateServer();
+            ServiceWorkerEnabled = await Client.CreateServer();
             return ServiceWorkerEnabled;
         }
         void Torrent_OnMetadata(Torrent torrent)
         {
-            JS.Log("Torrent_OnMetadata", torrent.InfoHash);
+            if (Verbose) JS.Log("Torrent_OnMetadata", torrent.InfoHash);
         }
         void Torrent_OnWire(Torrent torrent, Wire wire)
         {
-            JS.Log("Torrent_OnWireAdd", torrent.InfoHash, wire.PeerId);
+            if (Verbose) JS.Log("Torrent_OnWireAdd", torrent.InfoHash, wire.PeerId);
             wire.Once("close", () =>
             {
-                JS.Log("Torrent_OnWireRemove", torrent.InfoHash, wire.PeerId);
+                if (Verbose) JS.Log("Torrent_OnWireRemove", torrent.InfoHash, wire.PeerId);
                 OnTorrentWireRemove?.Invoke(torrent, wire);
             });
             OnTorrentWireAdd?.Invoke(torrent, wire);
@@ -121,22 +134,22 @@ namespace SpawnDev.BlazorJS.WebTorrents
         }
         void Torrent_OnNoPeers(Torrent torrent, string announceType)
         {
-            //JS.Log("Torrent_OnNoPeers", torrent.InfoHash, announceType);
+            //if (Verbose) JS.Log("Torrent_OnNoPeers", torrent.InfoHash, announceType);
         }
         void Torrent_OnError(Torrent torrent, JSObject? error)
         {
-            JS.Log("Torrent_OnError", torrent, error);
+            if (Verbose) JS.Log("Torrent_OnError", torrent, error);
         }
         void WebTorrent_OnAdd(Torrent torrent)
         {
-            JS.Log("WebTorrent_OnAdd", torrent);
+            if (Verbose) JS.Log("WebTorrent_OnAdd", torrent);
             var onWire = new Action<Wire>((wire) => Torrent_OnWire(torrent, wire));
             var onNoPeers = new Action<string>((announceType) => Torrent_OnNoPeers(torrent, announceType));
             var onMetadata = new Action(() => Torrent_OnMetadata(torrent));
             var onError = new Action<JSObject?>((error) => Torrent_OnError(torrent, error));
             torrent.Once("close", () =>
             {
-                JS.Log("Torrent_OnClose", torrent);
+                if (Verbose) JS.Log("Torrent_OnClose", torrent);
                 torrent.OnWire -= onWire;
                 torrent.OnNoPeers -= onNoPeers;
                 torrent.OnMetadata -= onMetadata;
@@ -151,27 +164,39 @@ namespace SpawnDev.BlazorJS.WebTorrents
         }
         void WebTorrent_OnRemove(Torrent torrent)
         {
-            JS.Log("WebTorrent_OnRemove", torrent);
+            if (Verbose) JS.Log("WebTorrent_OnRemove", torrent);
             if (!string.IsNullOrEmpty(torrent.InfoHash))
             {
                 _ = DeleteRecent(torrent.InfoHash);
             }
         }
-        async Task<List<Torrent>> ReloadRecent(bool paused = false)
+        void WebTorrent_OnTorrent(Torrent torrent)
+        {
+            if (Verbose) JS.Log("WebTorrent_OnTorrent", torrent);
+            if (EnableRecent)
+            {
+                _ = AddRecent(torrent);
+            }
+        }
+        void WebTorrent_OnError(JSObject error)
+        {
+            if (Verbose) JS.Log("OnError", error);
+        }
+        async Task<List<Torrent>> LoadRecent(bool paused = false)
         {
             var ret = new List<Torrent>();
-            if (WebTorrent == null) return ret;
+            if (Client == null) return ret;
             var recent = await GetRecentTorrents();
             foreach (var r in recent)
             {
                 var torrentFilePath = $"recent/{r.InfoHash}/main.torrent";
                 if (!await StorageDir!.FilePathExists(torrentFilePath))
                 {
-                    Console.WriteLine($"Skipping: {r.InfoHash}");
+                    if (Verbose) JS.Log($"Skipping: {r.InfoHash}");
                     continue;
                 }
                 var torrentFile = await StorageDir!.ReadUint8Array($"recent/{r.InfoHash}/main.torrent");
-                var torrent = WebTorrent.Add(torrentFile, new AddTorrentOptions { Paused = paused,  });
+                var torrent = Client.Add(torrentFile, new AddTorrentOptions { Paused = paused,  });
                 ret.Add(torrent);
             }
             return ret;
@@ -188,7 +213,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
                     var info = await dir.ReadJSON<RecentTorrent>("torrent.json");
                     if (info != null && !string.IsNullOrEmpty(info.MagnetURI))
                     {
-                        Console.WriteLine($"Recent torrent found: {info.Name}");
+                        if (Verbose) JS.Log($"Recent torrent found: {info.Name}");
                         ret.Add(info);
                     }
                 }
@@ -224,21 +249,12 @@ namespace SpawnDev.BlazorJS.WebTorrents
                 JS.Log($"AddRecent failed: {ex.Message}");
             }
         }
-        void WebTorrent_OnTorrent(Torrent torrent)
-        {
-            JS.Log("WebTorrent_OnTorrent", torrent);
-            _ = AddRecent(torrent);
-        }
-        void WebTorrent_OnError(JSObject error)
-        {
-            JS.Log("OnError", error);
-        }
         bool IsDisposed = false;
         public void Dispose()
         {
             if (IsDisposed) return;
             IsDisposed = true;
-            WebTorrent?.Dispose();
+            Client?.Dispose();
         }
         /// <summary>
         /// Returns true if a torrent with the given torrentId exists
@@ -247,8 +263,8 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <returns></returns>
         public async Task<bool> GetTorrentExists(string torrentId)
         {
-            if (WebTorrent == null) return false;
-            using var torrent = await WebTorrent.Get(torrentId);
+            if (Client == null) return false;
+            using var torrent = await Client.Get(torrentId);
             return torrent != null;
         }
         /// <summary>
@@ -261,14 +277,14 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <exception cref="NullReferenceException"></exception>
         public async Task<Torrent?> GetTorrent(string torrentId, bool allowAdd = true)
         {
-            if (WebTorrent == null) throw new NullReferenceException(nameof(WebTorrent));
-            var torrent = await WebTorrent.Get(torrentId);
+            if (Client == null) throw new NullReferenceException(nameof(Client));
+            var torrent = await Client.Get(torrentId);
             if (torrent != null) return torrent;
             if (torrent == null && !allowAdd) return null;
-            Console.WriteLine("adding torrent");
+            if (Verbose) JS.Log("adding torrent");
             var options = new AddTorrentOptions();
             //options.Announce = AnnounceTrackers;
-            return WebTorrent.Add(torrentId, options);
+            return Client.Add(torrentId, options);
         }
         /// <summary>
         /// Returns a torrent with the given torrentId if it exists,<br />
@@ -280,12 +296,12 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <exception cref="NullReferenceException"></exception>
         public async Task<Torrent?> GetTorrent(string torrentId, AddTorrentOptions addTorrentOptions)
         {
-            if (WebTorrent == null) throw new NullReferenceException(nameof(WebTorrent));
-            var torrent = await WebTorrent.Get(torrentId);
+            if (Client == null) throw new NullReferenceException(nameof(Client));
+            var torrent = await Client.Get(torrentId);
             if (torrent != null) return torrent;
-            Console.WriteLine("adding torrent");
+            if (Verbose) JS.Log("adding torrent");
             //options.Announce = AnnounceTrackers;
-            return WebTorrent.Add(torrentId, addTorrentOptions);
+            return Client.Add(torrentId, addTorrentOptions);
         }
     }
 }

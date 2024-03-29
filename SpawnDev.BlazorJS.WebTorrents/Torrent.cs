@@ -159,6 +159,12 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
         /// </summary>
+        /// <param name="options"></param>
+        /// <param name="callback"></param>
+        public void Destroy(DestroyTorrentOptions options, ActionCallback callback) => JSRef.CallVoid("destroy", options, callback);
+        /// <summary>
+        /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
+        /// </summary>
         public void Destroy() => JSRef.CallVoid("destroy");
         /// <summary>
         /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
@@ -172,6 +178,17 @@ namespace SpawnDev.BlazorJS.WebTorrents
         {
             var t = new TaskCompletionSource();
             Destroy(Callback.CreateOne(t.SetResult));
+            return t.Task;
+        }
+        /// <summary>
+        /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public Task DestroyAsync(DestroyTorrentOptions options)
+        {
+            var t = new TaskCompletionSource();
+            Destroy(options, Callback.CreateOne(t.SetResult));
             return t.Task;
         }
         /// <summary>
@@ -284,7 +301,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
             OnReady -= tcs.SetResult;
         }
         /// <summary>
-        /// Returns when the torrent is ready
+        /// Returns when the torrent is ready or throws if cancelled
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -293,8 +310,34 @@ namespace SpawnDev.BlazorJS.WebTorrents
             if (Ready) return;
             var tcs = new TaskCompletionSource(cancellationToken);
             OnReady += tcs.SetResult;
-            await tcs.Task;
-            OnReady -= tcs.SetResult;
+            try
+            {
+                await tcs.Task;
+            }
+            finally
+            {
+                OnReady -= tcs.SetResult;
+            }
+        }
+        /// <summary>
+        /// Returns when the torrent is ready or throws if a timeout occurs
+        /// </summary>
+        /// <param name="timeoutMS"></param>
+        /// <returns></returns>
+        public async Task WhenReady(int timeoutMS)
+        {
+            if (Ready) return;
+            using var cts = new CancellationTokenSource(timeoutMS);
+            var tcs = new TaskCompletionSource(cts);
+            OnReady += tcs.SetResult;
+            try
+            {
+                await tcs.Task;
+            }
+            finally
+            {
+                OnReady -= tcs.SetResult;
+            }
         }
     }
 }

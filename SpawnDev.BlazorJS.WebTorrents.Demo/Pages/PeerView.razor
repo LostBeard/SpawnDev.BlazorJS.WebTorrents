@@ -44,7 +44,7 @@
                 JS.Set("_visNode", visNode);
                 if (visNode.Tag == "torrent")
                 {
-                    WebTorrentService.WebTorrent!.GetTorrentByInstanceId(selectedNodeId, out var torrent);
+                    WebTorrentService.Client!.GetTorrentByInstanceId(selectedNodeId, out var torrent);
                     JS.Log("_torrent", torrent);
                     JS.Set("_torrent", torrent);
                     JS.Log("_magnet", torrent?.MagnetURI);
@@ -53,7 +53,7 @@
                 }
                 else if (visNode.Tag == "wire")
                 {
-                    WebTorrentService.WebTorrent!.GetWireByInstanceId(selectedNodeId, out var torrent, out var wire);
+                    WebTorrentService.Client!.GetWireByInstanceId(selectedNodeId, out var torrent, out var wire);
                     JS.Log("_torrent", torrent);
                     JS.Set("_torrent", torrent);
                     JS.Log("_wire", wire);
@@ -101,7 +101,7 @@
                 JS.Set("_visNode", visNode);
                 if (visNode.Tag == "torrent")
                 {
-                    WebTorrentService.WebTorrent!.GetTorrentByInstanceId(selectedNodeId, out var torrent);
+                    WebTorrentService.Client!.GetTorrentByInstanceId(selectedNodeId, out var torrent);
                     JS.Log("_torrent", torrent);
                     JS.Set("_torrent", torrent);
                     JS.Log("_magnet", torrent?.MagnetURI);
@@ -109,7 +109,7 @@
                 }
                 else if (visNode.Tag == "wire")
                 {
-                    WebTorrentService.WebTorrent!.GetWireByInstanceId(selectedNodeId, out var torrent, out var wire);
+                    WebTorrentService.Client!.GetWireByInstanceId(selectedNodeId, out var torrent, out var wire);
                     JS.Log("_torrent", torrent);
                     JS.Set("_torrent", torrent);
                     JS.Log("_wire", wire);
@@ -206,9 +206,9 @@
         {
             var nodeIds = new List<string> { rootNode.Id };
             var edgeIds = new List<string>();
-            rootNode.Label = ShortPeerId(WebTorrentService.WebTorrent!.PeerId);
+            rootNode.Label = ShortPeerId(WebTorrentService.Client!.PeerId);
             _netVis.Nodes!.Update(rootNode);
-            foreach (Torrent torrent in WebTorrentService.WebTorrent!.Torrents)
+            foreach (Torrent torrent in WebTorrentService.Client!.Torrents)
             {
                 var (torrentNode, torrentToRootEdge) = AddOrUpdateNodeTorrent(torrent);
                 nodeIds.Add(torrentNode.Id);
