@@ -1,5 +1,7 @@
-﻿using Microsoft.JSInterop;
+﻿using BencodeNET.Torrents;
+using Microsoft.JSInterop;
 using SpawnDev.BlazorJS.JSObjects;
+using static System.Net.WebRequestMethods;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
@@ -136,7 +138,9 @@ namespace SpawnDev.BlazorJS.WebTorrents
             return false;
         }
         /// <summary>
-        /// Starts the WebTorrent service worker web server to enable streaming torrents to the document
+        /// Creates an http server to serve the contents of this torrent,<br />
+        /// dynamically fetching the needed torrent pieces to satisfy http requests.<br />
+        /// Range requests are supported.
         /// </summary>
         /// <param name="options"></param>
         public void CreateServer(CreateServerOptions options) => JSRef!.CallVoid("createServer", options);
@@ -205,12 +209,13 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <returns>Task that completes when the torrent is compeltely removed</returns>
         public Task Remove(string torrentId) => JSRef!.CallVoidAsync("remove", torrentId);
         /// <summary>
-        /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
+        /// Destroy the client, including all torrents and connections to peers. If callback is specified, it will be called when the client has gracefully closed.
         /// </summary>
         public void Destroy() => JSRef.CallVoid("destroy");
         /// <summary>
-        /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
+        /// Destroy the client, including all torrents and connections to peers. If callback is specified, it will be called when the client has gracefully closed.
         /// </summary>
+        /// <param name="callback"></param>
         public void Destroy(ActionCallback callback) => JSRef.CallVoid("destroy", callback);
         /// <summary>
         /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
@@ -222,5 +227,15 @@ namespace SpawnDev.BlazorJS.WebTorrents
             Destroy(Callback.CreateOne(t.SetResult));
             return t.Task;
         }
+        /// <summary>
+        /// Set global upload throttle rate
+        /// </summary>
+        /// <param name="rate">rate (must be bigger or equal than zero, or -1 to disable throttling)</param>
+        public void ThrottleUpload(float rate) => JSRef.CallVoid("throttleUpload", rate);
+        /// <summary>
+        /// Set global download throttle rate.
+        /// </summary>
+        /// <param name="rate">rate (must be bigger or equal than zero, or -1 to disable throttling)</param>
+        public void ThrottleDownload(float rate) => JSRef.CallVoid("throttleDownload", rate);
     }
 }
