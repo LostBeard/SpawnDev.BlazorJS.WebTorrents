@@ -40,6 +40,8 @@ Inject
 [Inject] WebTorrentService WebTorrentService { get; set; }
 ```
 
+WebTorrentService.Client is an instance of [WebTorrent](https://github.com/webtorrent/webtorrent/blob/master/docs/api.md#webtorrent-api)
+
 Very basic example that adds a torrent magnet, waits for the torrent metadata to be retrieved and shows information about the torrents files. Then, the torrent and all related data is destroyed.
 ```cs
 var addOptions = new AddTorrentOptions { Deselect = true };
