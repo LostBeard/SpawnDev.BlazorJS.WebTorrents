@@ -7,7 +7,7 @@
 [WebTorrent](https://github.com/webtorrent/webtorrent) is a streaming torrent client for node.js and the browser. YEP, THAT'S RIGHT. THE BROWSER. It's written completely in JavaScript – the language of the web – so the same code works in both runtimes.
 
 ### Documentation
-SpawnDev.BlazorJS.WebTorrents is a collection of JSObject wrappers that allow access to the Javascript [WebTorrent](https://github.com/webtorrent/webtorrent) library. The interfaces are nearly identical. Intellisense documentation is included.   
+SpawnDev.BlazorJS.WebTorrents is a collection of [JSObject](https://github.com/LostBeard/SpawnDev.BlazorJS?tab=readme-ov-file#jsobject-base-class) wrappers that allow access to the Javascript [WebTorrent](https://github.com/webtorrent/webtorrent) library. The interfaces are nearly identical. Intellisense documentation is included.   
 
 **[WebTorrent API Documentation](https://github.com/webtorrent/webtorrent/blob/master/docs/api.md)** 
 
