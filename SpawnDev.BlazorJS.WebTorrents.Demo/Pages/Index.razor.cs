@@ -88,32 +88,13 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Pages
                 await Torrent!.WhenReady();
                 TorrentFiles = Torrent.Files.ToArray();
                 largestMp4File = TorrentFiles.Where(o => o.Name.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase)).OrderByDescending(o => o.Length).FirstOrDefault();
-                if (largestMp4File != null)
-                {
-                    if (WebTorrentService.ServiceWorkerEnabled)
-                    {
-                        //largestMp4File.Select(1);
-                        try
-                        {
-                            videoEl.Muted = true;
-                            largestMp4File.StreamTo(videoEl);
-                        }
-                        catch
-                        {
-                            // streaming failed. fallback to playing after download...
-                            StatusMsg = "Streaming playback failed.";
-                        }
-                    }
-                    else
-                    {
-                        // streaming not available. fallback to playing after download...
-                    }
-                }
+                largestMp4File?.StreamTo(videoEl);
                 StateHasChanged();
             }
             catch (Exception ex)
             {
                 JS.Log($"LoadTorrent failed: {ex.Message}");
+                StatusMsg = "Streaming playback failed.";
             }
         }
 

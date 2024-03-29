@@ -1,8 +1,6 @@
-﻿using BencodeNET.Torrents;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using SpawnDev.BlazorJS.JSObjects;
 using SpawnDev.BlazorJS.Toolbox;
-using System.Runtime.InteropServices;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
@@ -53,6 +51,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// if true and LoadRecentOnStartup is true, recent torrents will be loaded on startup in a paused state
         /// </summary>
         public bool LoadRecentPaused { get; set; }
+        /// <summary>
+        /// If recent torrents should be loaded with the deselect flag set to true
+        /// </summary>
+        public bool LoadRecentDeselected { get; set; }
         // Latest release
         // https://github.com/webtorrent/webtorrent/releases
         // current version is 2.2.0 (2024-03-26) (it reports itself as 2.1.36)
@@ -99,7 +101,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
 #endif
             if (EnableRecent)
             {
-                await LoadRecent(LoadRecentPaused);
+                await LoadRecent(LoadRecentPaused, LoadRecentDeselected);
             }
         }
         /// <summary>
@@ -182,7 +184,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         {
             if (Verbose) JS.Log("OnError", error);
         }
-        async Task<List<Torrent>> LoadRecent(bool paused = false)
+        async Task<List<Torrent>> LoadRecent(bool paused = false, bool deselect = false)
         {
             var ret = new List<Torrent>();
             if (Client == null) return ret;
@@ -196,7 +198,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
                     continue;
                 }
                 var torrentFile = await StorageDir!.ReadUint8Array($"recent/{r.InfoHash}/main.torrent");
-                var torrent = Client.Add(torrentFile, new AddTorrentOptions { Paused = paused,  });
+                var torrent = Client.Add(torrentFile, new AddTorrentOptions { Paused = paused, Deselect = deselect });
                 ret.Add(torrent);
             }
             return ret;

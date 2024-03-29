@@ -8,5 +8,7 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddBlazorJSRuntime();
-builder.Services.AddWebTorrentService();
+builder.Services.AddWebTorrentService(webTorrentService => {
+    webTorrentService.EnableRecent = true;
+});
 await builder.Build().BlazorJSRunAsync();
