@@ -2,6 +2,9 @@
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
+    /// <summary>
+    /// TorrentStore object
+    /// </summary>
     public class TorrentStore : JSObject
     {
         /// <summary>

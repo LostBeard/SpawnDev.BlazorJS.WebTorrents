@@ -4,7 +4,7 @@ using SpawnDev.BlazorJS.JSObjects;
 namespace SpawnDev.BlazorJS.WebTorrents
 {
     /// <summary>
-    /// EventEmitter class
+    /// EventEmitter class<br />
     /// https://nodejs.org/docs/latest/api/events.html<br />
     /// https://nodejs.org/docs/latest/api/events.html#class-eventemitter
     /// </summary>

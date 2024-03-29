@@ -283,6 +283,11 @@ namespace SpawnDev.BlazorJS.WebTorrents
             await tcs.Task;
             OnReady -= tcs.SetResult;
         }
+        /// <summary>
+        /// Returns when the torrent is ready
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task WhenReady(CancellationToken cancellationToken)
         {
             if (Ready) return;

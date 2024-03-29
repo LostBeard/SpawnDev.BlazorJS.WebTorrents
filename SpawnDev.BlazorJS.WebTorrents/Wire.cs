@@ -4,15 +4,60 @@ using System.Security.Cryptography;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
-    // https://github.com/webtorrent/bittorrent-protocol !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //"allowedFastSet: Array",   
+    //"amChoking: Boolean",   
+    //"amInterested: boolean",   
+    //"downloadSpeed: Function",   
+    //"downloaded: number",   
+    //"emit: Function",   
+    //"eventNames: Function",   
+    //"extendedHandshake: Object",   
+    //"extendedMapping: Object",   
+    //"extensions: Object",   
+    //"getMaxListeners: Function",   
+    //"hasFast: Boolean",   
+    //"instanceId: String",   
+    //"isSeeder: Boolean",   
+    //"listenerCount: Function",   
+    //"listeners: Function",   
+    //"lt_donthave: t",   
+    //"on: Function",   
+    //"once: Function",   
+    //"peerAllowedFastSet: Array",   
+    //"peerChoking: Boolean",   
+    //"peerExtendedHandshake: Object",   
+    //"peerExtendedMapping: Object",   
+    //"peerExtensions: Object",   
+    //"peerId: String",   
+    //"peerIdBuffer: Uint8Array",   
+    //"peerInterested: boolean",   
+    //"peerPieces: A",   
+    //"peerRequests: Array",   
+    //"prependListener: Function",   
+    //"prependOnceListener: Function",   
+    //"rawListeners: Function",   
+    //"remoteAddress: String",   
+    //"remotePort: Number",   
+    //"removeAllListeners: Function",   
+    //"removeListener: Function",   
+    //"requests: Array",   
+    //"setMaxListeners: Function",   
+    //"type: String",   
+    //"uploadSpeed: Function",   
+    //"uploaded: number",   
+    //"ut_metadata: s"
+
     /// <summary>
     /// WebTorrent Wire class<br />
-    /// https://github.com/webtorrent/webtorrent/blob/master/docs/api.md#wire-api
+    /// node_modules\@types\bittorrent-protocol\index.d.ts<br />
+    /// node_modules\@types\node\stream.d.ts<br />
+    /// https://github.com/webtorrent/webtorrent/blob/master/docs/api.md#wire-api<br />
     /// </summary>
-    public class Wire : EventEmitter
+    public class Wire : Stream
     {
         /// <summary>
-        /// Returns the property instanceId, setting to a new value if not set
+        /// Returns the property instanceId, setting to a new value if not set<br />
+        /// non-standard property
         /// </summary>
         public string InstanceId
         {
@@ -37,6 +82,18 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         public string PeerId => JSRef.Get<string>("peerId");
         /// <summary>
+        /// Remote address or null if not specified. Not available with some peer types.
+        /// </summary>
+        public string? RemoteAddress => JSRef.Get<string?>("remoteAddress");
+        /// <summary>
+        /// Remote port or null if not specified. Not available with some peer types.
+        /// </summary>
+        public ushort? RemotePort => JSRef.Get<ushort?>("remotePort");
+        /// <summary>
+        /// The peers peerId as a Uint8Array
+        /// </summary>
+        public Uint8Array PeerIdBuffer => JSRef.Get<Uint8Array>("peerId");
+        /// <summary>
         /// Connection type ('webrtc', 'tcpIncoming', 'tcpOutgoing', 'utpIncoming', 'utpOutgoing', 'webSeed')
         /// </summary>
         public string Type => JSRef.Get<string>("type");
@@ -49,12 +106,24 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         public long Downloaded => JSRef.Get<long>("downloaded");
         /// <summary>
-        /// Peer upload speed, in bytes/sec.
+        /// PeerPieces instance
+        /// </summary>
+        public PeerPieces PeerPieces => JSRef.Get<PeerPieces>("peerPieces");
+        /// <summary>
+        /// Returns the extended handshake as a JSObject
+        /// </summary>
+        public JSObject ExtendedHandshake => JSRef.Get<JSObject>("extendedHandshake");
+        /// <summary>
+        /// The extended handshake from the peer
+        /// </summary>
+        public JSObject PeerExtendedHandshake => JSRef.Get<JSObject>("peerExtendedHandshake");
+        /// <summary>
+        /// Upload speed to peer, in bytes/sec.
         /// </summary>
         /// <returns></returns>
         public double UploadSpeed() => JSRef.Call<double>("uploadSpeed");
         /// <summary>
-        /// Peer download speed, in bytes/sec.
+        /// Download speed from peer, in bytes/sec.
         /// </summary>
         public double DownloadSpeed() => JSRef.Call<double>("downloadSpeed");
         /// <summary>
@@ -81,10 +150,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <param name="extension"></param>
         /// <param name="data"></param>
         public void Extended(string extension, object data) => JSRef.CallVoid("extended", extension, data);
-        /// <summary>
-        /// ExtendedHandshake properties can be set when an extension is created and those properties will be sent to peers when an extendedHandshake occurs
-        /// </summary>
-        public ExtendedHandshake ExtendedHandshake => JSRef.Get<ExtendedHandshake>("extendedHandshake");
+        ///// <summary>
+        ///// ExtendedHandshake properties can be set when an extension is created and those properties will be sent to peers when an extendedHandshake occurs
+        ///// </summary>
+        //public ExtendedHandshake ExtendedHandshake => JSRef.Get<ExtendedHandshake>("extendedHandshake");
         /// <summary>
         /// Returns true if choking the peer
         /// </summary>
@@ -113,18 +182,99 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Returns true if the torrent store is writable
         /// </summary>
         public bool Writable => JSRef.Get<bool>("writable");
+        /// <summary>
+        /// Returns supported extensions
+        /// </summary>
+        public Dictionary<string, bool> Extensions => JSRef.Get<Dictionary<string, bool>>("extensions");
+        /// <summary>
+        /// Returns peer supported extensions
+        /// </summary>
+        public Dictionary<string, bool> PeerExtensions => JSRef.Get<Dictionary<string, bool>>("peerExtensions");
         // Events
-        public JSEventCallback OnClose { get => new JSEventCallback("close", On, RemoveListener); set { } }
-        public JSEventCallback OnInterested { get => new JSEventCallback("interested", On, RemoveListener); set { } }
-        public JSEventCallback OnUninterested { get => new JSEventCallback("uninterested", On, RemoveListener); set { } }
-        public JSEventCallback OnBitfield { get => new JSEventCallback("bitfield", On, RemoveListener); set { } }
-        public JSEventCallback OnDownload { get => new JSEventCallback("download", On, RemoveListener); set { } }
-        public JSEventCallback OnUpload{ get => new JSEventCallback("upload", On, RemoveListener); set { } }
-        public JSEventCallback OnRequest { get => new JSEventCallback("request", On, RemoveListener); set { } }
-        public JSEventCallback OnPort { get => new JSEventCallback("port", On, RemoveListener); set { } }
-        public JSEventCallback OnHave { get => new JSEventCallback("have", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted on error
+        /// </summary>
+        public JSEventCallback OnError { get => new JSEventCallback("error", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted when a bitfield is received<br />
+        /// bitfield: bitfield instance
+        /// </summary>
+        public JSEventCallback<JSObject> OnBitfield { get => new JSEventCallback<JSObject>("bitfield", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted whe na keep alive message is received
+        /// </summary>
+        public JSEventCallback OnKeepAlive { get => new JSEventCallback("keep-alive", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted on timeout
+        /// </summary>
+        public JSEventCallback OnTimeout { get => new JSEventCallback("timeout", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted when connection choked
+        /// </summary>
         public JSEventCallback OnChoke { get => new JSEventCallback("choke", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted when connection unchoked
+        /// </summary>
         public JSEventCallback OnUnchoke { get => new JSEventCallback("unchoke", On, RemoveListener); set { } }
-        public JSEventCallback<string, string, JSObject> OnHandshake { get => new JSEventCallback<string, string, JSObject>("handshake", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted when interested message received
+        /// </summary>
+        public JSEventCallback OnInterested { get => new JSEventCallback("interested", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted when uninterested message received
+        /// </summary>
+        public JSEventCallback OnUninterested { get => new JSEventCallback("uninterested", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted on upload<br />
+        /// length: int
+        /// </summary>
+        public JSEventCallback<int> OnUpload { get => new JSEventCallback<int>("upload", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted on have message<br />
+        /// index: int
+        /// </summary>
+        public JSEventCallback<int> OnHave { get => new JSEventCallback<int>("have", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted on download<br />
+        /// length: int
+        /// </summary>
+        public JSEventCallback<int> OnDownload { get => new JSEventCallback<int>("download", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted on handshake<br />
+        /// infoHash: string<br />
+        /// peerId: string<br />
+        /// extensions: Extension[] (TODO - verify)
+        /// </summary>
+        public JSEventCallback<string, string, Array<JSObject>> OnHandshake { get => new JSEventCallback<string, string, Array<JSObject>>("handshake", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted on piece request received<br />
+        /// index: number<br />
+        /// offset: number<br />
+        /// length: number<br />
+        /// respond: () => void
+        /// </summary>
+        public JSEventCallback<int, int, int, Function> OnRequest { get => new JSEventCallback<int, int, int, Function>("request", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted when a piece is received<br />
+        /// index: number<br />
+        /// offset: number<br />
+        /// buffer: Buffer
+        /// </summary>
+        public JSEventCallback<int, int, JSObject> OnPiece { get => new JSEventCallback<int, int, JSObject>("piece", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted when a piece request is cancelled
+        /// </summary>
+        public JSEventCallback<int, int, int> OnCancel { get => new JSEventCallback<int, int, int>("cancel", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted on extended<br />
+        /// ext: "handshake" | string<br />
+        /// buf: any
+        /// </summary>
+        public JSEventCallback<string, JSObject> OnExtended { get => new JSEventCallback<string, JSObject>("extended", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted on unknown message received<br />
+        /// buffer: Buffer
+        /// </summary>
+        public JSEventCallback<JSObject> OnUnknownMessage { get => new JSEventCallback<JSObject>("unknownmessage", On, RemoveListener); set { } }
     }
 }

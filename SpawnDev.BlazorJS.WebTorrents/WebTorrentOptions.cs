@@ -62,11 +62,11 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Max download speed (bytes/sec) over all torrents (default=-1)
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public long? DownloadLimit { get; set; } = null;
+        public float? DownloadLimit { get; set; } = null;
         /// <summary>
         /// Max upload speed (bytes/sec) over all torrents (default=-1)
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public long? UploadLimit { get; set; } = null;
+        public float? UploadLimit { get; set; } = null;
     }
 }

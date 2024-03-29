@@ -1,7 +1,5 @@
-﻿using BencodeNET.Torrents;
-using Microsoft.JSInterop;
+﻿using Microsoft.JSInterop;
 using SpawnDev.BlazorJS.JSObjects;
-using static System.Net.WebRequestMethods;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
@@ -30,7 +28,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <param name="level"></param>
         public static void SetDebugLevel(string level = "*") => JS.CallVoid("localStorage.setItem", "debug", level);
         /// <summary>
-        /// Location of the included WebTorretn library
+        /// Location of the included WebTorrent library
         /// </summary>
         public static string LatestVersionSrc { get; } = $"./_content/SpawnDev.BlazorJS.WebTorrents/webtorrent.min.js";
         /// <summary>
@@ -206,8 +204,9 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Remove a torrent from the client. Destroy all connections to peers and delete all saved file metadata.
         /// </summary>
         /// <param name="torrentId"></param>
-        /// <returns>Task that completes when the torrent is compeltely removed</returns>
+        /// <returns>Task that completes when the torrent is completely removed</returns>
         public Task Remove(string torrentId) => JSRef!.CallVoidAsync("remove", torrentId);
+        public Task Remove(string torrentId, DestroyTorrentOptions options) => JSRef!.CallVoidAsync("remove", torrentId, options);
         /// <summary>
         /// Destroy the client, including all torrents and connections to peers. If callback is specified, it will be called when the client has gracefully closed.
         /// </summary>

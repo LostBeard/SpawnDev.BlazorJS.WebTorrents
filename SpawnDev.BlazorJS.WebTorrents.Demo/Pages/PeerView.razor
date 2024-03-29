@@ -28,6 +28,52 @@
         JS.Log("_eventNodeId", eventNodeId);
         JS.Log("_selectedNodeId", selectedNodeId);
         JS.Log("_selectedEdgeId", selectedEdgeId);
+        // // create minimal MouseEventArgs required for call to Radzen ContextMenuService.Open()
+        // using var domEvent = networkContextEvent.Event;
+        // var mouseArgs = new MouseEventArgs
+        //     {
+        //         ClientX = domEvent.JSRef.Get<float>("clientX"),
+        //         ClientY = domEvent.JSRef.Get<float>("clientY"),
+        //     };
+        if (!string.IsNullOrEmpty(selectedNodeId))
+        {
+            var visNode = _netVis!.Nodes!.Get(selectedNodeId);
+            if (visNode != null)
+            {
+                JS.Log("_visNode", visNode);
+                JS.Set("_visNode", visNode);
+                if (visNode.Tag == "torrent")
+                {
+                    WebTorrentService.WebTorrent!.GetTorrentByInstanceId(selectedNodeId, out var torrent);
+                    JS.Log("_torrent", torrent);
+                    JS.Set("_torrent", torrent);
+                    JS.Log("_magnet", torrent?.MagnetURI);
+                    JS.Set("_magnet", torrent?.MagnetURI);
+                    torrent?.Destroy(new DestroyTorrentOptions { DestroyStore = true });
+                }
+                else if (visNode.Tag == "wire")
+                {
+                    WebTorrentService.WebTorrent!.GetWireByInstanceId(selectedNodeId, out var torrent, out var wire);
+                    JS.Log("_torrent", torrent);
+                    JS.Set("_torrent", torrent);
+                    JS.Log("_wire", wire);
+                    JS.Set("_wire", wire);
+                    if (torrent != null && wire != null)
+                    {
+                        torrent.RemovePeer(wire.PeerId);
+                    }
+                }
+            }
+        }
+        if (!string.IsNullOrEmpty(selectedEdgeId))
+        {
+            var visEdge = _netVis!.Edges!.Get(selectedEdgeId);
+            if (visEdge != null)
+            {
+                JS.Log("_visEdge", visEdge);
+                JS.Set("_visEdge", visEdge);
+            }
+        }
     }
     void Network_OnClick(NetworkEvent networkContextEvent)
     {
@@ -58,11 +104,8 @@
                     WebTorrentService.WebTorrent!.GetTorrentByInstanceId(selectedNodeId, out var torrent);
                     JS.Log("_torrent", torrent);
                     JS.Set("_torrent", torrent);
-                    torrent?.Destroy(new DestroyTorrentOptions { DestroyStore = true });
-#if DEBUG
-
-
-#endif
+                    JS.Log("_magnet", torrent?.MagnetURI);
+                    JS.Set("_magnet", torrent?.MagnetURI);
                 }
                 else if (visNode.Tag == "wire")
                 {
@@ -246,6 +289,7 @@
                     Opacity = isSeeder ? 1.0f : 0.5f,
                     Tag = "wire",
                     BorderWidth = isSeeder ? 4 : 2,
+                    Title = "Double click to disconnect the peer",
                 };
         }
         else
@@ -340,6 +384,7 @@
                     },
                     Opacity = tDone ? 1.0f : 0.5f,
                     Tag = "torrent",
+                    Title = "Double click to destroy the torrent",
                 };
         }
         else

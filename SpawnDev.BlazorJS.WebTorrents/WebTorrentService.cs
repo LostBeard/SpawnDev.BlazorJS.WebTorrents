@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using BencodeNET.Torrents;
+using Microsoft.Extensions.DependencyInjection;
 using SpawnDev.BlazorJS.JSObjects;
+using SpawnDev.BlazorJS.Toolbox;
+using System.Runtime.InteropServices;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
@@ -43,7 +46,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
         // Latest release
         // https://github.com/webtorrent/webtorrent/releases
         // current version is 2.2.0 (2024-03-26) (it reports itself as 2.1.36)
-        
         private IServiceProvider ServiceProvider;
         private List<ServiceDescriptor> WireExtensionServices;
         // to delete FileSystem api data on chrome ....
@@ -54,7 +56,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
             ServiceProvider = serviceProvider;
             WireExtensionServices = serviceDescriptors.Where(o => typeof(IWireExtensionFactory).IsAssignableFrom(o.ServiceType) || typeof(IWireExtensionFactory).IsAssignableFrom(o.ImplementationType)).ToList();
         }
-       
+        FileSystemDirectoryHandle? StorageDir = null;
         public async Task InitAsync()
         {
             if (BeenInit) return;
@@ -66,6 +68,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
             WebTorrent.OnTorrent += WebTorrent_OnTorrent;
             WebTorrent.OnAdd += WebTorrent_OnAdd;
             WebTorrent.OnRemove += WebTorrent_OnRemove;
+            // storage
+            using var navigator = JS.Get<Navigator>("navigator");
+            using var storage = navigator.Storage;
+            StorageDir = await storage.GetDirectory();
 #if DEBUG
             JS.Set("_wt", WebTorrent);
             JS.Set("_clearTorrentStorage", new ActionCallback<string?>(async (string? name) =>
@@ -81,6 +87,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
             }));
             JS.Set("_getTorrentStorage", new AsyncFuncCallback<List<string>>(WebTorrent.GetTorrentStorageNames));
 #endif
+            await ReloadRecent();
         }
         /// <summary>
         /// Returns true of the service worker is already enable or if it was started
@@ -127,7 +134,8 @@ namespace SpawnDev.BlazorJS.WebTorrents
             var onNoPeers = new Action<string>((announceType) => Torrent_OnNoPeers(torrent, announceType));
             var onMetadata = new Action(() => Torrent_OnMetadata(torrent));
             var onError = new Action<JSObject?>((error) => Torrent_OnError(torrent, error));
-            torrent.Once("close", () => {
+            torrent.Once("close", () =>
+            {
                 JS.Log("Torrent_OnClose", torrent);
                 torrent.OnWire -= onWire;
                 torrent.OnNoPeers -= onNoPeers;
@@ -144,10 +152,82 @@ namespace SpawnDev.BlazorJS.WebTorrents
         void WebTorrent_OnRemove(Torrent torrent)
         {
             JS.Log("WebTorrent_OnRemove", torrent);
+            if (!string.IsNullOrEmpty(torrent.InfoHash))
+            {
+                _ = DeleteRecent(torrent.InfoHash);
+            }
+        }
+        async Task<List<Torrent>> ReloadRecent(bool paused = false)
+        {
+            var ret = new List<Torrent>();
+            if (WebTorrent == null) return ret;
+            var recent = await GetRecentTorrents();
+            foreach (var r in recent)
+            {
+                var torrentFilePath = $"recent/{r.InfoHash}/main.torrent";
+                if (!await StorageDir!.FilePathExists(torrentFilePath))
+                {
+                    Console.WriteLine($"Skipping: {r.InfoHash}");
+                    continue;
+                }
+                var torrentFile = await StorageDir!.ReadUint8Array($"recent/{r.InfoHash}/main.torrent");
+                var torrent = WebTorrent.Add(torrentFile, new AddTorrentOptions { Paused = paused,  });
+                ret.Add(torrent);
+            }
+            return ret;
+        }
+        async Task<List<RecentTorrent>> GetRecentTorrents()
+        {
+            var ret = new List<RecentTorrent>();
+            await StorageDir!.CreatePathDirectory("recent");
+            var dirs = await StorageDir!.GetPathDirectoryHandles("recent");
+            foreach (var dir in dirs)
+            {
+                if (await dir.FilePathExists("torrent.json"))
+                {
+                    var info = await dir.ReadJSON<RecentTorrent>("torrent.json");
+                    if (info != null && !string.IsNullOrEmpty(info.MagnetURI))
+                    {
+                        Console.WriteLine($"Recent torrent found: {info.Name}");
+                        ret.Add(info);
+                    }
+                }
+            }
+            return ret;
+        }
+        async Task DeleteRecent(string infoHash)
+        {
+            try
+            {
+                await StorageDir!.RemovePath($"recent/{infoHash}", true);
+            }
+            catch (Exception ex)
+            {
+                JS.Log($"DeleteRecent failed: {ex.Message}");
+            }
+        }
+        async Task AddRecent(Torrent torrent)
+        {
+            try
+            {
+                await StorageDir!.Write($"recent/{torrent.InfoHash}/main.torrent", torrent.TorrentFile);
+                await StorageDir!.WriteJSON($"recent/{torrent.InfoHash}/torrent.json", new RecentTorrent
+                {
+                    InfoHash = torrent.InfoHash,
+                    Paused = torrent.Paused,
+                    MagnetURI = torrent.MagnetURI,
+                    Name = torrent.Name,
+                });
+            }
+            catch (Exception ex)
+            {
+                JS.Log($"AddRecent failed: {ex.Message}");
+            }
         }
         void WebTorrent_OnTorrent(Torrent torrent)
         {
             JS.Log("WebTorrent_OnTorrent", torrent);
+            _ = AddRecent(torrent);
         }
         void WebTorrent_OnError(JSObject error)
         {

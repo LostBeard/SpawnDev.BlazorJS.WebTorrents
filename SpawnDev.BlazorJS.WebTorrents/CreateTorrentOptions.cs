@@ -2,10 +2,9 @@
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
-    // https://github.com/webtorrent/create-torrent#createtorrentinput-opts-function-callback-err-torrent-
     /// <summary>
-    /// Options used when calling webTorrent client seed method
-    /// https://github.com/webtorrent/create-torrent#createtorrentinput-opts-function-callback-err-torrent-
+    /// Options used when calling webTorrent client seed method<br />
+    /// https://github.com/webtorrent/create-torrent?tab=readme-ov-file#createtorrentinput-opts-function-callback-err-torrent-
     /// </summary>
     public class CreateTorrentOptions
     {
@@ -13,36 +12,38 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// name of the torrent (default = basename of `path`, or 1st file's name)
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? Name { get; set; } = null;
+        public string? Name { get; set; }
         /// <summary>
         /// free-form textual comments of the author
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? Comment { get; set; } = null;
+        public string? Comment { get; set; }
         /// <summary>
         /// name and version of program used to create torrent
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? CreatedBy { get; set; } = null;
-
-        //[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        //public DateTime? creationDte { get; set; } = null;
-
+        public string? CreatedBy { get; set; }
+        /// <summary>
+        /// Creation time in UNIX epoch format (default = now)<br />
+        /// TODO - test this type works for this property
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public long? CreationDate { get; set; }
         /// <summary>
         /// remove hidden and other junk files? (default = true)
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public bool? FilterJunkFiles { get; set; } = null;
+        public bool? FilterJunkFiles { get; set; }
         /// <summary>
         /// is this a private .torrent? (default = false)
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public bool? Private { get; set; } = null;
+        public bool? Private { get; set; }
         /// <summary>
         /// force a custom piece length (number of bytes)
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public int? PieceLength { get; set; } = null;
+        public int? PieceLength { get; set; }
         /// <summary>
         /// custom trackers (array of arrays of strings) (see [bep12](http://www.bittorrent.org/beps/bep_0012.html))<br />
         /// If announceList is omitted, the following trackers will be included automatically:<br />
@@ -54,20 +55,24 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// wss://tracker.btorrent.xyz<br />
         /// wss://tracker.openwebtorrent.com<br />
         /// wss://tracker.webtorrent.dev<br />
+        /// TODO - test this works as expected
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public List<List<string>>? AnnounceList { get; set; } = null;
+        public List<string[]>? AnnounceList { get; set; }
         /// <summary>
         /// web seed urls (see [bep19](http://www.bittorrent.org/beps/bep_0019.html))
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public List<string>? UrlList { get; set; } = null;
+        public List<string>? UrlList { get; set; }
         /// <summary>
         /// add non-standard info dict entries, e.g. info.source, a convention for cross-seeding
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public object? Info { get; set; } = null;
-
-        // onProgress
+        public object? Info { get; set; }
+        /// <summary>
+        /// called with the number of bytes hashed and estimated total size after every piece
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public Callback? OnProgress { get; set; }
     }
 }
