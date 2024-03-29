@@ -1,19 +1,16 @@
 ﻿using Microsoft.JSInterop;
 using SpawnDev.BlazorJS.JSObjects;
+using System.Security.Cryptography;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
-
-    // https://github.com/webtorrent/webtorrent/blob/master/docs/api.md#torrent-api
+    // https://github.com/feross/simple-peer
+    /// <summary>
+    /// WebTorrent Torrent class<br />
+    /// https://github.com/webtorrent/webtorrent/blob/master/docs/api.md#torrent-api
+    /// </summary>
     public class Torrent : EventEmitter
     {
-        private static Random random = new Random();
-        private static string NewInstanceId()
-        {
-            int length = 16;
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            return new string(Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray());
-        }
         /// <summary>
         /// Returns the property instanceId, setting to a new value if not set
         /// </summary>
@@ -21,13 +18,13 @@ namespace SpawnDev.BlazorJS.WebTorrents
         {
             get
             {
-                var guid = JSRef.Get<string?>("instanceId");
-                if (string.IsNullOrEmpty(guid))
+                var value = JSRef!.Get<string?>("instanceId");
+                if (string.IsNullOrEmpty(value))
                 {
-                    guid = NewInstanceId();
-                    JSRef.Set("instanceId", guid);
+                    value = $"TORRENT_{Convert.ToHexString(RandomNumberGenerator.GetBytes(16))}";
+                    JSRef!.Set("instanceId", value);
                 }
-                return guid;
+                return value;
             }
         }
         /// <summary>
@@ -35,6 +32,9 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         /// <param name="_ref"></param>
         public Torrent(IJSInProcessObjectReference _ref) : base(_ref) { }
+        /// <summary>
+        /// An array of the torrent's Wire connections
+        /// </summary>
         public Array<Wire> Wires => JSRef.Get<Array<Wire>>("wires");
         /// <summary>
         /// Name of the torrent (string).
@@ -52,14 +52,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// .torrent file of the torrent (Uint8Array).
         /// </summary>
         public Uint8Array TorrentFile => JSRef.Get<Uint8Array>("torrentFile");
-        public byte[] TorrentFileBytes
-        {
-            get
-            {
-                using var tmp = TorrentFile;
-                return tmp.ReadBytes();
-            }
-        }
         /// <summary>
         /// .torrent file of the torrent (Blob). Useful for creating Blob URLs via URL.createObjectURL(blob)
         /// </summary>
@@ -67,16 +59,19 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Array of all tracker servers. Each announce is an URL (string).
         /// </summary>
-        public string[] Announce => JSRef.Get<string[]>("announce");
+        public Array<string> Announce => JSRef.Get<Array<string>>("announce");
         /// <summary>
         /// Array of all files in the torrent. See documentation for File below to learn what methods/properties files have.
         /// </summary>
-        public File[] Files => JSRef.Get<File[]>("files");
+        public Array<File> Files => JSRef.Get<Array<File>>("files");
+        /// <summary>
+        /// Returns the number of files in the torrent
+        /// </summary>
         public int FilesLength => JSRef.Get<int>("files.length");
         /// <summary>
         /// Array of all pieces in the torrent. See documentation for Piece below to learn what properties pieces have. Some pieces can be null.
         /// </summary>
-        public JSObject Pieces => JSRef.Get<JSObject>("pieces");
+        public Array<JSObject> Pieces => JSRef.Get<Array<JSObject>>("pieces");
         /// <summary>
         /// Length in bytes of every piece but the last one.
         /// </summary>
@@ -157,7 +152,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// A comment optionally set by the author (string).
         /// </summary>
         public string Comment => JSRef.Get<string>("comment");
-        
         /// <summary>
         /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
         /// </summary>
@@ -192,8 +186,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         /// <param name="start"></param>
         /// <param name="end"></param>
-        /// <param name="priority"></param>
-        public void Deselect(int start, int end, int priority = 0) => JSRef.CallVoid("deselect", start, end, priority);
+        public void Deselect(int start, int end) => JSRef.CallVoid("deselect", start, end);
         /// <summary>
         /// Marks a range of pieces as critical priority to be downloaded ASAP. From start to end (both inclusive).
         /// </summary>
@@ -205,12 +198,20 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         public void Pause() => JSRef.CallVoid("pause");
         /// <summary>
+        /// Remove a peer from the torrent swarm. This is advanced functionality. Normally, you should not need to call torrent.removePeer() manually. WebTorrent will automatically remove peers from the torrent swarm when they're slow or don't have pieces that are needed.
+        /// </summary>
+        /// <param name="peerId"></param>
+        public void RemovePeer(string peerId) => JSRef.CallVoid("removePeer", peerId);
+        /// <summary>
+        /// Add a web seed to the torrent swarm.<br />
+        /// Aeb seed servers must have proper CORS (Cross-origin resource sharing) headers so that data can be fetched across domain.
+        /// </summary>
+        /// <param name="url"></param>
+        public void AddWebSeed(string url) => JSRef.CallVoid("addWebSeed", url);
+        /// <summary>
         /// Resume connecting to new peers.
         /// </summary>
         public void Resume() => JSRef.CallVoid("resume");
-        //public void Once(string eventName, Callback callback) => JSRef.CallVoid("on", eventName, callback);
-        // Removing an eventHandler is not supported
-        //public void Off(string eventName, Callback callback) => JSRef.CallVoid("off", eventName, callback);
         /// <summary>
         /// Emitted when the info hash of the torrent has been determined.
         /// </summary>
@@ -257,17 +258,18 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Note that if you're attempting to discover peers from a tracker, a DHT, a LSD, and PEX you'll see this event separately for each.
         /// </summary>
         public JSEventCallback<string> OnNoPeers { get => new JSEventCallback<string>("noPeers", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted every time a piece is verified, the value of the event is the index of the verified piece.<br />
+        /// int index
+        /// </summary>
+        public JSEventCallback<int> OnVerified { get => new JSEventCallback<int>("verified", On, RemoveListener); set { } }
+        /// <summary>
+        /// Deselects all files
+        /// </summary>
         public void DeselectAll()
         {
-            var files = Files;
-            files.ToList().ForEach(o => o.Deselect());
-            files.DisposeAll();
-        }
-        public void DeselectAll(int priority)
-        {
-            var files = Files;
-            files.ToList().ForEach(o => o.Deselect(priority));
-            files.DisposeAll();
+            using var files = Files;
+            Deselect(0, files.Length - 1);
         }
         /// <summary>
         /// Returns when the torrent is ready

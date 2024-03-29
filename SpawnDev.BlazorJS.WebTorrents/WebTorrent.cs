@@ -17,6 +17,17 @@ namespace SpawnDev.BlazorJS.WebTorrents
     public class WebTorrent : EventEmitter
     {
         /// <summary>
+        /// Removes the debug level flag used by WebTorrent<br />
+        /// https://github.com/webtorrent/webtorrent/blob/master/README.md#enable-debug-logs
+        /// </summary>
+        public static void RemoveDebugLevel() => JS.CallVoid("localStorage.removeItem", "debug");
+        /// <summary>
+        /// Sets the debug level flag used by WebTorrent<br />
+        /// https://github.com/webtorrent/webtorrent/blob/master/README.md#enable-debug-logs
+        /// </summary>
+        /// <param name="level"></param>
+        public static void SetDebugLevel(string level = "*") => JS.CallVoid("localStorage.setItem", "debug", level);
+        /// <summary>
         /// Location of the included WebTorretn library
         /// </summary>
         public static string LatestVersionSrc { get; } = $"./_content/SpawnDev.BlazorJS.WebTorrents/webtorrent.min.js";
@@ -191,7 +202,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Remove a torrent from the client. Destroy all connections to peers and delete all saved file metadata.
         /// </summary>
         /// <param name="torrentId"></param>
-        /// <param name="callback"></param>
         /// <returns>Task that completes when the torrent is compeltely removed</returns>
         public Task Remove(string torrentId) => JSRef!.CallVoidAsync("remove", torrentId);
         /// <summary>

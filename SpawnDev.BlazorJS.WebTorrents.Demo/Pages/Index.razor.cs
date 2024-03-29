@@ -32,6 +32,10 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Pages
         {
             torrentId = (string)changeEvent.Value;
         }
+        protected override async Task OnInitializedAsync()
+        {
+            
+        }
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
@@ -82,7 +86,7 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Pages
                 torrentId = torrentIdNew;
                 Torrent = await WebTorrentService.GetTorrent(torrentId);
                 await Torrent!.WhenReady();
-                TorrentFiles = Torrent.Files;
+                TorrentFiles = Torrent.Files.ToArray();
                 largestMp4File = TorrentFiles.Where(o => o.Name.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase)).OrderByDescending(o => o.Length).FirstOrDefault();
                 if (largestMp4File != null)
                 {

@@ -79,6 +79,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
                     await WebTorrent.ClearTorrentStorage(name);
                 }
             }));
+            JS.Set("_getTorrentStorage", new AsyncFuncCallback<List<string>>(WebTorrent.GetTorrentStorageNames));
 #endif
         }
         /// <summary>

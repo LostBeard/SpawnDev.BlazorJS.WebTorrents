@@ -3,9 +3,95 @@
 @using SpawnDev.BlazorJS.VisNetwork
 @implements IDisposable
 
-<VisNetworkView Style="width: 100%; height: 100%; background-color: #101010;" @ref="_netVis" UpdateData=Update />
+<VisNetworkView Style="width: 100%; height: 100%; background-color: #101010;" @ref="_netVis" UpdateData=Update OnDoubleClick="Network_OnDoubleClick" OnClick="Network_OnClick" OnContext="Network_OnContext" />
 
 @code {
+    void Network_OnContext(NetworkContextEvent networkContextEvent)
+    {
+        JS.Log("Network_OnContext");
+        var eventNodeId = _netVis!.Network!.GetNodeAt(networkContextEvent.Pointer.DOM);
+        // the selected node id (if one) may not be the same as the eventNodeId that was right clicked on (if one)
+        var selectedNodeId = networkContextEvent.Nodes.FirstOrDefault();
+        var selectedEdgeId = networkContextEvent.Edges.FirstOrDefault();
+        JS.Log("_eventNodeId", eventNodeId);
+        JS.Log("_selectedNodeId", selectedNodeId);
+        JS.Log("_selectedEdgeId", selectedEdgeId);
+
+    }
+    void Network_OnDoubleClick(NetworkEvent networkContextEvent)
+    {
+        JS.Log("Network_OnDoubleClick");
+        var eventNodeId = _netVis!.Network!.GetNodeAt(networkContextEvent.Pointer.DOM);
+        // the selected node id (if one) may not be the same as the eventNodeId that was right clicked on (if one)
+        var selectedNodeId = networkContextEvent.Nodes.FirstOrDefault();
+        var selectedEdgeId = networkContextEvent.Edges.FirstOrDefault();
+        JS.Log("_eventNodeId", eventNodeId);
+        JS.Log("_selectedNodeId", selectedNodeId);
+        JS.Log("_selectedEdgeId", selectedEdgeId);
+    }
+    void Network_OnClick(NetworkEvent networkContextEvent)
+    {
+        JS.Log("Network_OnClick");
+        var eventNodeId = _netVis!.Network!.GetNodeAt(networkContextEvent.Pointer.DOM);
+        // the selected node id (if one) may not be the same as the eventNodeId that was right clicked on (if one)
+        var selectedNodeId = networkContextEvent.Nodes.FirstOrDefault();
+        var selectedEdgeId = networkContextEvent.Edges.FirstOrDefault();
+        JS.Log("_eventNodeId", eventNodeId);
+        JS.Log("_selectedNodeId", selectedNodeId);
+        JS.Log("_selectedEdgeId", selectedEdgeId);
+        // // create minimal MouseEventArgs required for call to Radzen ContextMenuService.Open()
+        // using var domEvent = networkContextEvent.Event;
+        // var mouseArgs = new MouseEventArgs
+        //     {
+        //         ClientX = domEvent.JSRef.Get<float>("clientX"),
+        //         ClientY = domEvent.JSRef.Get<float>("clientY"),
+        //     };
+        if (!string.IsNullOrEmpty(selectedNodeId))
+        {
+            var visNode = _netVis!.Nodes!.Get(selectedNodeId);
+            if (visNode != null)
+            {
+                JS.Log("_visNode", visNode);
+                JS.Set("_visNode", visNode);
+                if (visNode.Tag == "torrent")
+                {
+                    WebTorrentService.WebTorrent!.GetTorrentByInstanceId(selectedNodeId, out var torrent);
+                    JS.Log("_torrent", torrent);
+                    JS.Set("_torrent", torrent);
+                    torrent?.Destroy(new DestroyTorrentOptions { DestroyStore = true });
+#if DEBUG
+
+
+#endif
+                }
+                else if (visNode.Tag == "wire")
+                {
+                    WebTorrentService.WebTorrent!.GetWireByInstanceId(selectedNodeId, out var torrent, out var wire);
+                    JS.Log("_torrent", torrent);
+                    JS.Set("_torrent", torrent);
+                    JS.Log("_wire", wire);
+                    JS.Set("_wire", wire);
+                    // if (torrent != null && wire != null)
+                    // {
+                    //     torrent.RemovePeer(wire.PeerId);
+                    // }
+                }
+            }
+        }
+        if (!string.IsNullOrEmpty(selectedEdgeId))
+        {
+            var visEdge = _netVis!.Edges!.Get(selectedEdgeId);
+            if (visEdge != null)
+            {
+                JS.Log("_visEdge", visEdge);
+                JS.Set("_visEdge", visEdge);
+            }
+        }
+    }
+
+
+    [Inject]
+    BlazorJSRuntime JS { get; set; }
     [Inject]
     WebTorrentService WebTorrentService { get; set; }
     VisNetworkView? _netVis { get; set; }
@@ -13,15 +99,25 @@
     static VisFont offlineNodeFont = new VisFont { Color = "#ffffff66", Background = "#111111aa" };
     static VisFont onlineNodeFont = new VisFont { Color = "#ffffff", Background = "#111111aa" };
     VisNode rootNode = new VisNode { Id = "app-root-node", Shape = "circularImage", Image = "icon-192.png", Font = defaultNodeFont };
+    System.Timers.Timer _tmr = new();
     protected override async Task OnInitializedAsync()
     {
         WebTorrentService.OnTorrentAdd += Rendezvous_OnTorrentAdd;
         WebTorrentService.OnTorrentRemove += Rendezvous_OnTorrentRemove;
         WebTorrentService.OnTorrentWireAdd += Rendezvous_OnTorrentWireAdd;
         WebTorrentService.OnTorrentWireRemove += Rendezvous_OnTorrentWireRemove;
+        _tmr.Elapsed += Timer_Elapsed;
+        _tmr.Interval = 1000;
+        _tmr.Enabled = true;
+    }
+    void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        StateHasChanged();
     }
     public void Dispose()
     {
+        _tmr.Enabled = false;
+        _tmr.Elapsed -= Timer_Elapsed;
         WebTorrentService.OnTorrentAdd -= Rendezvous_OnTorrentAdd;
         WebTorrentService.OnTorrentRemove -= Rendezvous_OnTorrentRemove;
         WebTorrentService.OnTorrentWireAdd -= Rendezvous_OnTorrentWireAdd;
@@ -49,29 +145,26 @@
         _netVis.Clear();
         _netVis.Nodes?.Add(rootNode);
     }
-
-    Dictionary<string, VisNode> Nodes { get; } = new Dictionary<string, VisNode>();
-    Dictionary<string, VisEdge> Edges { get; } = new Dictionary<string, VisEdge>();
     bool _updating = false;
+    bool _firstUpdate = true;
     // !! NOTE !!
-    // Do not call Update directly. Call StateHasChanged() and NetVisView will call Update itself if it is ready for it.
+    // Do not call Update directly. It is passed to VisNetworkView which will call it when it is (re-)rendered
     async Task Update()
     {
         if (_netVis == null) return;
         if (_updating) return;
         _updating = true;
+        if (_firstUpdate)
+        {
+            _firstUpdate = false;
+            JS.Set("_networkData", _netVis.NetworkData);
+        }
         try
         {
-            try
-            {
-                _netVis.Nodes.Update(rootNode);
-            }
-            catch
-            {
-                return;
-            }
-            var nodeIds = new List<string>();
+            var nodeIds = new List<string> { rootNode.Id };
             var edgeIds = new List<string>();
+            rootNode.Label = ShortPeerId(WebTorrentService.WebTorrent!.PeerId);
+            _netVis.Nodes!.Update(rootNode);
             foreach (Torrent torrent in WebTorrentService.WebTorrent!.Torrents)
             {
                 var (torrentNode, torrentToRootEdge) = AddOrUpdateNodeTorrent(torrent);
@@ -86,8 +179,8 @@
                     wire.Dispose();
                 }
             }
-            var removedNodeIds = Nodes.Values.Where(o => !string.IsNullOrEmpty(o.Id) && !nodeIds.Contains(o.Id)).Select(o => o.Id).ToList();
-            var removedEdgeIds = Edges.Values.Where(o => !string.IsNullOrEmpty(o.Id) && !edgeIds.Contains(o.Id)).Select(o => o.Id!).ToList();
+            var removedNodeIds = _netVis!.Nodes!.GetIds().Except(nodeIds).ToList();
+            var removedEdgeIds = _netVis!.Edges!.GetIds().Except(edgeIds).ToList();
             if (removedNodeIds.Count > 0) _netVis.Nodes.Remove(removedNodeIds);
             if (removedEdgeIds.Count > 0) _netVis.Edges.Remove(removedEdgeIds);
         }
@@ -96,6 +189,29 @@
             _updating = false;
         }
     }
+    string ReadableBps(double len)
+    {
+        return $"{ReadableByteLength(len)}/s";
+    }
+    string ReadableByteLength(double len)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        // Adjust the format string to your preferences. For example "{0:0.#}{1}" would
+        // show a single decimal place, and no space.
+        return String.Format("{0:0.##} {1}", len, sizes[order]);
+    }
+
+    string ShortPeerId(string peerId)
+    {
+        return string.IsNullOrEmpty(peerId) ? peerId : peerId.Substring(peerId.Length - 10);
+    }
+
     Dictionary<string, string> InstanceIcons = new Dictionary<string, string> {
             { "torrent", "torrent.png" },
             { "webSeed", "webSeed.png"},
@@ -106,66 +222,98 @@
         var nodeId = wire.InstanceId;
         var edgeToId = torrent.InstanceId;
         var edgeId = $"{nodeId}>>{edgeToId}";
-        var tDone = true;
-        var nodeChanged = true;
-        if (!Nodes.TryGetValue(nodeId, out var node))
+        var isSeeder = wire.IsSeeder;
+        var node = _netVis!.Nodes!.Get(nodeId);
+        var downloadSpeed = wire.DownloadSpeed();
+        var uploadSpeed = wire.UploadSpeed();
+        var downloading = downloadSpeed > 0d;
+        var uploading = uploadSpeed > 0d;
+        var nodeLabel = $"{ShortPeerId(wire.PeerId)}\n⬆ {ReadableByteLength(wire.Uploaded)} at {ReadableBps(uploadSpeed)}\n⬇ {ReadableByteLength(wire.Downloaded)} at {ReadableBps(uploadSpeed)}";
+        if (node == null)
         {
             node = new VisNode
                 {
                     Id = nodeId,
-                    Label = wire.PeerId,
+                    Label = nodeLabel,
                     Shape = "circularImage",
                     Image = InstanceIcons[wire.Type],
-                    Font = tDone ? onlineNodeFont : offlineNodeFont,
+                    Font = isSeeder ? onlineNodeFont : offlineNodeFont,
                     Color = new VisNodeColor
                     {
-                        Border = tDone ? "#ff0000" : "#11111144",
-                        Background = "#222222"
+                        Border = isSeeder ? "#ffffff" : "#00aa00",
+                        Background = "#222222",
                     },
-                    Opacity = tDone ? 1.0f : 0.5f,
+                    Opacity = isSeeder ? 1.0f : 0.5f,
+                    Tag = "wire",
+                    BorderWidth = isSeeder ? 4 : 2,
                 };
-            Nodes[node.Id] = node;
         }
         else
         {
-            //eventNodeId.Shape = "circularImage";
-            //eventNodeId.Image = image;
-            node.Font = tDone ? onlineNodeFont : offlineNodeFont;
-            node.Color = new VisNodeColor { Border = tDone ? "#ff0000" : "#11111144" };
-            node.Opacity = tDone ? 1.0f : 0.5f;
+            node.Label = nodeLabel;
+            node.Font = isSeeder ? onlineNodeFont : offlineNodeFont;
+            node.Color!.Border = isSeeder ? "#ffffff" : "#00aa00";
+            node.Opacity = isSeeder ? 1.0f : 0.5f;
+            node.BorderWidth = isSeeder ? 4 : 2;
         }
-        node.Tag = wire;
-        if (nodeChanged) _netVis!.Nodes.Update(node);
-        //
-        // root edge
-        var someBool = false;
-        var edgeChanged = true;
-        if (!Edges.TryGetValue(edgeId, out var edge))
+        _netVis!.Nodes.Update(node);
+        // to torrent edge
+        var interested = wire.AmInterested || wire.PeerInterested;
+        var color = "";
+        if (wire.AmInterested && wire.PeerInterested)
+        {
+            color = "#ffffff";
+        }
+        else if (!wire.AmInterested && !wire.PeerInterested)
+        {
+            color = "#555555";
+        }
+        else if (wire.AmInterested)
+        {
+            color = "#00ff00";
+        }
+        else
+        {
+            color = "#0000ff";
+        }
+        var edge = _netVis!.Edges!.Get(edgeId);
+        if (edge == null)
         {
             edge = new VisEdge
                 {
                     Id = edgeId,
                     From = nodeId,
                     To = edgeToId,
-                    Dashes = !someBool,
-                    Background = new VisEdgeBackground
+                    Dashes = !interested,
+                    //Label = edgeLabel,
+                    Color = new VisEdgeColor
                     {
-                        Color = someBool ? "#ffffff" : "#000000",
-                        Enabled = true,
-                        Size = 1,
-                    }
+                        Color = color,
+                    },
+                    // Background = new VisEdgeBackground
+                    // {
+                    //     Color = "#ff00ff",
+                    //     Enabled = true,
+                    //     Size = 10,
+                    // },
+                    Width = isSeeder || torrent.Done ? 6 : 2,
+                    Arrows = new VisEdgeArrows
+                    {
+                        From = new VisEdgeArrowOptions { Enabled = uploading, },
+                        To = new VisEdgeArrowOptions { Enabled = downloading, },
+                    },
                 };
-            Edges[edge.Id] = edge;
         }
         else
         {
-            edge.Dashes = !someBool;
-            edge.Background!.Color = someBool ? "#ffffff" : "#000000";
-            edge.Background.Enabled = true;
-            edge.Background.Size = 1;
+            //edge.Label = edgeLabel;
+            edge.Dashes = !interested;
+            edge.Color!.Color = color;
+            edge.Width = isSeeder || torrent.Done ? 6 : 2;
+            edge.Arrows!.From!.Enabled = uploading;
+            edge.Arrows!.To!.Enabled = downloading;
         }
-        if (edgeChanged) _netVis!.Edges.Update(edge);
-        // ...
+        _netVis!.Edges.Update(edge);
         return (node, edge);
     }
     (VisNode, VisEdge) AddOrUpdateNodeTorrent(Torrent torrent)
@@ -173,66 +321,65 @@
         var nodeId = torrent.InstanceId;
         var edgeToId = rootNode.Id;
         var edgeId = $"{nodeId}>>{edgeToId}";
-        var tDone = true;
-        //using var devicePlatform = PlatformService.Platform.Parse(device.UserAgent);
-        //var platformIcon = PlatformService.GetUserAgentIcon(torrent.UserAgent);
-        var nodeChanged = true;
-        if (!Nodes.TryGetValue(nodeId, out var node))
+        var tDone = torrent.Done;
+        var node = _netVis!.Nodes!.Get(nodeId);
+        var nodeLabel = $"{torrent.Name} {Math.Round(torrent.Progress * 100d, 2)}%";
+        if (node == null)
         {
             node = new VisNode
                 {
                     Id = nodeId,
-                    Label = torrent.Name,
+                    Label = nodeLabel,
                     Shape = "circularImage",
                     Image = InstanceIcons["torrent"],
                     Font = tDone ? onlineNodeFont : offlineNodeFont,
                     Color = new VisNodeColor
                     {
-                        Border = tDone ? "#ff0000" : "#11111144",
+                        Border = tDone ? "#ffffff" : "#11111144",
                         Background = "#222222"
                     },
                     Opacity = tDone ? 1.0f : 0.5f,
+                    Tag = "torrent",
                 };
-            Nodes[node.Id] = node;
         }
         else
         {
-            node.Label = torrent.Name;
+            node.Label = nodeLabel;
             node.Font = tDone ? onlineNodeFont : offlineNodeFont;
-            node.Color = new VisNodeColor { Border = tDone ? "#ff0000" : "#11111144" };
+            node.Color!.Border = tDone ? "#ffffff" : "#00aa00";
             node.Opacity = tDone ? 1.0f : 0.5f;
         }
-        node.Tag = torrent;
-        if (nodeChanged) _netVis!.Nodes.Update(node);
+        _netVis!.Nodes.Update(node);
         // root edge
-        var someBool = false;
-        var edgeChanged = true;
-        if (!Edges.TryGetValue(edgeId, out var edge))
+        var edge = _netVis!.Edges!.Get(edgeId);
+        if (edge == null)
         {
             edge = new VisEdge
                 {
                     Id = edgeId,
                     From = nodeId,
                     To = edgeToId,
-                    Dashes = !someBool,
-                    Background = new VisEdgeBackground
+                    Dashes = !tDone,
+                    Color = new VisEdgeColor
                     {
-                        Color = someBool ? "#ffffff" : "#000000",
-                        Enabled = true,
-                        Size = 1,
-                    }
+                        Color = tDone ? "#ffffff" : "#ffffff55",
+                    },
+                    // Background = new VisEdgeBackground
+                    // {
+                    //     Color = "#ff00ff",
+                    //     Enabled = true,
+                    //     Size = 10,
+                    // },
+                    Width = tDone ? 6 : 2,
                 };
-            Edges[edge.Id] = edge;
         }
         else
         {
-            edge.Dashes = !someBool;
-            edge.Background!.Color = someBool ? "#ffffff" : "#000000";
-            edge.Background.Enabled = true;
-            edge.Background.Size = 1;
+            edge.Dashes = !tDone;
+            edge.Color!.Color = tDone ? "#ffffff" : "#000000";
+            edge.Width = tDone ? 6 : 2;
         }
-        if (edgeChanged) _netVis!.Edges.Update(edge);
-        // ...
+        _netVis!.Edges.Update(edge);
         return (node, edge);
     }
 }
