@@ -45,13 +45,9 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <returns></returns>
         public int PopCount()
         {
-            var len = Length;
-            if (len == 0) return 0;
             using var buffer = Buffer;
             if (buffer == null) return 0;
-            var bytes = buffer.ReadBytes();
-            int setBits = bytes.Sum(o => BitOperations.PopCount(o));
-            return setBits;
+            return buffer.ReadBytes().Sum(o => BitOperations.PopCount(o));
         }
     }
 }

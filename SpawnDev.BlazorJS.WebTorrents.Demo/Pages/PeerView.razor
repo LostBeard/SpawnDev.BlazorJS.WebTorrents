@@ -271,11 +271,11 @@
         var uploadSpeed = wire.UploadSpeed();
         var downloading = downloadSpeed > 0d;
         var uploading = uploadSpeed > 0d;
-        var totalPieces = torrent.Bitfield?.Length ?? 0; 
-        var percentDone = isSeeder ? 1f : wire.PeerPieces?.Percent() ?? 0;
-        var piecesDone = isSeeder ? totalPieces : wire.PeerPieces?.PopCount() ?? 0;
+        float totalPieces = torrent.Bitfield?.Length ?? 0;
+        float donePieces = isSeeder ? totalPieces : wire.PeerPieces?.PopCount() ?? 0;
+        var percentDone = totalPieces == 0 ? 0 : donePieces / totalPieces;
         var baseName = !string.IsNullOrEmpty(wire.RemoteAddress) ? wire.RemoteAddress : ShortPeerId(wire.PeerId);
-        var percentDoneStr = Math.Round(percentDone * 100f, 2) + $"% ({piecesDone}/{totalPieces})";
+        var percentDoneStr = Math.Round(percentDone * 100f, 2) + $"% ({donePieces}/{totalPieces})";
         baseName += $" - {percentDoneStr}";
         var nodeLabel = $"{baseName}\n⬆ {ReadableByteLength(wire.Uploaded)} at {ReadableBps(uploadSpeed)}\n⬇ {ReadableByteLength(wire.Downloaded)} at {ReadableBps(uploadSpeed)}";
         if (node == null)

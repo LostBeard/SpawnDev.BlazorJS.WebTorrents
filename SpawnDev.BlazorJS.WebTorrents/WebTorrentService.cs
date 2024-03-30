@@ -134,7 +134,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
                 wire.Use(factory);
             }
             wire.OnBitfield += (bitfield) => {
-                JS.Log("Wire_OnBitfield", bitfield, bitfield.Percent());
+                JS.Log("Wire_OnBitfield", bitfield);
                 JS.Set("Wire_OnBitfield", bitfield);
             };
             //wire.OnRequest += (index, offset, length, d) => {
