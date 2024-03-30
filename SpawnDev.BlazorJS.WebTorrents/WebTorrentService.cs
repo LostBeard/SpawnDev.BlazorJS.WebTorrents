@@ -133,6 +133,19 @@ namespace SpawnDev.BlazorJS.WebTorrents
             {
                 wire.Use(factory);
             }
+            wire.OnBitfield += (bitfield) => {
+                JS.Log("Wire_OnBitfield", bitfield, bitfield.Percent());
+                JS.Set("Wire_OnBitfield", bitfield);
+            };
+            //wire.OnRequest += (index, offset, length, d) => {
+            //    JS.Log("Wire_OnRequest", index, offset, length, d);
+            //};
+            //wire.OnPiece += (index) => {
+            //    JS.Log("Wire_OnPiece", index);
+            //};
+            //wire.OnHave += (a) => {
+            //    JS.Log("Wire_OnHave", a);
+            //};
         }
         void Torrent_OnNoPeers(Torrent torrent, string announceType)
         {
@@ -210,14 +223,21 @@ namespace SpawnDev.BlazorJS.WebTorrents
             var dirs = await StorageDir!.GetPathDirectoryHandles("recent");
             foreach (var dir in dirs)
             {
-                if (await dir.FilePathExists("torrent.json"))
+                try
                 {
-                    var info = await dir.ReadJSON<RecentTorrent>("torrent.json");
-                    if (info != null && !string.IsNullOrEmpty(info.MagnetURI))
+                    if (await dir.FilePathExists("torrent.json"))
                     {
-                        if (Verbose) JS.Log($"Recent torrent found: {info.Name}");
-                        ret.Add(info);
+                        var info = await dir.ReadJSON<RecentTorrent>("torrent.json");
+                        if (info != null && !string.IsNullOrEmpty(info.MagnetURI))
+                        {
+                            if (Verbose) JS.Log($"Recent torrent found: {info.Name}");
+                            ret.Add(info);
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    JS.Log($"Exception: {ex.Message}");
                 }
             }
             return ret;

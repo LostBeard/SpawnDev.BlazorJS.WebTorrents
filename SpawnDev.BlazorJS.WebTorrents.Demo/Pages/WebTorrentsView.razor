@@ -1,0 +1,73 @@
+﻿@page "/webtorrent"
+@implements IDisposable
+
+<div>
+    @foreach(Torrent torrent in WebTorrentService.Client!.Torrents)
+    {
+        <TorrentView @key=@torrent.InstanceId Torrent="torrent" />
+    }
+</div>
+
+@code {
+    // upload, download speeds
+    // upload, download totals
+    // torrent pieces
+    // torrent files
+    // torrent peers
+    // play torrent
+    // delete torrent
+    // pause/resume
+    // select/deselect file
+    // add magnet
+    // add torrent file picker
+    // seed file picker
+    // seed dir picker
+    // options
+    // upload/download throttles
+    // delete all app data option
+    // video/audio players
+    // export completed torrents file(s)
+    [Inject]
+    WebTorrentService WebTorrentService { get; set; }
+
+    System.Timers.Timer _tmr = new();
+    void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        StateHasChanged();
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        WebTorrentService.OnTorrentAdd += Rendezvous_OnTorrentAdd;
+        WebTorrentService.OnTorrentRemove += Rendezvous_OnTorrentRemove;
+        WebTorrentService.OnTorrentWireAdd += Rendezvous_OnTorrentWireAdd;
+        WebTorrentService.OnTorrentWireRemove += Rendezvous_OnTorrentWireRemove;
+        _tmr.Elapsed += Timer_Elapsed;
+        _tmr.Interval = 1000;
+        _tmr.Enabled = true;
+    }
+    public void Dispose()
+    {
+        _tmr.Enabled = false;
+        _tmr.Elapsed -= Timer_Elapsed;
+        WebTorrentService.OnTorrentAdd -= Rendezvous_OnTorrentAdd;
+        WebTorrentService.OnTorrentRemove -= Rendezvous_OnTorrentRemove;
+        WebTorrentService.OnTorrentWireAdd -= Rendezvous_OnTorrentWireAdd;
+        WebTorrentService.OnTorrentWireRemove -= Rendezvous_OnTorrentWireRemove;
+    }
+    void Rendezvous_OnTorrentWireRemove(Torrent torrent, Wire wire)
+    {
+        StateHasChanged();
+    }
+    void Rendezvous_OnTorrentWireAdd(Torrent torrent, Wire wire)
+    {
+        StateHasChanged();
+    }
+    void Rendezvous_OnTorrentAdd(Torrent torrent)
+    {
+        StateHasChanged();
+    }
+    void Rendezvous_OnTorrentRemove(Torrent torrent)
+    {
+        StateHasChanged();
+    }
+}

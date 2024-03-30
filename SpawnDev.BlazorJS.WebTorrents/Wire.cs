@@ -108,7 +108,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// PeerPieces instance
         /// </summary>
-        public PeerPieces PeerPieces => JSRef.Get<PeerPieces>("peerPieces");
+        public Bitfield PeerPieces => JSRef.Get<Bitfield>("peerPieces");
         /// <summary>
         /// Returns the extended handshake as a JSObject
         /// </summary>
@@ -199,7 +199,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Emitted when a bitfield is received<br />
         /// bitfield: bitfield instance
         /// </summary>
-        public JSEventCallback<JSObject> OnBitfield { get => new JSEventCallback<JSObject>("bitfield", On, RemoveListener); set { } }
+        public JSEventCallback<Bitfield> OnBitfield { get => new JSEventCallback<Bitfield>("bitfield", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted whe na keep alive message is received
         /// </summary>
@@ -260,7 +260,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// offset: number<br />
         /// buffer: Buffer
         /// </summary>
-        public JSEventCallback<int, int, JSObject> OnPiece { get => new JSEventCallback<int, int, JSObject>("piece", On, RemoveListener); set { } }
+        public JSEventCallback<int, int, Uint8Array> OnPiece { get => new JSEventCallback<int, int, Uint8Array>("piece", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when a piece request is cancelled
         /// </summary>
