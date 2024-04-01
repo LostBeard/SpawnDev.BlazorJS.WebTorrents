@@ -1,5 +1,10 @@
 @import '_content/SpawnDev.BlazorJS.VisNetwork/SpawnDev.BlazorJS.VisNetwork.bundle.scp.css';
 
+/* /Pages/WebTorrentsView.razor.rz.scp.css */
+[b-wj7ukc7qvt] .rz-tabview-panels > .rz-tabview-panel {
+    height: 100%;
+    padding: 0;
+}
 /* /Shared/MainLayout.razor.rz.scp.css */
 .page[b-koe8ewhzwu] {
     position: relative;
