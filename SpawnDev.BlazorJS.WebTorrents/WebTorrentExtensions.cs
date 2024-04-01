@@ -144,5 +144,26 @@ namespace SpawnDev.BlazorJS.WebTorrents
             wireRet = null;
             return false;
         }
+
+        /// <summary>
+        /// Returns the torrent with the given instanceId<br />
+        /// non-spec
+        /// </summary>
+        /// <param name="instanceId"></param>
+        /// <returns></returns>
+        public static Torrent? GetTorrentByInstanceId(this WebTorrent _this, string instanceId)
+        {
+            using var torrents = _this.Torrents;
+            foreach (Torrent torrent in torrents)
+            {
+                if (torrent.InstanceId == instanceId) return torrent;
+                torrent.Dispose();
+            }
+            return null;
+        }
+    }
+    public static class TorrentExtensions
+    {
+        public static bool IsDone(this File _this) => _this.Progress >= 1d;
     }
 }

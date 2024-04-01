@@ -37,6 +37,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         public Array<Wire> Wires => JSRef.Get<Array<Wire>>("wires");
         /// <summary>
+        /// Returns the current number of wires
+        /// </summary>
+        public int WireCount => JSRef.Get<int>("wires.length");
+        /// <summary>
         /// Name of the torrent (string).
         /// </summary>
         public string Name => JSRef.Get<string>("name");
@@ -290,7 +294,20 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public void DeselectAll()
         {
             using var files = Files;
-            Deselect(0, files.Length - 1);
+            foreach (File file in files)
+            {
+                file.Deselect();
+                file.Dispose();
+            }
+        }
+        public void SelectAll()
+        {
+            using var files = Files;
+            foreach(File file in files)
+            {
+                file.Select();
+                file.Dispose();
+            }
         }
         /// <summary>
         /// Returns when the torrent is ready

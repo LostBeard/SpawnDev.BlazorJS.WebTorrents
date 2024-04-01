@@ -1,0 +1,255 @@
+﻿@using System.Linq.Dynamic.Core
+@using SpawnDev.BlazorJS.JSObjects
+
+<RadzenDataGrid SelectionMode="DataGridSelectionMode.Single" RowSelect="RowSelect" RowDeselect="RowDeselect"
+                AllowColumnResize="true" @ref="grid" style="height: 100%; width: 100%" GridLines="DataGridGridLines.Both"
+                TItem="TorrentStateInfo" IsLoading=@isLoading Count="@count" Data="@Torrents" LoadData="@LoadData" AllowSorting="true" AllowFiltering="true" AllowPaging="false"
+                CellContextMenu="ShowContextMenuWithItems">
+    <Columns>
+        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="Progress" Title="%" Width="66px" TextAlign="TextAlign.Center">
+            <Template Context="torrent">
+                <RadzenProgressBarCircular Size="ProgressBarCircularSize.Small" ProgressBarStyle="@torrent.ProgressBarStyle" Value="@(Math.Round(torrent.Progress * 100d))" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="TorrentStateInfo" Property="Name" Width="300px" Title="Name" TextAlign="TextAlign.Left" />
+        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="Seeds" Title="Seeds" Width="90px" TextAlign="TextAlign.Center" />
+        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="Peers" Title="Peers" Width="90px" TextAlign="TextAlign.Center" />
+        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="DownloadSpeed" Title="Download Speed" Width="150px" TextAlign="TextAlign.Center">
+            <Template Context="torrent">
+                @(ReadableBps(torrent.DownloadSpeed))
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="UploadSpeed" Title="Upload Speed" Width="150px" TextAlign="TextAlign.Center">
+            <Template Context="torrent">
+                @(ReadableBps(torrent.UploadSpeed))
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="Downloaded" Title="Downloaded" Width="150px" TextAlign="TextAlign.Center">
+            <Template Context="torrent">
+                @(ReadableByteLength(torrent.Downloaded))
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="Length" Title="Size" Width="150px" TextAlign="TextAlign.Center">
+            <Template Context="torrent">
+                @(ReadableByteLength(torrent.Length))
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="TorrentStateInfo" Property="InfoHash" Title="InfoHash" Width="350px" TextAlign="TextAlign.Left" />
+        <!-- Below Column fixes a sizing bug if all columns have a specified width -->
+        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Sortable="false"><Template Context="data"></Template></RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    [Inject]
+    BlazorJSRuntime JS { get; set; }
+    [Inject]
+    ContextMenuService ContextMenuService { get; set; }
+    [Inject]
+    DialogService DialogService { get; set; }
+
+    public string SelectedTorrentInstanceId { get; set; } = "";
+
+    public TorrentStateInfo? SelectedTorrentInfo { get; private set; } = null;
+
+    void ShowContextMenuWithItems(DataGridCellMouseEventArgs<TorrentStateInfo> args)
+    {
+        var selectedTorrentInfo = args.Data;
+        if (selectedTorrentInfo == null) return;
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Pause", Icon = "home", Value = () =>
+                {
+                    selectedTorrentInfo?.Torrent.Pause();
+                }},
+                new ContextMenuItem(){ Text = "Resume", Icon = "search", Value = () =>
+                {
+                    selectedTorrentInfo?.Torrent.Resume();
+                } },
+                new ContextMenuItem(){ Text = "Deselect All", Icon = "info", Value = () =>
+                {
+                    selectedTorrentInfo?.Torrent.DeselectAll();
+                } },
+                new ContextMenuItem(){ Text = "Select All", Icon = "info", Value = () =>
+                {
+                    selectedTorrentInfo?.Torrent.SelectAll();
+                } },
+                new ContextMenuItem(){ Text = "Delete", Icon = "info", Value = async () =>
+                {
+                    if (selectedTorrentInfo == null) return;
+                    try
+                    {
+                        var confirmation = await DialogService.Confirm($"Delete {selectedTorrentInfo.Torrent.Name}?");
+                        selectedTorrentInfo?.Torrent.Destroy(new DestroyTorrentOptions{ DestroyStore = true });
+                    }catch{}
+                } },
+                new ContextMenuItem(){ Text = "Save Torrent File", Icon = "info", Value = () =>
+                {
+                    // TODO
+                } },
+                new ContextMenuItem(){ Text = "Copy Magnet URI", Icon = "info", Value = () =>
+                {
+                    if (selectedTorrentInfo != null)
+                    {
+                        using var navigator = JS.Get<Navigator>("navigator");
+                        using var clipboard = navigator.Clipboard;
+                        clipboard.WriteText(selectedTorrentInfo.Torrent.MagnetURI ?? "");
+                    }
+                } },
+                new ContextMenuItem(){ Text = "Copy InfoHash", Icon = "info", Value = () =>
+                {
+                    if (selectedTorrentInfo != null)
+                    {
+                        using var navigator = JS.Get<Navigator>("navigator");
+                        using var clipboard = navigator.Clipboard;
+                        clipboard.WriteText(selectedTorrentInfo.InfoHash);
+                    }
+                } },
+            }, OnMenuItemClick);
+    }
+    void OnMenuItemClick(MenuItemEventArgs args)
+    {
+        Console.WriteLine($"Menu item with Value={args.Value} clicked");
+        if (args.Value is Action action)
+        {
+            action();
+        }
+        else if (args.Value is Func<Task> task)
+        {
+            _ = task();
+        }
+        // if (!args.Value.Equals(3) && !args.Value.Equals(4))
+        // {
+        //     ContextMenuService.Close();
+        // }
+        ContextMenuService.Close();
+    }
+    [Parameter]
+    public EventCallback<string> SelectedTorrentChanged { get; set; }
+
+    async Task RowSelect(TorrentStateInfo torrentStateInfo)
+    {
+        Console.WriteLine("RowSelect");
+        SelectedTorrentInfo = torrentStateInfo;
+        SelectedTorrentInstanceId = torrentStateInfo.InstanceId;
+        await SelectedTorrentChanged.InvokeAsync(SelectedTorrentInstanceId);
+    }
+    async Task RowDeselect(TorrentStateInfo torrentStateInfo)
+    {
+        Console.WriteLine("RowDeselect");
+        SelectedTorrentInstanceId = "";
+        SelectedTorrentInfo = null;
+        await SelectedTorrentChanged.InvokeAsync(SelectedTorrentInstanceId);
+    }
+    static string ReadableBps(double len)
+    {
+        return $"{ReadableByteLength(len)}/s";
+    }
+    static string ReadableByteLength(double len)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        // Adjust the format string to your preferences. For example "{0:0.#}{1}" would
+        // show a single decimal place, and no space.
+        return string.Format("{0:0.##} {1}", len, sizes[order]);
+    }
+
+    [Inject]
+    WebTorrentService WebTorrentService { get; set; }
+
+    RadzenDataGrid<TorrentStateInfo> grid { get; set; }
+    int count;
+    IEnumerable<TorrentStateInfo> Torrents = new List<TorrentStateInfo>();
+    bool isLoading = false;
+    System.Timers.Timer _tmr = new();
+
+    async Task OnSelectedTitlesChange(object value)
+    {
+        // if (selectedTitles != null && !selectedTitles.Any())
+        // {
+        //     selectedTitles = null;
+        // }
+        await grid.FirstPage();
+    }
+
+    async Task Reset()
+    {
+        grid.Reset(true);
+        await grid.FirstPage(true);
+    }
+
+    async Task LoadData(LoadDataArgs args)
+    {
+        Console.WriteLine("LoadData");
+        isLoading = true;
+        await Task.Yield();
+        var torrentInfos = WebTorrentService.Client!.Torrents.Select(o => new TorrentStateInfo(o)).ToList();
+        var query = torrentInfos.AsQueryable();
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            // Filter via the Where method
+            query = query.Where(args.Filter);
+        }
+        if (!string.IsNullOrEmpty(args.OrderBy))
+        {
+            // Sort via the OrderBy method
+            query = query.OrderBy(args.OrderBy);
+        }
+        // Important!!! Make sure the Count property of RadzenDataGrid is set.
+        count = query.Count();
+        Torrents = query.Skip(args.Skip!.Value).Take(args.Top!.Value).ToList();
+        isLoading = false;
+        Console.WriteLine($"LoadData: {Torrents.Count()}/{count}");
+    }
+    void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        StateHasChanged();
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            grid.Reload();
+        }
+    }
+    protected override void OnInitialized()
+    {
+        WebTorrentService.OnTorrentAdd += Rendezvous_OnTorrentAdd;
+        WebTorrentService.OnTorrentRemove += Rendezvous_OnTorrentRemove;
+        WebTorrentService.OnTorrentWireAdd += Rendezvous_OnTorrentWireAdd;
+        WebTorrentService.OnTorrentWireRemove += Rendezvous_OnTorrentWireRemove;
+        _tmr.Elapsed += Timer_Elapsed;
+        _tmr.Interval = 1000;
+        _tmr.Enabled = true;
+    }
+    public void Dispose()
+    {
+        _tmr.Enabled = false;
+        _tmr.Elapsed -= Timer_Elapsed;
+        WebTorrentService.OnTorrentAdd -= Rendezvous_OnTorrentAdd;
+        WebTorrentService.OnTorrentRemove -= Rendezvous_OnTorrentRemove;
+        WebTorrentService.OnTorrentWireAdd -= Rendezvous_OnTorrentWireAdd;
+        WebTorrentService.OnTorrentWireRemove -= Rendezvous_OnTorrentWireRemove;
+    }
+    void Rendezvous_OnTorrentWireRemove(Torrent torrent, Wire wire)
+    {
+        StateHasChanged();
+    }
+    void Rendezvous_OnTorrentWireAdd(Torrent torrent, Wire wire)
+    {
+        StateHasChanged();
+    }
+    void Rendezvous_OnTorrentAdd(Torrent torrent)
+    {
+        grid.Reload();
+    }
+    void Rendezvous_OnTorrentRemove(Torrent torrent)
+    {
+        grid.Reload();
+    }
+}

@@ -1,0 +1,4 @@
+﻿::deep .rz-tabview-panels > .rz-tabview-panel {
+    height: 100%;
+    padding: 0;
+}

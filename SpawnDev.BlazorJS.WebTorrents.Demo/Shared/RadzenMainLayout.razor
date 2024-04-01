@@ -1,0 +1,92 @@
+﻿@inherits LayoutComponentBase
+
+<RadzenComponents />
+
+<RadzenLayout>
+    <RadzenHeader>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
+            <RadzenSidebarToggle Style="margin: 0;" Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
+            <div>
+                <RadzenMenu Click="OnParentClicked">
+                    <RadzenMenuItem Text="Torrent" Icon="hub">
+                        <RadzenMenuItem Text="Add Magnet" Value="@("add_magnet")" Icon="add"></RadzenMenuItem>
+                        <RadzenMenuItem Text="Creative Commons" Icon="spoke">
+                            @foreach (var CCMagnet in WebTorrentService.CCMagnets)
+                            {
+                                <RadzenMenuItem Text="@($"Add {CCMagnet.Key}")" Value="@($"add_magnet {CCMagnet.Value}")" Icon="add"></RadzenMenuItem>
+                            }
+                        </RadzenMenuItem>
+                    </RadzenMenuItem>
+                    <RadzenMenuItem Text="Tools" Icon="settings">
+                        <RadzenMenuItem Text="Options" Value="@("checkbox")" Icon="tune"></RadzenMenuItem>
+                    </RadzenMenuItem>
+                </RadzenMenu>
+            </div>
+        </RadzenStack>
+    </RadzenHeader>
+    <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
+        <RadzenPanelMenu>
+            <RadzenPanelMenuItem Text="Home" Icon="home" Path="" />
+            <RadzenPanelMenuItem Text="GitHub" Image="github-mark-white.svg" Path="https://github.com/LostBeard/SpawnDev.BlazorJS.WebTorrents" />
+        </RadzenPanelMenu>
+        @* <div class="rz-p-4">
+        Sidebar
+        </div> *@
+    </RadzenSidebar>
+    <RadzenBody Style="position: relative;">
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+            @Body
+        </div>
+    </RadzenBody>
+    <RadzenFooter>
+        <RadzenLink Image="https://avatars.githubusercontent.com/u/5800008?s=48&v=4" Text="WebTorrent" Path="https://github.com/webtorrent/webtorrent" />
+    </RadzenFooter>
+</RadzenLayout>
+
+@code {
+    [Inject]
+    NotificationService NotificationService { get; set; }
+    [Inject]
+    DialogService DialogService { get; set; }
+
+    [Inject]
+    WebTorrentService WebTorrentService { get; set; }
+
+    string content = "";
+    bool sidebar1Expanded = true;
+    async Task OnParentClicked(MenuItemEventArgs args)
+    {
+        if (args.Value is string valueStr)
+        {
+            if (valueStr.StartsWith("add_magnet "))
+            {
+                var magnet = valueStr.Substring(valueStr.IndexOf(" ") + 1);
+                await WebTorrentService.GetTorrent(magnet);
+            }
+            switch (valueStr)
+            {
+                case "add_magnet":
+                    var magnet = await AddMagnetDialog.Show(DialogService);
+                    if (!string.IsNullOrEmpty(magnet))
+                    {
+                        try
+                        {
+                            await WebTorrentService.GetTorrent(magnet);
+                            NotificationService.Notify(NotificationSeverity.Success, "Torrent added");
+                        }
+                        catch (Exception ex)
+                        {
+                            NotificationService.Notify(NotificationSeverity.Error, ex.Message, "Failed to add torrent");
+                        }
+                    }
+                    break;
+            }
+        }
+        Console.WriteLine($"{args.Text} clicked from parent");
+    }
+
+    void OnChildClicked(MenuItemEventArgs args)
+    {
+        Console.WriteLine($"{args.Text} from child clicked");
+    }
+}

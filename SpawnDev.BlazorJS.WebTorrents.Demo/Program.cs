@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Radzen;
 using SpawnDev.BlazorJS;
 using SpawnDev.BlazorJS.WebTorrents;
 using SpawnDev.BlazorJS.WebTorrents.Demo;
@@ -13,4 +14,7 @@ builder.Services.AddWebTorrentService(webTorrentService =>
     webTorrentService.EnableRecent = true;
     webTorrentService.LoadRecentDeselected = true;
 });
+
+builder.Services.AddRadzenComponents();
+
 await builder.Build().BlazorJSRunAsync();

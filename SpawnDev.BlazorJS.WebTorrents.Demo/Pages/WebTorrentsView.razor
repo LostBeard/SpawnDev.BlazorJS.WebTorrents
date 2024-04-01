@@ -1,11 +1,30 @@
-﻿@page "/webtorrent"
+﻿@page "/"
 @implements IDisposable
 
-<div>
-    @foreach(Torrent torrent in WebTorrentService.Client!.Torrents)
-    {
-        <TorrentView @key=@torrent.InstanceId Torrent="torrent" />
-    }
+
+<div style="height: 100%; height: 100%;">
+    <RadzenSplitter Orientation="Orientation.Vertical" style="height: 100%; height: 100%;">
+        <RadzenSplitterPane Size="40%" Min="30px">
+            <WebTorrentDataGrid SelectedTorrentChanged="@SelectedTorrentChanged" />
+        </RadzenSplitterPane>
+        <RadzenSplitterPane>
+            <RadzenTabs RenderMode="TabRenderMode.Client" Style="position: relative; height: 100%;">
+                <Tabs>
+                    <RadzenTabsItem Text="Network" Style="position: relative; height: 100%;">
+                        <div style="position: relative; width: 100%; height: 100%;">
+                            <PeerView />
+                        </div>
+                    </RadzenTabsItem>
+                    <RadzenTabsItem Text="Files">
+                        <TorrentFilesDataGrid TorrentInstanceId="@SelectedTorrentInstanceId" />
+                    </RadzenTabsItem>
+                    <RadzenTabsItem Text="Peers">
+                        <TorrentWiresDataGrid TorrentInstanceId="@SelectedTorrentInstanceId" />
+                    </RadzenTabsItem>
+                </Tabs>
+            </RadzenTabs>
+        </RadzenSplitterPane>
+    </RadzenSplitter>
 </div>
 
 @code {
@@ -30,6 +49,23 @@
     [Inject]
     WebTorrentService WebTorrentService { get; set; }
 
+    Torrent? SelectedTorrent { get; set; }
+    string SelectedTorrentInstanceId = "";
+
+    void SelectedTorrentChanged(string instanceId)
+    {
+        if (SelectedTorrent != null)
+        {
+            if (SelectedTorrent.InstanceId == instanceId)
+            {
+                return;
+            }
+            SelectedTorrent.Dispose();
+        }
+        SelectedTorrent = WebTorrentService.Client!.GetTorrentByInstanceId(instanceId);
+        SelectedTorrentInstanceId = SelectedTorrent?.InstanceId ?? "";
+    }
+
     System.Timers.Timer _tmr = new();
     void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
     {
@@ -44,6 +80,7 @@
         _tmr.Elapsed += Timer_Elapsed;
         _tmr.Interval = 1000;
         _tmr.Enabled = true;
+        await WebTorrentService.EnableServer();
     }
     public void Dispose()
     {

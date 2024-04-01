@@ -3,7 +3,7 @@
 @using SpawnDev.BlazorJS.VisNetwork
 @implements IDisposable
 
-<VisNetworkView Style="width: 100%; height: 100%; background-color: #101010;" @ref="_netVis" UpdateData=Update OnDoubleClick="Network_OnDoubleClick" OnClick="Network_OnClick" OnContext="Network_OnContext" />
+<VisNetworkView Style="top: 0; left: 0; width: 100%; height: 100%; background-color: #101010; position: absolute;" @ref="_netVis" UpdateData=Update OnDoubleClick="Network_OnDoubleClick" OnClick="Network_OnClick" OnContext="Network_OnContext" />
 
 @code {
     void Network_OnContext(NetworkContextEvent networkContextEvent)

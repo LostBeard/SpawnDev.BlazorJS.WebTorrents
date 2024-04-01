@@ -88,7 +88,7 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Pages
                 await Torrent!.WhenReady();
                 TorrentFiles = Torrent.Files.ToArray();
                 largestMp4File = TorrentFiles.Where(o => o.Name.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase)).OrderByDescending(o => o.Length).FirstOrDefault();
-                largestMp4File?.StreamTo(videoEl);
+                //largestMp4File?.StreamTo(videoEl);
                 StateHasChanged();
             }
             catch (Exception ex)

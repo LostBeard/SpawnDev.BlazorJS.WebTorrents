@@ -1,0 +1,57 @@
+﻿<div style="width: 350px;">
+    <div class="p-3">
+        <RadzenTextBox @oninput="@(args => OnInput(args.Value!.ToString()!))" Placeholder="@PlaceHolder" class="w-100" aria-label="Default TextBox" />
+    </div>
+    <div class="p-3">
+        <RadzenButton Click="Confirm" Disabled="@ConfirmDisabled" Text="Add" />
+        <RadzenButton Click="Cancel" Text="Cancel" />
+    </div>
+</div>
+
+@code {
+    [Inject]
+    DialogService DialogService { get; set; }
+    string value = "";
+
+    bool ConfirmDisabled = true;
+    bool AllowInfoHash = false;
+    string PlaceHolder => AllowInfoHash ? "Magnet URI or InfoHash" : "Magnet URI";
+
+    void OnInput(string value)
+    {
+        Console.WriteLine("OnInput");
+        this.value = value;
+        var valid = WebTorrentService.IsMagnet(value) || (AllowInfoHash && WebTorrentService.IsInfoHash(value));
+        ConfirmDisabled = !valid;
+    }
+    void Confirm()
+    {
+        if (WebTorrentService.IsInfoHash(value))
+        {
+            DialogService.Close(WebTorrentService.InfoHashToMagnet(value));
+        }
+        else
+        {
+            DialogService.Close(value);
+        }
+    }
+    void Cancel()
+    {
+        DialogService.Close(null);
+    }
+
+    public static async Task<string?> Show(DialogService DialogService)
+    {
+        string? ret = await DialogService.OpenAsync<AddMagnetDialog>(
+            $"Add Magnet",
+            new Dictionary<string, object>() { },
+               new DialogOptions()
+                   {
+                       Width = "auto",
+                       Resizable = true,
+                       Draggable = true
+                   }
+        );
+        return ret;
+    }
+}

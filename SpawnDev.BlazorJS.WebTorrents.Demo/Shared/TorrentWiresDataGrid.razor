@@ -1,0 +1,179 @@
+﻿@using System.Linq.Dynamic.Core
+
+<RadzenDataGrid SelectionMode="DataGridSelectionMode.Single" RowSelect="RowSelect" RowDeselect="RowDeselect" 
+AllowColumnResize="true" @ref="grid" style="height: 100%; width: 100%;" GridLines="DataGridGridLines.Both" TItem="TorrentWireStateInfo" IsLoading=@isLoading2 
+Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFiltering="true" AllowPaging="false">
+    <Columns>
+        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="false" Property="Progress" Title="%" Width="66px" TextAlign="TextAlign.Center">
+            <Template Context="torrent">
+                <RadzenProgressBarCircular Size="ProgressBarCircularSize.Small" ProgressBarStyle="@torrent.ProgressBarStyle" Value="@(Math.Round(torrent.PeerProgress * 100d))" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="true" Property="PeerId" Width="300px" Title="Peer Id" TextAlign="TextAlign.Center" />
+        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="true" Property="RemoteAddress" Width="150px" Title="Address" TextAlign="TextAlign.Center" />
+        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="true" Property="Type" Width="150px" Title="Type" TextAlign="TextAlign.Center" />
+        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="false" Property="DownloadSpeed" Title="Download Speed" Width="150px" TextAlign="TextAlign.Center">
+            <Template Context="torrent">
+                @(ReadableBps(torrent.DownloadSpeed))
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="false" Property="UploadSpeed" Title="Upload Speed" Width="150px" TextAlign="TextAlign.Center">
+            <Template Context="torrent">
+                @(ReadableBps(torrent.UploadSpeed))
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="false" Property="Downloaded" Title="Downloaded" Width="150px" TextAlign="TextAlign.Center">
+            <Template Context="torrent">
+                @(ReadableByteLength(torrent.Downloaded))
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="false" Property="Uploaded" Title="Uploaded" Width="150px" TextAlign="TextAlign.Center">
+            <Template Context="torrent">
+                @(ReadableByteLength(torrent.Uploaded))
+            </Template>
+        </RadzenDataGridColumn>
+        <!-- Below Column fixes a sizing bug if all columns have a specified width -->
+        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="false" Sortable="false"><Template Context="data"></Template></RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    bool isLoading2 = false;
+    [Parameter]
+    public string TorrentInstanceId { get; set; }
+
+    Torrent? Torrent { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (Torrent != null)
+        {
+            if (Torrent.InstanceId == TorrentInstanceId)
+            {
+                return;
+            }
+        }
+        Torrent = WebTorrentService.Client!.GetTorrentByInstanceId(TorrentInstanceId);
+        grid?.Reload();
+    }
+
+    async Task RowSelect(TorrentWireStateInfo torrentStateInfo)
+    {
+        Console.WriteLine("RowSelect");
+    }
+    async Task RowDeselect(TorrentWireStateInfo torrentStateInfo)
+    {
+        Console.WriteLine("RowDeselect");
+    }
+    static string ReadableBps(double len)
+    {
+        return $"{ReadableByteLength(len)}/s";
+    }
+    static string ReadableByteLength(double len)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        // Adjust the format string to your preferences. For example "{0:0.#}{1}" would
+        // show a single decimal place, and no space.
+        return String.Format("{0:0.##} {1}", len, sizes[order]);
+    }
+
+    [Inject]
+    WebTorrentService WebTorrentService { get; set; }
+
+    RadzenDataGrid<TorrentWireStateInfo> grid { get; set; }
+    int Count;
+    IEnumerable<TorrentWireStateInfo> Infos = new List<TorrentWireStateInfo>();
+    bool isLoading = false;
+    System.Timers.Timer _tmr = new();
+
+    async Task OnSelectedTitlesChange(object value)
+    {
+        // if (selectedTitles != null && !selectedTitles.Any())
+        // {
+        //     selectedTitles = null;
+        // }
+        await grid.FirstPage();
+    }
+
+    async Task Reset()
+    {
+        grid.Reset(true);
+        await grid.FirstPage(true);
+    }
+
+    async Task LoadData(LoadDataArgs args)
+    {
+        Console.WriteLine("LoadData");
+        isLoading = true;
+        await Task.Yield();
+        var infos = Torrent == null ? new List<TorrentWireStateInfo>() : Torrent.Wires.Select(o => new TorrentWireStateInfo(Torrent, o)).ToList();
+        var query = infos.AsQueryable();
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            // Filter via the Where method
+            query = query.Where(args.Filter);
+        }
+        if (!string.IsNullOrEmpty(args.OrderBy))
+        {
+            // Sort via the OrderBy method
+            query = query.OrderBy(args.OrderBy);
+        }
+        // Important!!! Make sure the Count property of RadzenDataGrid is set.
+        Count = query.Count();
+        Infos = query.Skip(args.Skip!.Value).Take(args.Top!.Value).ToList();
+        isLoading = false;
+        Console.WriteLine($"LoadData: {Infos.Count()}/{Count}");
+    }
+    void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        StateHasChanged();
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            grid.Reload();
+        }
+    }
+    protected override void OnInitialized()
+    {
+        WebTorrentService.OnTorrentAdd += Rendezvous_OnTorrentAdd;
+        WebTorrentService.OnTorrentRemove += Rendezvous_OnTorrentRemove;
+        WebTorrentService.OnTorrentWireAdd += Rendezvous_OnTorrentWireAdd;
+        WebTorrentService.OnTorrentWireRemove += Rendezvous_OnTorrentWireRemove;
+        _tmr.Elapsed += Timer_Elapsed;
+        _tmr.Interval = 1000;
+        _tmr.Enabled = true;
+    }
+    public void Dispose()
+    {
+        _tmr.Enabled = false;
+        _tmr.Elapsed -= Timer_Elapsed;
+        WebTorrentService.OnTorrentAdd -= Rendezvous_OnTorrentAdd;
+        WebTorrentService.OnTorrentRemove -= Rendezvous_OnTorrentRemove;
+        WebTorrentService.OnTorrentWireAdd -= Rendezvous_OnTorrentWireAdd;
+        WebTorrentService.OnTorrentWireRemove -= Rendezvous_OnTorrentWireRemove;
+    }
+    void Rendezvous_OnTorrentWireRemove(Torrent torrent, Wire wire)
+    {
+        grid.Reload();
+    }
+    void Rendezvous_OnTorrentWireAdd(Torrent torrent, Wire wire)
+    {
+        grid.Reload();
+    }
+    void Rendezvous_OnTorrentAdd(Torrent torrent)
+    {
+        StateHasChanged();
+    }
+    void Rendezvous_OnTorrentRemove(Torrent torrent)
+    {
+        StateHasChanged();
+    }
+}
