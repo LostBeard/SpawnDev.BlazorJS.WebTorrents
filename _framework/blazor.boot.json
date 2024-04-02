@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "SpawnDev.BlazorJS.WebTorrents.Demo",
   "resources": {
-    "hash": "sha256-wBJg1D+8ivOOsoVc2v8nSJ2drmlclT00+7pyAVIRKHI=",
+    "hash": "sha256-GGTNgJ2HeAAHe+qFGimsR0z4UU0X89AHtfk6GXzawl0=",
     "jsModuleNative": {
       "dotnet.native.8.0.3.ui8bbliwqa.js": "sha256-+33kzLRJ+iBOS9Ph+qce6OWgxtc5BovRjgrlEhioszw="
     },
@@ -37,8 +37,8 @@
       "Radzen.Blazor.wasm": "sha256-K8f1CYM6v4ha/jVoDREYtUdSncADKgYJqA4NHQrKRJE=",
       "SpawnDev.BlazorJS.VisNetwork.wasm": "sha256-wqO0XwS0WkLNuIUBq0baLjvmnrpztSWBMNoexTy91NE=",
       "SpawnDev.BlazorJS.wasm": "sha256-E7XLf8rM27MZCgdDQXqQ7/R7cWIWgVCIaUbXG7Jieb0=",
-      "SpawnDev.BlazorJS.WebTorrents.Demo.wasm": "sha256-AxuxGb/70ZHzhke7ZtD1dwuVmnn28OKKGigooGo+3sk=",
-      "SpawnDev.BlazorJS.WebTorrents.wasm": "sha256-fS3b9LeQ8fjiO7UV52nztNmRMcIkrjJ+H3oQ/47vM6Q=",
+      "SpawnDev.BlazorJS.WebTorrents.Demo.wasm": "sha256-Rsj9cJs5IHYZvP1Ir6EWfUKFSsa+VBCe8TqOCbdQlLk=",
+      "SpawnDev.BlazorJS.WebTorrents.wasm": "sha256-quzPQUTapsshnZ9PqGKEZQxkIUQuPNkh1Zj+758pLpA=",
       "System.Collections.Concurrent.wasm": "sha256-OWyvoIzz0iFOd1nt8Qg3BE+iKzzEHIUN0Mg0YxuAlDs=",
       "System.Collections.Immutable.wasm": "sha256-px9UWWAMiOueqORPJpj/5VyDp477Wbxi9nJ009fuHvo=",
       "System.Collections.NonGeneric.wasm": "sha256-xapdfc6kCKe7zteiJrSgeecmw+GcTYOGL+jCQ+Ar9Bc=",
