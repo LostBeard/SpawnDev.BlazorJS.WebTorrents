@@ -131,7 +131,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public static bool IsMagnet(string value)
         {
             if (value == null) return false;
-            return Regex.IsMatch(value, @"^magnet:\?xt=urn:btih:[a-f0-9]{40}\S*$", RegexOptions.IgnoreCase);
+            return value.StartsWith(@"magnet:\?xt=urn:btih:");// Regex.IsMatch(value, @"^magnet:\?xt=urn:btih:[a-f0-9]{40}\S*$", RegexOptions.IgnoreCase);
         }
         public static bool IsInfoHash(string value)
         {

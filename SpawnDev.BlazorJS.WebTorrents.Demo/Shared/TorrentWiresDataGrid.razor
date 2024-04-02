@@ -1,39 +1,39 @@
 ﻿@using System.Linq.Dynamic.Core
 
 <RadzenDataGrid SelectionMode="DataGridSelectionMode.Single" RowSelect="RowSelect" RowDeselect="RowDeselect" 
-AllowColumnResize="true" @ref="grid" style="height: 100%; width: 100%;" GridLines="DataGridGridLines.Both" TItem="TorrentWireStateInfo" IsLoading=@isLoading2 
+AllowColumnResize="true" @ref="grid" style="height: 100%; width: 100%;" GridLines="DataGridGridLines.Both" TItem="WireStateInfo" IsLoading=@isLoading2 
 Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFiltering="true" AllowPaging="false">
     <Columns>
-        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="false" Property="Progress" Title="%" Width="66px" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="WireStateInfo" Filterable="false" Property="Progress" Title="%" Width="66px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 <RadzenProgressBarCircular Size="ProgressBarCircularSize.Small" ProgressBarStyle="@torrent.ProgressBarStyle" Value="@(Math.Round(torrent.PeerProgress * 100d))" />
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="true" Property="PeerId" Width="300px" Title="Peer Id" TextAlign="TextAlign.Center" />
-        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="true" Property="RemoteAddress" Width="150px" Title="Address" TextAlign="TextAlign.Center" />
-        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="true" Property="Type" Width="150px" Title="Type" TextAlign="TextAlign.Center" />
-        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="false" Property="DownloadSpeed" Title="Download Speed" Width="150px" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="WireStateInfo" Filterable="true" Property="PeerId" Width="300px" Title="Peer Id" TextAlign="TextAlign.Center" />
+        <RadzenDataGridColumn TItem="WireStateInfo" Filterable="true" Property="RemoteAddress" Width="150px" Title="Address" TextAlign="TextAlign.Center" />
+        <RadzenDataGridColumn TItem="WireStateInfo" Filterable="true" Property="Type" Width="150px" Title="Type" TextAlign="TextAlign.Center" />
+        <RadzenDataGridColumn TItem="WireStateInfo" Filterable="false" Property="DownloadSpeed" Title="Download Speed" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableBps(torrent.DownloadSpeed))
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="false" Property="UploadSpeed" Title="Upload Speed" Width="150px" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="WireStateInfo" Filterable="false" Property="UploadSpeed" Title="Upload Speed" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableBps(torrent.UploadSpeed))
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="false" Property="Downloaded" Title="Downloaded" Width="150px" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="WireStateInfo" Filterable="false" Property="Downloaded" Title="Downloaded" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableByteLength(torrent.Downloaded))
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="false" Property="Uploaded" Title="Uploaded" Width="150px" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="WireStateInfo" Filterable="false" Property="Uploaded" Title="Uploaded" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableByteLength(torrent.Uploaded))
             </Template>
         </RadzenDataGridColumn>
         <!-- Below Column fixes a sizing bug if all columns have a specified width -->
-        <RadzenDataGridColumn TItem="TorrentWireStateInfo" Filterable="false" Sortable="false"><Template Context="data"></Template></RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="WireStateInfo" Filterable="false" Sortable="false"><Template Context="data"></Template></RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
 
@@ -57,11 +57,11 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
         grid?.Reload();
     }
 
-    async Task RowSelect(TorrentWireStateInfo torrentStateInfo)
+    async Task RowSelect(WireStateInfo torrentStateInfo)
     {
         Console.WriteLine("RowSelect");
     }
-    async Task RowDeselect(TorrentWireStateInfo torrentStateInfo)
+    async Task RowDeselect(WireStateInfo torrentStateInfo)
     {
         Console.WriteLine("RowDeselect");
     }
@@ -86,9 +86,9 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
     [Inject]
     WebTorrentService WebTorrentService { get; set; }
 
-    RadzenDataGrid<TorrentWireStateInfo> grid { get; set; }
+    RadzenDataGrid<WireStateInfo> grid { get; set; }
     int Count;
-    IEnumerable<TorrentWireStateInfo> Infos = new List<TorrentWireStateInfo>();
+    IEnumerable<WireStateInfo> Infos = new List<WireStateInfo>();
     bool isLoading = false;
     System.Timers.Timer _tmr = new();
 
@@ -112,7 +112,7 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
         Console.WriteLine("LoadData");
         isLoading = true;
         await Task.Yield();
-        var infos = Torrent == null ? new List<TorrentWireStateInfo>() : Torrent.Wires.Select(o => new TorrentWireStateInfo(Torrent, o)).ToList();
+        var infos = Torrent == null ? new List<WireStateInfo>() : Torrent.Wires.Select(o => new WireStateInfo(Torrent, o)).ToList();
         var query = infos.AsQueryable();
         if (!string.IsNullOrEmpty(args.Filter))
         {

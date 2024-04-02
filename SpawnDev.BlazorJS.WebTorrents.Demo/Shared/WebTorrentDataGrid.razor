@@ -12,8 +12,21 @@
             </Template>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="TorrentStateInfo" Property="Name" Width="300px" Title="Name" TextAlign="TextAlign.Left" />
-        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="Seeds" Title="Seeds" Width="90px" TextAlign="TextAlign.Center" />
-        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="Peers" Title="Peers" Width="90px" TextAlign="TextAlign.Center" />
+        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="TimeRemaining" Title="TimeRemaining" Width="150px" TextAlign="TextAlign.Center">
+            <Template Context="torrent">
+                @(HumanReadableSeconds(torrent.TimeRemaining))
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="Seeds" Title="Seeds" Width="90px" TextAlign="TextAlign.Center">
+            <Template Context="torrent">
+                @torrent.Seeds (@torrent.TrackerSeeders)
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="Peers" Title="Peers" Width="90px" TextAlign="TextAlign.Center">
+            <Template Context="torrent">
+                @torrent.Peers (@torrent.TrackerPeers)
+            </Template>
+        </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="DownloadSpeed" Title="Download Speed" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableBps(torrent.DownloadSpeed))
@@ -47,6 +60,12 @@
     ContextMenuService ContextMenuService { get; set; }
     [Inject]
     DialogService DialogService { get; set; }
+
+    string HumanReadableSeconds(double duration)
+    {
+        var timeSpan = TimeSpan.FromSeconds(duration);
+        return string.Format("{0:dd\\.hh\\:mm\\:ss}", timeSpan);
+    }
 
     public string SelectedTorrentInstanceId { get; set; } = "";
 
@@ -86,6 +105,9 @@
                 new ContextMenuItem(){ Text = "Save Torrent File", Icon = "info", Value = () =>
                 {
                     // TODO
+                    var announced = selectedTorrentInfo.Torrent.Announced;
+                    var nmt = true;
+
                 } },
                 new ContextMenuItem(){ Text = "Copy Magnet URI", Icon = "info", Value = () =>
                 {

@@ -9,10 +9,11 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddBlazorJSRuntime();
-builder.Services.AddWebTorrentService(webTorrentService =>
+builder.Services.AddWebTorrentService(new WebTorrentOptions { 
+    //DownloadLimit = 50000,
+}, webTorrentService =>
 {
     webTorrentService.EnableRecent = true;
-    webTorrentService.LoadRecentDeselected = true;
 });
 
 builder.Services.AddRadzenComponents();

@@ -9,7 +9,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
     /// Webtorrent Files closely mimic W3C Files/Blobs except for slice where instead you pass the offsets as objects to the arrayBuffer/stream/createReadStream functions.<br />
     /// https://github.com/webtorrent/webtorrent/blob/master/docs/api.md#file-api
     /// </summary>
-    public class File : JSObject
+    public class File : EventEmitter
     {
         /// <summary>
         /// Deserialization constructor
@@ -144,5 +144,9 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// This method is useful both for servers which run WebTorrent or client apps.
         /// </summary>
         public string StreamURL => JSRef.Get<string>("streamURL");
+        /// <summary>
+        /// Emitted when the file has been downloaded.
+        /// </summary>
+        public JSEventCallback OnDone { get => new JSEventCallback("done", On, RemoveListener); set { } }
     }
 }

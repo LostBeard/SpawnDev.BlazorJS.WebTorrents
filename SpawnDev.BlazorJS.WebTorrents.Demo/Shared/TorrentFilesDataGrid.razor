@@ -1,27 +1,27 @@
 ﻿@using System.Linq.Dynamic.Core
 
 <RadzenDataGrid SelectionMode="DataGridSelectionMode.Single" RowSelect="RowSelect" RowDeselect="RowDeselect" 
-AllowColumnResize="true" @ref="grid" style="height: 100%; width: 100%;" GridLines="DataGridGridLines.Both" TItem="TorrentFileStateInfo" IsLoading=@isLoading 
+AllowColumnResize="true" @ref="grid" style="height: 100%; width: 100%;" GridLines="DataGridGridLines.Both" TItem="FileStateInfo" IsLoading=@isLoading 
 Count="@count" Data="@Files" LoadData="@LoadData" AllowSorting="true" AllowFiltering="true" AllowPaging="false">
     <Columns>
-        <RadzenDataGridColumn TItem="TorrentFileStateInfo" Filterable="false" Property="Progress" Title="%" Width="66px" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="FileStateInfo" Filterable="false" Property="Progress" Title="%" Width="66px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 <RadzenProgressBarCircular Size="ProgressBarCircularSize.Small" ProgressBarStyle="@torrent.ProgressBarStyle" Value="@(Math.Round(torrent.Progress * 100d))" />
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentFileStateInfo" Filterable="true" Property="Name" Width="300px" Title="Name" TextAlign="TextAlign.Left" />
-        <RadzenDataGridColumn TItem="TorrentFileStateInfo" Filterable="false" Property="Downloaded" Title="Downloaded" Width="150px" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="FileStateInfo" Filterable="true" Property="Name" Width="300px" Title="Name" TextAlign="TextAlign.Left" />
+        <RadzenDataGridColumn TItem="FileStateInfo" Filterable="false" Property="Downloaded" Title="Downloaded" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableByteLength(torrent.Downloaded))
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentFileStateInfo" Filterable="false" Property="Length" Title="Size" Width="150px" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="FileStateInfo" Filterable="false" Property="Length" Title="Size" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableByteLength(torrent.Length))
             </Template>
         </RadzenDataGridColumn>
         <!-- Below Column fixes a sizing bug if all columns have a specified width -->
-        <RadzenDataGridColumn TItem="TorrentFileStateInfo" Filterable="false" Sortable="false"><Template Context="data"></Template></RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="FileStateInfo" Filterable="false" Sortable="false"><Template Context="data"></Template></RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
 
@@ -44,11 +44,11 @@ Count="@count" Data="@Files" LoadData="@LoadData" AllowSorting="true" AllowFilte
         grid?.Reload();
     }
 
-    async Task RowSelect(TorrentFileStateInfo torrentStateInfo)
+    async Task RowSelect(FileStateInfo torrentStateInfo)
     {
         Console.WriteLine("RowSelect");
     }
-    async Task RowDeselect(TorrentFileStateInfo torrentStateInfo)
+    async Task RowDeselect(FileStateInfo torrentStateInfo)
     {
         Console.WriteLine("RowDeselect");
     }
@@ -73,9 +73,9 @@ Count="@count" Data="@Files" LoadData="@LoadData" AllowSorting="true" AllowFilte
     [Inject]
     WebTorrentService WebTorrentService { get; set; }
 
-    RadzenDataGrid<TorrentFileStateInfo> grid { get; set; }
+    RadzenDataGrid<FileStateInfo> grid { get; set; }
     int count;
-    IEnumerable<TorrentFileStateInfo> Files = new List<TorrentFileStateInfo>();
+    IEnumerable<FileStateInfo> Files = new List<FileStateInfo>();
     bool isLoading = false;
     System.Timers.Timer _tmr = new();
 
@@ -99,7 +99,7 @@ Count="@count" Data="@Files" LoadData="@LoadData" AllowSorting="true" AllowFilte
         Console.WriteLine("LoadData");
         isLoading = true;
         await Task.Yield();
-        var fileInfos = Torrent == null ? new List<TorrentFileStateInfo>() : Torrent.Files.Select(o => new TorrentFileStateInfo(Torrent, o)).ToList();
+        var fileInfos = Torrent == null ? new List<FileStateInfo>() : Torrent.Files.Select(o => new FileStateInfo(Torrent, o)).ToList();
         var query = fileInfos.AsQueryable();
         if (!string.IsNullOrEmpty(args.Filter))
         {

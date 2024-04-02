@@ -1,9 +1,23 @@
 ﻿using Microsoft.JSInterop;
 using SpawnDev.BlazorJS.JSObjects;
 using System.Security.Cryptography;
+using System.Text.Json.Serialization;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
+    public class TrackerAnnounce
+    {
+        [JsonConverter(typeof(DateTimeEpochConverter))]
+        public DateTime Time { get; set; }
+        public string InfoHash { get; set; }
+        public string Announce { get; set; }
+        public int Interval { get; set; }
+        public int Complete { get; set; }
+        public int Incomplete { get; set; }
+        [JsonIgnore]
+        public bool Expired => DateTime.Now > (Time + TimeSpan.FromSeconds(Interval + ExpiredPadding));
+        static int ExpiredPadding { get; set; } = 10;
+    }
     // https://github.com/feross/simple-peer
     /// <summary>
     /// WebTorrent Torrent class<br />
@@ -11,6 +25,9 @@ namespace SpawnDev.BlazorJS.WebTorrents
     /// </summary>
     public class Torrent : EventEmitter
     {
+
+        public Dictionary<string, TrackerAnnounce> Announced => JSRef.Get<Dictionary<string, TrackerAnnounce>>("announced");
+
         /// <summary>
         /// Returns the property instanceId, setting to a new value if not set
         /// </summary>
@@ -33,13 +50,13 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <param name="_ref"></param>
         public Torrent(IJSInProcessObjectReference _ref) : base(_ref) { }
         /// <summary>
+        /// Torrent discovery 
+        /// </summary>
+        public Discovery Discovery => JSRef.Get<Discovery>("discovery");
+        /// <summary>
         /// An array of the torrent's Wire connections
         /// </summary>
         public Array<Wire> Wires => JSRef.Get<Array<Wire>>("wires");
-        /// <summary>
-        /// Returns the current number of wires
-        /// </summary>
-        public int WireCount => JSRef.Get<int>("wires.length");
         /// <summary>
         /// Name of the torrent (string).
         /// </summary>
@@ -75,7 +92,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Array of all pieces in the torrent. See documentation for Piece below to learn what properties pieces have. Some pieces can be null.
         /// </summary>
-        public Array<JSObject> Pieces => JSRef.Get<Array<JSObject>>("pieces");
+        public Array<Piece?> Pieces => JSRef.Get<Array<Piece?>>("pieces");
         /// <summary>
         /// Length in bytes of every piece but the last one.
         /// </summary>
@@ -87,7 +104,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Time remaining for download to complete (in milliseconds).
         /// </summary>
-        public double TimeRemaining => JSRef.Get<double>("timeRemaining");
+        public double? TimeRemaining => JSRef.Get<double?>("timeRemaining");
         /// <summary>
         /// Total bytes received from peers (including invalid data).
         /// </summary>
@@ -200,12 +217,17 @@ namespace SpawnDev.BlazorJS.WebTorrents
             return t.Task;
         }
         /// <summary>
+        /// Selected pieces for download
+        /// </summary>
+        public Selections Selections => JSRef.Get<Selections>("_selections");
+        /// <summary>
         /// Selects a range of pieces to prioritize starting with start and ending with end (both inclusive) at the given priority. notify is an optional callback to be called when the selection is updated with new data.
         /// </summary>
         /// <param name="start"></param>
         /// <param name="end"></param>
         /// <param name="priority"></param>
-        public void Select(int start, int end, long priority = 0) => JSRef.CallVoid("select", start, end, priority);
+        /// <param name="notify"></param>
+        public void Select(int start, int end, long priority = 0, Callback? notify = null) => JSRef.CallVoid("select", start, end, priority, notify);
         /// <summary>
         /// Deprioritizes a range of previously selected pieces.
         /// </summary>
@@ -253,7 +275,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Emitted when there is a warning. This is purely informational and it is not necessary to listen to this event, but it may aid in debugging.
         /// </summary>
-        public JSEventCallback OnWarning { get => new JSEventCallback("warning", On, RemoveListener); set { } }
+        public JSEventCallback<JSObject> OnWarning { get => new JSEventCallback<JSObject>("warning", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when the torrent encounters a fatal error. The torrent is automatically destroyed and removed from the client when this occurs.
         /// </summary>
@@ -288,6 +310,18 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// int index
         /// </summary>
         public JSEventCallback<int> OnVerified { get => new JSEventCallback<int>("verified", On, RemoveListener); set { } }
+        /// <summary>
+        /// Emitted when _gcSelections is called ond there are torrent._selections.length == 0. May repeat
+        /// </summary>
+        public JSEventCallback OnIdle { get => new JSEventCallback("idle", On, RemoveListener); set { } }
+        public JSEventCallback OnInterested { get => new JSEventCallback("interested", On, RemoveListener); set { } }
+        public JSEventCallback OnUninterested { get => new JSEventCallback("uninterested", On, RemoveListener); set { } }
+        public JSEventCallback OnHotSwap { get => new JSEventCallback("hotswap", On, RemoveListener); set { } }
+        public JSEventCallback OnTrackerAnnounce { get => new JSEventCallback("trackerAnnounce", On, RemoveListener); set { } }
+        public JSEventCallback OnDhtAnnounce { get => new JSEventCallback("dhtAnnounce", On, RemoveListener); set { } }
+        public JSEventCallback<JSObject> OnInvalidPeer { get => new JSEventCallback<JSObject>("invalidPeer", On, RemoveListener); set { } }
+        public JSEventCallback<JSObject> OnBlockedPeer { get => new JSEventCallback<JSObject>("blockedPeer", On, RemoveListener); set { } }
+        public JSEventCallback<JSObject> OnPeer { get => new JSEventCallback<JSObject>("peer", On, RemoveListener); set { } }
         /// <summary>
         /// Deselects all files
         /// </summary>
