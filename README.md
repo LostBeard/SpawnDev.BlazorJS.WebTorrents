@@ -1,5 +1,8 @@
 # SpawnDev.BlazorJS.WebTorrents
 
+### Demo
+[Live Demo](https://lostbeard.github.io/SpawnDev.BlazorJS.WebTorrents/)
+
 [![NuGet version](https://badge.fury.io/nu/SpawnDev.BlazorJS.WebTorrents.svg)](https://www.nuget.org/packages/SpawnDev.BlazorJS.WebTorrents)
 
 [WebTorrent](https://github.com/webtorrent/webtorrent) for Blazor WebAssembly
@@ -10,9 +13,6 @@
 SpawnDev.BlazorJS.WebTorrents is a collection of [JSObject](https://github.com/LostBeard/SpawnDev.BlazorJS?tab=readme-ov-file#jsobject-base-class) wrappers that allow access to the Javascript [WebTorrent](https://github.com/webtorrent/webtorrent) library. The interfaces are nearly identical. Intellisense documentation is included.   
 
 **[WebTorrent API Documentation](https://github.com/webtorrent/webtorrent/blob/master/docs/api.md)** 
-
-### Demo
-[Live Demo](https://lostbeard.github.io/SpawnDev.BlazorJS.WebTorrents/)
 
 ### Getting started
 
