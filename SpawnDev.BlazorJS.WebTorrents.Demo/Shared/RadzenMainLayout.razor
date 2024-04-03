@@ -112,7 +112,7 @@
             switch (valueStr)
             {
                 case "torrent_file_picker":
-                    FilePicker?.ShowFilePicker("torrent_file", true, ".torrent");
+                    FilePicker?.ShowFilePicker(".torrent", true, "torrent_file");
                     break;
                 case "add_magnet":
                     var magnet = await AddMagnetDialog.Show(DialogService);
