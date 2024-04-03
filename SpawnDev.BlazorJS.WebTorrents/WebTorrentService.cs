@@ -55,7 +55,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// If true, recent torrents will be saved when metadata is ready and loaded on startup
         /// </summary>
-        public bool EnableRecent { get; set; }
+        public bool EnableRecent { get; set; } = true;
         /// <summary>
         /// if true and LoadRecentOnStartup is true, recent torrents will be loaded on startup in a paused state
         /// </summary>
@@ -394,16 +394,32 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         /// <param name="hasBeenConfirmed"></param>
         /// <returns></returns>
-        public async Task<int> RemoveCompleted(bool hasBeenConfirmed = false)
+        public async Task<int> RemoveCompleted(bool hasBeenConfirmed)
         {
             var ret = 0;
             using var torrents = Client!.Torrents;
             var ts = torrents.ToArray();
-            foreach(var t in ts)
+            foreach (var t in ts)
             {
                 if (t.Done)
                 {
-                    if (hasBeenConfirmed) await t.DestroyAsync();
+                    if (hasBeenConfirmed) await t.DestroyAsync(new DestroyTorrentOptions { DestroyStore = true });
+                    ret++;
+                }
+            }
+            ts.DisposeAll();
+            return ret;
+        }
+        public async Task<int> RemoveAllTorrents(bool hasBeenConfirmed, Func<Torrent, bool>? predicate = null)
+        {
+            var ret = 0;
+            using var torrents = Client!.Torrents;
+            var ts = torrents.ToArray();
+            foreach (var t in ts)
+            {
+                if (predicate == null || predicate(t))
+                {
+                    if (hasBeenConfirmed) await t.DestroyAsync(new DestroyTorrentOptions { DestroyStore = true });
                     ret++;
                 }
             }

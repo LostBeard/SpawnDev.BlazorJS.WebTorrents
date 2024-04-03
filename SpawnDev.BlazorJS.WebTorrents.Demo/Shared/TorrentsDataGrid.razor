@@ -42,6 +42,11 @@
                 @(ReadableByteLength(torrent.Downloaded))
             </Template>
         </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="SelectedPieces" Title="Pieces" Width="90px" TextAlign="TextAlign.Center">
+            <Template Context="torrent">
+                @torrent.SelectedPieces (@torrent.TotalPieces)
+            </Template>
+        </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="Length" Title="Size" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableByteLength(torrent.Length))

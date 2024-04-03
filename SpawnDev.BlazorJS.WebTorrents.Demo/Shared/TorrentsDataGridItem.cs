@@ -24,6 +24,8 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
         public double DownloadSpeed => Torrent.DownloadSpeed;
         public double Length => Torrent.Length;
         public double Downloaded => Torrent.Downloaded;
+        public int SelectedPieces => Torrent.Selections.Length;
+        public int TotalPieces => Torrent.Bitfield?.Length ?? 0;
         public double Progress => Torrent.Progress;
         public string Name => Torrent.Name;
         public string InstanceId => Torrent.InstanceId;

@@ -18,7 +18,12 @@
                                 <RadzenMenuItem Text="@($"Add {CCMagnet.Key}")" Value="@($"add_magnet {CCMagnet.Value}")" Icon="add"></RadzenMenuItem>
                             }
                         </RadzenMenuItem>
+                        <RadzenMenuItem Text="Pause All" Value="@("pause_all")" Icon="pause"></RadzenMenuItem>
+                        <RadzenMenuItem Text="Resume All" Value="@("play_arrow")" Icon="play_arrow"></RadzenMenuItem>
+                        <RadzenMenuItem Text="Deselect All" Value="@("deselect_all")" Icon="deselect"></RadzenMenuItem>
+                        <RadzenMenuItem Text="Select All" Value="@("select_all")" Icon="done_all"></RadzenMenuItem>
                         <RadzenMenuItem Text="Remove All Completed" Value="@("remove_done")" Icon="delete"></RadzenMenuItem>
+                        <RadzenMenuItem Text="Remove All" Value="@("remove_all")" Icon="delete"></RadzenMenuItem>
                     </RadzenMenuItem>
                     @* <RadzenMenuItem Text="Tools" Icon="settings">
                         <RadzenMenuItem Text="Options" Value="@("checkbox")" Icon="tune"></RadzenMenuItem>
@@ -119,11 +124,70 @@
                     try
                     {
                         var count = await WebTorrentService.RemoveCompleted(false);
-
                         var confirmation = await DialogService.Confirm($"Remove {count} torrents and all the related data?");
                         if (confirmation == true)
                         {
                             await WebTorrentService.RemoveCompleted(true);
+                        }
+                    }
+                    catch { }
+                    break;
+                case "remove_all":
+                    try
+                    {
+                        var count = await WebTorrentService.RemoveAllTorrents(false);
+                        var confirmation = await DialogService.Confirm($"Remove {count} torrents and all the related data?");
+                        if (confirmation == true)
+                        {
+                            await WebTorrentService.RemoveCompleted(true);
+                        }
+                    }
+                    catch { }
+                    break;
+                case "deselect_all":
+                    try
+                    {
+                        using var torrents = WebTorrentService.Client!.Torrents;
+                        foreach(Torrent t in torrents)
+                        {
+                            t.DeselectAll();
+                            t.Dispose();
+                        }
+                    }
+                    catch { }
+                    break;
+                case "select_all":
+                    try
+                    {
+                        using var torrents = WebTorrentService.Client!.Torrents;
+                        foreach (Torrent t in torrents)
+                        {
+                            t.SelectAll();
+                            t.Dispose();
+                        }
+                    }
+                    catch { }
+                    break;
+                case "pause_all":
+                    try
+                    {
+                        using var torrents = WebTorrentService.Client!.Torrents;
+                        foreach (Torrent t in torrents)
+                        {
+                            t.Pause();
+                            t.Dispose();
+                        }
+                    }
+                    catch { }
+                    break;
+                case "resume_all":
+                    try
+                    {
+                        using var torrents = WebTorrentService.Client!.Torrents;
+                        foreach (Torrent t in torrents)
+                        {
+                            t.Resume();
+                            t.Dispose();
                         }
                     }
                     catch { }
