@@ -2,9 +2,7 @@
 
 [![NuGet version](https://badge.fury.io/nu/SpawnDev.BlazorJS.WebTorrents.svg)](https://www.nuget.org/packages/SpawnDev.BlazorJS.WebTorrents)
 
-[WebTorrent](https://github.com/webtorrent/webtorrent) for Blazor WebAssembly
-
-[WebTorrent](https://github.com/webtorrent/webtorrent) is a streaming torrent client for node.js and the browser. YEP, THAT'S RIGHT. THE BROWSER. It's written completely in JavaScript – the language of the web – so the same code works in both runtimes.
+[WebTorrent](https://github.com/webtorrent/webtorrent) for Blazor WebAssembly. WebTorrent is a streaming torrent client for node.js and the browser. YEP, THAT'S RIGHT. THE BROWSER. It's written completely in JavaScript – the language of the web – so the same code works in both runtimes.
 
 ### Demo
 [Live Demo](https://lostbeard.github.io/SpawnDev.BlazorJS.WebTorrents/)
