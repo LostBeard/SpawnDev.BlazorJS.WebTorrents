@@ -5,13 +5,13 @@ namespace SpawnDev.BlazorJS.WebTorrents
     /// <summary>
     /// Represents a tracker message with an unknown data type that can be determined by reading the Action property
     /// </summary>
-    public class TrackerUpdateData : JSObject
+    public class TrackerUpdateMessage : JSObject
     {
         /// <summary>
         /// Deserialization constructor
         /// </summary>
         /// <param name="_ref"></param>
-        public TrackerUpdateData(IJSInProcessObjectReference _ref) : base(_ref) { }
+        public TrackerUpdateMessage(IJSInProcessObjectReference _ref) : base(_ref) { }
         /// <summary>
         /// Message type indicator. Can be used to determine what type of data this message contains.
         /// </summary>

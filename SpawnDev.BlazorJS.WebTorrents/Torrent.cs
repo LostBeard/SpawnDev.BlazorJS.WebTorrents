@@ -39,7 +39,8 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <param name="_ref"></param>
         public Torrent(IJSInProcessObjectReference _ref) : base(_ref) { }
         /// <summary>
-        /// Torrent discovery 
+        /// Torrent discovery>br />
+        /// Not available until after torrent metadata event is emitted
         /// </summary>
         public Discovery Discovery => JSRef.Get<Discovery>("discovery");
         /// <summary>
@@ -309,7 +310,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public JSEventCallback OnInterested { get => new JSEventCallback("interested", On, RemoveListener); set { } }
         public JSEventCallback OnUninterested { get => new JSEventCallback("uninterested", On, RemoveListener); set { } }
         public JSEventCallback OnHotSwap { get => new JSEventCallback("hotswap", On, RemoveListener); set { } }
-        public JSEventCallback OnTrackerAnnounce { get => new JSEventCallback("trackerAnnounce", On, RemoveListener); set { } }
+        public JSEventCallback<TrackerUpdateMessage> OnTrackerAnnounce { get => new JSEventCallback<TrackerUpdateMessage>("trackerAnnounce", On, RemoveListener); set { } }
         public JSEventCallback OnDhtAnnounce { get => new JSEventCallback("dhtAnnounce", On, RemoveListener); set { } }
         public JSEventCallback<JSObject> OnInvalidPeer { get => new JSEventCallback<JSObject>("invalidPeer", On, RemoveListener); set { } }
         public JSEventCallback<JSObject> OnBlockedPeer { get => new JSEventCallback<JSObject>("blockedPeer", On, RemoveListener); set { } }

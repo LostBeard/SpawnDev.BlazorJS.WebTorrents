@@ -164,6 +164,13 @@ namespace SpawnDev.BlazorJS.WebTorrents
         void Torrent_OnMetadata(Torrent torrent)
         {
             if (Verbose) JS.Log("Torrent_OnMetadata", torrent.InfoHash);
+            using var discovery = torrent.Discovery;
+            discovery.OnPeer += Discovery_OnPeer;
+            torrent.Once("close", () =>
+            {
+                using var discovery = torrent.Discovery;
+                discovery.OnPeer += Discovery_OnPeer;
+            });
         }
         void Torrent_OnWire(Torrent torrent, Wire wire)
         {
@@ -223,6 +230,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
             torrent.OnMetadata += onMetadata;
             torrent.OnError += onError;
             OnTorrentAdd?.Invoke(torrent);
+        }
+        void Discovery_OnPeer(JSObject peer, string source)
+        {
+            JS.Log("Discovery_OnPeer", peer, source);
         }
         void WebTorrent_OnRemove(Torrent torrent)
         {

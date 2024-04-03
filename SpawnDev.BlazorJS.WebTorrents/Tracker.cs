@@ -17,7 +17,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public JSEventCallback<JSObject> OnWarning { get => new JSEventCallback<JSObject>("warning", On, RemoveListener); set { } }
         public JSEventCallback<JSObject> OnError { get => new JSEventCallback<JSObject>("error", On, RemoveListener); set { } }
         public JSEventCallback<Peer> OnPeer { get => new JSEventCallback<Peer>("peer", On, RemoveListener); set { } }
-        public JSEventCallback<TrackerUpdateData> OnUpdate { get => new JSEventCallback<TrackerUpdateData>("update", On, RemoveListener); set { } }
+        public JSEventCallback<TrackerUpdateMessage> OnUpdate { get => new JSEventCallback<TrackerUpdateMessage>("update", On, RemoveListener); set { } }
         public string UserAgent => JSRef.Get<string>("_userAgent");
         public Array<TrackerConnection> Trackers => JSRef.Get<Array<TrackerConnection>>("_trackers");
         public void Start() => JSRef.CallVoid("start");
