@@ -140,7 +140,7 @@
     static VisFont defaultNodeFont = new VisFont { Color = "#ffffff", Background = "#111111aa" };
     static VisFont offlineNodeFont = new VisFont { Color = "#ffffff66", Background = "#111111aa" };
     static VisFont onlineNodeFont = new VisFont { Color = "#ffffff", Background = "#111111aa" };
-    VisNode rootNode = new VisNode { Id = "app-root-node", Shape = "circularImage", Image = "icon-192.png", Font = defaultNodeFont };
+    VisNode rootNode = new VisNode { Id = "app-root-node", Shape = "circularImage", Image = "icon-192.png", Font = defaultNodeFont, BorderWidth = 0, Color = new VisNodeColor { Background = "#00000000" } };
     System.Timers.Timer _tmr = new();
     void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
     {
