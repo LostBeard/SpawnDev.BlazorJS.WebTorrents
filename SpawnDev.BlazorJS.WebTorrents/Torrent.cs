@@ -5,18 +5,6 @@ using System.Text.Json.Serialization;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
-    public class TrackerAnnounce
-    {
-        public EpochDateTime? Time { get; set; }
-        public string InfoHash { get; set; }
-        public string Announce { get; set; }
-        public int Interval { get; set; }
-        public int Complete { get; set; }
-        public int Incomplete { get; set; }
-        [JsonIgnore]
-        public bool Expired => Time != null && DateTime.Now > ((DateTime)Time + TimeSpan.FromSeconds(Interval + ExpiredPadding));
-        static int ExpiredPadding { get; set; } = 10;
-    }
     // https://github.com/feross/simple-peer
     /// <summary>
     /// WebTorrent Torrent class<br />
@@ -24,9 +12,11 @@ namespace SpawnDev.BlazorJS.WebTorrents
     /// </summary>
     public class Torrent : EventEmitter
     {
-
-        public Dictionary<string, TrackerAnnounce> Announced => JSRef.Get<Dictionary<string, TrackerAnnounce>>("announced");
-
+        /// <summary>
+        /// A dictionary containing the latest announce message from each tracker<br />
+        /// non-spec custom property added in LostBeard build of WebTorrents to allow tracking swarm data
+        /// </summary>
+        public Dictionary<string, TrackerAnnounced> Announced => JSRef.Get<Dictionary<string, TrackerAnnounced>>("announced");
         /// <summary>
         /// Returns the property instanceId, setting to a new value if not set
         /// </summary>
@@ -56,6 +46,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// An array of the torrent's Wire connections
         /// </summary>
         public Array<Wire> Wires => JSRef.Get<Array<Wire>>("wires");
+        /// <summary>
+        /// Torrent storage
+        /// </summary>
+        public TorrentStore Store => JSRef.Get<TorrentStore>("store");
         /// <summary>
         /// Name of the torrent (string).
         /// </summary>
@@ -261,7 +255,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Emitted when the info hash of the torrent has been determined.
         /// </summary>
-        //public JSEventCallback OnInfoHash { get => new JSEventCallback((o) => On("infohash", o), (o) => Off("infohash", o)); set { } }
         public JSEventCallback OnInfoHash { get => new JSEventCallback("infohash", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when the metadata of the torrent has been determined. This includes the full contents of the .torrent file, including list of files, torrent length, piece hashes, piece length, etc.

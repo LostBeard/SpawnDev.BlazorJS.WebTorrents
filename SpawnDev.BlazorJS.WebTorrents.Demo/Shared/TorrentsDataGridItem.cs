@@ -16,8 +16,8 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
                 );
             }
         }
-        public int TrackerSeeders => (Torrent.Announced?.Values.Where(o => !o.Expired).Sum(o => o.Complete) ?? 0) + WebSeeds;
-        public int TrackerPeers => Torrent.Announced?.Values.Where(o => !o.Expired).Sum(o => o.Incomplete) ?? 0;
+        public int TotalSeeders => (Torrent.Announced?.Values.Where(o => !o.Expired()).Sum(o => o.Complete) ?? 0) + WebSeeds;
+        public int TotalPeers => Torrent.Announced?.Values.Where(o => !o.Expired()).Sum(o => o.Incomplete) ?? 0;
         public int WebSeeds => Torrent.Wires.Where(o => o.Type == "webSeed").Count();
         public double UploadSpeed => Torrent.UploadSpeed;
         public double TimeRemaining => Torrent.TimeRemaining ?? TimeSpan.MaxValue.TotalSeconds + 1d;

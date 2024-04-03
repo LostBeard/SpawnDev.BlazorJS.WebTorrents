@@ -19,12 +19,12 @@
         </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="Seeds" Title="Seeds" Width="90px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
-                @torrent.Seeds (@torrent.TrackerSeeders)
+                @torrent.Seeds (@torrent.TotalSeeders)
             </Template>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="Peers" Title="Peers" Width="90px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
-                @torrent.Peers (@torrent.TrackerPeers)
+                @torrent.Peers (@torrent.TotalPeers)
             </Template>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="DownloadSpeed" Title="Download Speed" Width="150px" TextAlign="TextAlign.Center">

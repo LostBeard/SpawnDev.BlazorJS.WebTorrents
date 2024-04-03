@@ -1,10 +1,4 @@
-﻿using BencodeNET.Torrents;
-using SpawnDev.BlazorJS.JSObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SpawnDev.BlazorJS.JSObjects;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
@@ -161,9 +155,5 @@ namespace SpawnDev.BlazorJS.WebTorrents
             }
             return null;
         }
-    }
-    public static class TorrentExtensions
-    {
-        public static bool IsDone(this File _this) => _this.Progress >= 1d;
     }
 }

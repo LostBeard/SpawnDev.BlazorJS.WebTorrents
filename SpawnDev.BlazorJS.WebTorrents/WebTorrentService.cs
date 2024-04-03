@@ -372,7 +372,11 @@ namespace SpawnDev.BlazorJS.WebTorrents
             //options.Announce = AnnounceTrackers;
             return Client.Add(torrentId, addTorrentOptions);
         }
-
+        /// <summary>
+        /// Removes all completed torrents and deletes all related data
+        /// </summary>
+        /// <param name="hasBeenConfirmed"></param>
+        /// <returns></returns>
         public async Task<int> RemoveCompleted(bool hasBeenConfirmed = false)
         {
             var ret = 0;

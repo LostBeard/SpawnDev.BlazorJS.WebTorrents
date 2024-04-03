@@ -1,11 +1,12 @@
 ﻿using BencodeNET.Parsing;
-using Microsoft.JSInterop;
 using System.Text.Json.Serialization;
 using Timer = System.Timers.Timer;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
-    // An instance of this class is created and returned by the WireExtensionFactory class for use with a new wire instance (if both sides support it)
+    /// <summary>
+    /// An instance of this class is created and returned by the WireExtensionFactory class for use with a new wire instance (if both sides support it)
+    /// </summary>
     public class WireExtension : IDisposable
     {
         // This object is serialized and passed to javascript. Only the below few properties are needed on that end.
@@ -25,9 +26,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         // ******************************************************************************
         public delegate void MessageReceivedDelegate(WireExtension extension, byte[] msg);
         public event MessageReceivedDelegate OnMessageReceived;
-
         public event Action<WireExtension> OnClose;
-
         protected CallbackGroup _callbacks = new CallbackGroup();
         protected BlazorJSRuntime JS;
         protected Timer _tmr = new Timer();
@@ -41,7 +40,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public string PeerId { get; private set; } = "";
         [JsonIgnore]
         public WireExtendedHandshakeEvent? ExtendedHandshake { get; private set; } = null;
-
         // https://github.com/Krusen/BencodeNET#encoding
         /// <summary>
         /// Used to encode and decode BEncoded data
@@ -146,29 +144,5 @@ namespace SpawnDev.BlazorJS.WebTorrents
             Wire.OnClose -= Wire_OnClose;
             _callbacks.Dispose();
         }
-    }
-    // Not exactly positive for the below class.
-    // Could not find an actual API documentation for wire extensions, just the documented tip to look at the ut_metadata source code as reference.
-    public class WireExtendedHandshakeEvent : ExtendedHandshake
-    {
-        public WireExtendedHandshakeEvent(IJSInProcessObjectReference _ref) : base(_ref) { }
-
-        /// <summary>
-        /// m will contain a dictionary where the keys being the supported wire extension names<br />
-        /// Dictionary of supported extension messages which maps names of extensions to an extended message ID for each extension message. The only requirement on these IDs is that no extension message share the same one. Setting an extension number to zero means that the extension is not supported/disabled. The client should ignore any extension names it doesn't recognize.
-        /// </summary>
-        [JsonPropertyName("m")]
-        public Dictionary<string, int>? M => JSRef.Get<Dictionary<string, int>>("m");
-
-        public List<string> Extensions => JSRef.Get<JSObject>("m").JSRef!.GetPropertyNames();
-    }
-    // Not exactly positive for the below class.
-    // Could not find an actual API documentation for wire extensions, just the documented tip to look at the ut_metadata source code as reference.
-    // Tried implementing it in a mostly generic way
-    public class ExtendedHandshake : JSObject
-    {
-        public ExtendedHandshake(IJSInProcessObjectReference _ref) : base(_ref) { }
-        public void SetItem(string key, int value) => JSRef.Set(key, value);
-        public T GetItem<T>(string key) => JSRef.Get<T>(key);
     }
 }

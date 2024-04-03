@@ -8,6 +8,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
     /// </summary>
     public class Selections : JSObject
     {
+        /// <summary>
+        /// Deserialization constructor
+        /// </summary>
+        /// <param name="_ref"></param>
         public Selections(IJSInProcessObjectReference _ref) : base(_ref) { }
         public Array<SelectionItem> Items => JSRef.Get<Array<SelectionItem>>("_items");
         public int Length => JSRef.Get<int>("length");

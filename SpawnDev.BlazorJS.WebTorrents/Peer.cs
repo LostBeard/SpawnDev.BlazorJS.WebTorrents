@@ -7,6 +7,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
     /// </summary>
     public class Peer : JSObject
     {
+        /// <summary>
+        /// Deserialization constructor
+        /// </summary>
+        /// <param name="_ref"></param>
         public Peer(IJSInProcessObjectReference _ref) : base(_ref) { }
         public string ChannelName => JSRef.Get<string>("channelName");
         public string Id => JSRef.Get<string>("id");
