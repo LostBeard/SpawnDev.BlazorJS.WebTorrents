@@ -184,11 +184,11 @@
         if (selected == null) return;
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "Deselect", Disabled = selected.Torrent.Selections.Length == 0, Icon = "deselect", Value = () =>
+                new ContextMenuItem(){ Text = "Deselect", Disabled = selected.File.IsDone() || selected.Torrent.Selections.Length == 0, Icon = "deselect", Value = () =>
                 {
                     selected.File.Deselect();
                 } },
-                new ContextMenuItem(){ Text = "Select", Icon = "done", Value = () =>
+                new ContextMenuItem(){ Text = "Select", Disabled = selected.File.IsDone(), Icon = "done", Value = () =>
                 {
                     selected.File.Select();
                 } },
