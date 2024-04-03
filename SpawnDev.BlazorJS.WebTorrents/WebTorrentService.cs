@@ -164,13 +164,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
         void Torrent_OnMetadata(Torrent torrent)
         {
             if (Verbose) JS.Log("Torrent_OnMetadata", torrent.InfoHash);
-            using var discovery = torrent.Discovery;
-            discovery.OnPeer += Discovery_OnPeer;
-            torrent.Once("close", () =>
-            {
-                using var discovery = torrent.Discovery;
-                discovery.OnPeer += Discovery_OnPeer;
-            });
         }
         void Torrent_OnWire(Torrent torrent, Wire wire)
         {
@@ -205,6 +198,17 @@ namespace SpawnDev.BlazorJS.WebTorrents
         {
             //if (Verbose) JS.Log("Torrent_OnNoPeers", torrent.InfoHash, announceType);
         }
+        void Torrent_OnReady(Torrent torrent)
+        {
+            if (Verbose) JS.Log("Torrent_OnReady", torrent);
+            using var discovery = torrent.Discovery;
+            discovery.OnPeer += Discovery_OnPeer;
+            torrent.Once("close", () =>
+            {
+                using var discovery = torrent.Discovery;
+                discovery.OnPeer += Discovery_OnPeer;
+            });
+        }
         void Torrent_OnError(Torrent torrent, JSObject? error)
         {
             if (Verbose) JS.Log("Torrent_OnError", torrent, error);
@@ -212,6 +216,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         void WebTorrent_OnAdd(Torrent torrent)
         {
             if (Verbose) JS.Log("WebTorrent_OnAdd", torrent);
+            var onReady = new Action(() => Torrent_OnReady(torrent));
             var onWire = new Action<Wire>((wire) => Torrent_OnWire(torrent, wire));
             var onNoPeers = new Action<string>((announceType) => Torrent_OnNoPeers(torrent, announceType));
             var onMetadata = new Action(() => Torrent_OnMetadata(torrent));
@@ -219,21 +224,23 @@ namespace SpawnDev.BlazorJS.WebTorrents
             torrent.Once("close", () =>
             {
                 if (Verbose) JS.Log("Torrent_OnClose", torrent);
+                torrent.OnReady -= onReady;
                 torrent.OnWire -= onWire;
                 torrent.OnNoPeers -= onNoPeers;
                 torrent.OnMetadata -= onMetadata;
                 torrent.OnError -= onError;
                 OnTorrentRemove?.Invoke(torrent);
             });
+            torrent.OnReady += onReady;
             torrent.OnWire += onWire;
             torrent.OnNoPeers += onNoPeers;
             torrent.OnMetadata += onMetadata;
             torrent.OnError += onError;
             OnTorrentAdd?.Invoke(torrent);
         }
-        void Discovery_OnPeer(JSObject peer, string source)
+        void Discovery_OnPeer(Peer peer, string source)
         {
-            JS.Log("Discovery_OnPeer", peer, source);
+            if (Verbose) JS.Log("Discovery_OnPeer", peer, source);
         }
         void WebTorrent_OnRemove(Torrent torrent)
         {

@@ -40,7 +40,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public Torrent(IJSInProcessObjectReference _ref) : base(_ref) { }
         /// <summary>
         /// Torrent discovery>br />
-        /// Not available until after torrent metadata event is emitted
+        /// Not available until after torrent ready event is emitted
         /// </summary>
         public Discovery Discovery => JSRef.Get<Discovery>("discovery");
         /// <summary>

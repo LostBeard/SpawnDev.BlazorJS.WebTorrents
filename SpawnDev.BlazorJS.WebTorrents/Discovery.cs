@@ -46,9 +46,9 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public JSEventCallback OnDhtAnnounce { get => new JSEventCallback("dhtAnnounce", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when a peer is discovered<br />
-        /// peer JSObject - the peer info<br />
-        /// source string - the peer info source
+        /// peer Peer - the peer<br />
+        /// source string - the peer source
         /// </summary>
-        public JSEventCallback<JSObject, string> OnPeer { get => new JSEventCallback<JSObject, string>("peer", On, RemoveListener); set { } }
+        public JSEventCallback<Peer, string> OnPeer { get => new JSEventCallback<Peer, string>("peer", On, RemoveListener); set { } }
     }
 }
