@@ -218,7 +218,6 @@
 
     async Task LoadData(LoadDataArgs args)
     {
-        Console.WriteLine("LoadData");
         isLoading = true;
         await Task.Yield();
         var torrentInfos = WebTorrentService.Client!.Torrents.Select(o => new TorrentsDataGridItem(o)).ToList();
@@ -237,7 +236,6 @@
         count = query.Count();
         Torrents = query.Skip(args.Skip!.Value).Take(args.Top!.Value).ToList();
         isLoading = false;
-        Console.WriteLine($"LoadData: {Torrents.Count()}/{count}");
     }
     void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
     {

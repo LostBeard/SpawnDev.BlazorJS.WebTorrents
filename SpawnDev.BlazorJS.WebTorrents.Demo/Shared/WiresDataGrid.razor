@@ -109,7 +109,6 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
 
     async Task LoadData(LoadDataArgs args)
     {
-        Console.WriteLine("LoadData");
         isLoading = true;
         await Task.Yield();
         var infos = Torrent == null ? new List<WiresDataGridItem>() : Torrent.Wires.Select(o => new WiresDataGridItem(Torrent, o)).ToList();
@@ -128,7 +127,6 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
         Count = query.Count();
         Infos = query.Skip(args.Skip!.Value).Take(args.Top!.Value).ToList();
         isLoading = false;
-        Console.WriteLine($"LoadData: {Infos.Count()}/{Count}");
     }
     void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
     {

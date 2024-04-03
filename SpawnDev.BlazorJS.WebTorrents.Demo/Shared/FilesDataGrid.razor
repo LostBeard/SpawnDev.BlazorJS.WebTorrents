@@ -33,6 +33,8 @@
 
 @code {
     [Inject]
+    WebTorrentService WebTorrentService { get; set; }
+    [Inject]
     BlazorJSRuntime JS { get; set; }
     [Inject]
     ContextMenuService ContextMenuService { get; set; }
@@ -40,12 +42,14 @@
     DialogService DialogService { get; set; }
     [Parameter]
     public string TorrentInstanceId { get; set; }
-
     [Inject]
     MimeTypeService MimeTypeService { get; set; }
-
     Torrent? Torrent { get; set; }
-
+    RadzenDataGrid<FilesDataGridItem> grid { get; set; }
+    int count;
+    IEnumerable<FilesDataGridItem> Files = new List<FilesDataGridItem>();
+    bool isLoading = false;
+    System.Timers.Timer _tmr = new();
     protected override void OnParametersSet()
     {
         if (Torrent != null)
@@ -58,7 +62,6 @@
         Torrent = WebTorrentService.Client!.GetTorrentByInstanceId(TorrentInstanceId);
         grid?.Reload();
     }
-
     async Task RowSelect(FilesDataGridItem torrentStateInfo)
     {
         Console.WriteLine("RowSelect");
@@ -80,38 +83,19 @@
             order++;
             len = len / 1024;
         }
-        // Adjust the format string to your preferences. For example "{0:0.#}{1}" would
-        // show a single decimal place, and no space.
         return String.Format("{0:0.##} {1}", len, sizes[order]);
     }
-
-    [Inject]
-    WebTorrentService WebTorrentService { get; set; }
-
-    RadzenDataGrid<FilesDataGridItem> grid { get; set; }
-    int count;
-    IEnumerable<FilesDataGridItem> Files = new List<FilesDataGridItem>();
-    bool isLoading = false;
-    System.Timers.Timer _tmr = new();
-
     async Task OnSelectedTitlesChange(object value)
     {
-        // if (selectedTitles != null && !selectedTitles.Any())
-        // {
-        //     selectedTitles = null;
-        // }
         await grid.FirstPage();
     }
-
     async Task Reset()
     {
         grid.Reset(true);
         await grid.FirstPage(true);
     }
-
     async Task LoadData(LoadDataArgs args)
     {
-        Console.WriteLine("LoadData");
         isLoading = true;
         await Task.Yield();
         var fileInfos = Torrent == null ? new List<FilesDataGridItem>() : Torrent.Files.Select(o => new FilesDataGridItem(Torrent, o, MimeTypeService.GetExtensionMimeType(o.Name), MimeTypeService.GetExtensionImageHref(o.Name))).ToList();
@@ -130,7 +114,6 @@
         count = query.Count();
         Files = query.Skip(args.Skip!.Value).Take(args.Top!.Value).ToList();
         isLoading = false;
-        Console.WriteLine($"LoadData: {Files.Count()}/{count}");
     }
     void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
     {
@@ -211,7 +194,6 @@
     }
     void OnMenuItemClick(MenuItemEventArgs args)
     {
-        Console.WriteLine($"Menu item with Value={args.Value} clicked");
         if (args.Value is Action action)
         {
             action();
@@ -220,10 +202,6 @@
         {
             _ = task();
         }
-        // if (!args.Value.Equals(3) && !args.Value.Equals(4))
-        // {
-        //     ContextMenuService.Close();
-        // }
         ContextMenuService.Close();
     }
 }

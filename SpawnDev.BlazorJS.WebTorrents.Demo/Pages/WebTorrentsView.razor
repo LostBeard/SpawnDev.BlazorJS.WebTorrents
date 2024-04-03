@@ -1,5 +1,4 @@
 ﻿@page "/"
-@implements IDisposable
 
 <div style="height: 100%; height: 100%;">
     <RadzenSplitter Orientation="Orientation.Vertical" style="height: 100%; height: 100%;">
@@ -73,45 +72,4 @@
         SelectedTorrentInstanceId = SelectedTorrent?.InstanceId ?? "";
     }
 
-    System.Timers.Timer _tmr = new();
-    protected override async Task OnInitializedAsync()
-    {
-        WebTorrentService.OnTorrentAdd += Rendezvous_OnTorrentAdd;
-        WebTorrentService.OnTorrentRemove += Rendezvous_OnTorrentRemove;
-        WebTorrentService.OnTorrentWireAdd += Rendezvous_OnTorrentWireAdd;
-        WebTorrentService.OnTorrentWireRemove += Rendezvous_OnTorrentWireRemove;
-        _tmr.Elapsed += Timer_Elapsed;
-        _tmr.Interval = 1000;
-        _tmr.Enabled = true;
-        await WebTorrentService.EnableServer();
-    }
-    public void Dispose()
-    {
-        _tmr.Enabled = false;
-        _tmr.Elapsed -= Timer_Elapsed;
-        WebTorrentService.OnTorrentAdd -= Rendezvous_OnTorrentAdd;
-        WebTorrentService.OnTorrentRemove -= Rendezvous_OnTorrentRemove;
-        WebTorrentService.OnTorrentWireAdd -= Rendezvous_OnTorrentWireAdd;
-        WebTorrentService.OnTorrentWireRemove -= Rendezvous_OnTorrentWireRemove;
-    }
-    void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
-    {
-        //StateHasChanged();
-    }
-    void Rendezvous_OnTorrentWireRemove(Torrent torrent, Wire wire)
-    {
-        //StateHasChanged();
-    }
-    void Rendezvous_OnTorrentWireAdd(Torrent torrent, Wire wire)
-    {
-        //StateHasChanged();
-    }
-    void Rendezvous_OnTorrentAdd(Torrent torrent)
-    {
-        //StateHasChanged();
-    }
-    void Rendezvous_OnTorrentRemove(Torrent torrent)
-    {
-        //StateHasChanged();
-    }
 }

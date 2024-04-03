@@ -8,7 +8,7 @@
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
             <RadzenSidebarToggle Style="margin: 0;" Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
             <div>
-                <RadzenMenu Click="OnParentClicked">
+                <RadzenMenu Click="OnMenuClicked">
                     <RadzenMenuItem Text="Torrent" Icon="hub">
                         <RadzenMenuItem Text="Add Torrent" Value="@("torrent_file_picker")" Icon="add"></RadzenMenuItem>
                         <RadzenMenuItem Text="Add Magnet" Value="@("add_magnet")" Icon="add"></RadzenMenuItem>
@@ -65,42 +65,13 @@
     [Inject]
     WebTorrentService WebTorrentService { get; set; }
 
-    FilePicker? FilePicker = null;
+    bool sidebar1Expanded = true;
 
-    protected override void OnInitialized()
-    {
-        FilePicker = new FilePicker();
-        FilePicker.OnChange += FilePicker_OnChange;
-        AppService.OnStateChanged += AppService_OnStateChanged;
-    }
-    async void FilePicker_OnChange(FilePicker filePicker, JSObjects.File[] files)
-    {
-        switch (FilePicker?.Id)
-        {
-            case "torrent_file":
-                foreach(var file in files)
-                {
-                    try
-                    {
-                        using var arrayBuffer = await file.ArrayBuffer();
-                        using var uint8array = new Uint8Array(arrayBuffer);
-                        // TODO - add dialog with add torrent options (also use it when adding torrent via magnet)
-                        WebTorrentService.Client!.Add(uint8array);
-                    }
-                    catch { }
-                    file.Dispose();
-                }
-                break;
-        }
-    }
     void AppService_OnStateChanged()
     {
         StateHasChanged();
     }
-
-    string content = "";
-    bool sidebar1Expanded = true;
-    async Task OnParentClicked(MenuItemEventArgs args)
+    async Task OnMenuClicked(MenuItemEventArgs args)
     {
         if (args.Value is string valueStr)
         {
@@ -112,7 +83,22 @@
             switch (valueStr)
             {
                 case "torrent_file_picker":
-                    FilePicker?.ShowFilePicker(".torrent", true, "torrent_file");
+                    var files = await FilePicker.ShowOpenFilePicker(".torrent", true);
+                    if (files != null)
+                    {
+                        foreach (var file in files)
+                        {
+                            try
+                            {
+                                using var arrayBuffer = await file.ArrayBuffer();
+                                using var uint8array = new Uint8Array(arrayBuffer);
+                                // TODO - add dialog with add torrent options (also use it when adding torrent via magnet)
+                                WebTorrentService.Client!.Add(uint8array);
+                            }
+                            catch { }
+                            file.Dispose();
+                        }
+                    }
                     break;
                 case "add_magnet":
                     var magnet = await AddMagnetDialog.Show(DialogService);
@@ -144,11 +130,5 @@
                     break;
             }
         }
-        Console.WriteLine($"{args.Text} clicked from parent");
-    }
-
-    void OnChildClicked(MenuItemEventArgs args)
-    {
-        Console.WriteLine($"{args.Text} from child clicked");
     }
 }

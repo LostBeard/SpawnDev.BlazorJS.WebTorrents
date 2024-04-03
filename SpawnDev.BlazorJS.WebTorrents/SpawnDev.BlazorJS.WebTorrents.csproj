@@ -36,7 +36,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="BencodeNET" Version="5.0.0" />
-		<PackageReference Include="SpawnDev.BlazorJS" Version="2.2.71" />
+		<PackageReference Include="SpawnDev.BlazorJS" Version="2.2.72-alpha1" />
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
