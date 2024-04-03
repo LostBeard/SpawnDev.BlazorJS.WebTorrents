@@ -4,6 +4,7 @@ using Radzen;
 using SpawnDev.BlazorJS;
 using SpawnDev.BlazorJS.WebTorrents;
 using SpawnDev.BlazorJS.WebTorrents.Demo;
+using SpawnDev.BlazorJS.WebTorrents.Demo.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -15,6 +16,11 @@ builder.Services.AddWebTorrentService(new WebTorrentOptions {
 {
     webTorrentService.EnableRecent = true;
 });
+//builder.Services.AddSingleton<FilePickerService>();
+builder.Services.AddSingleton<MimeTypeService>();
+builder.Services.AddSingleton<AppService>();
+
+builder.Services.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 builder.Services.AddRadzenComponents();
 

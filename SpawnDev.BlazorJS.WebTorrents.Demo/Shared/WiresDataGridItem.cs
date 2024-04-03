@@ -2,7 +2,7 @@
 
 namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
 {
-    public class WireStateInfo
+    public class WiresDataGridItem
     {
         public ProgressBarStyle ProgressBarStyle
         {
@@ -35,7 +35,7 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
         public string PeerId => Wire.PeerId;
         public Torrent Torrent { get; }
         public Wire Wire { get; }
-        public WireStateInfo(Torrent torrent, Wire file)
+        public WiresDataGridItem(Torrent torrent, Wire file)
         {
             Torrent = torrent;
             Wire = file;

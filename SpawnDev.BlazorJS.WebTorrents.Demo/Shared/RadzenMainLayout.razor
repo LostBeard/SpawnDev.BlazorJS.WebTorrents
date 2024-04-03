@@ -1,7 +1,8 @@
 ﻿@inherits LayoutComponentBase
+@using SpawnDev.BlazorJS.JSObjects;
+@using SpawnDev.BlazorJS.Toolbox;
 
 <RadzenComponents />
-
 <RadzenLayout>
     <RadzenHeader>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
@@ -9,6 +10,7 @@
             <div>
                 <RadzenMenu Click="OnParentClicked">
                     <RadzenMenuItem Text="Torrent" Icon="hub">
+                        <RadzenMenuItem Text="Add Torrent" Value="@("torrent_file_picker")" Icon="add"></RadzenMenuItem>
                         <RadzenMenuItem Text="Add Magnet" Value="@("add_magnet")" Icon="add"></RadzenMenuItem>
                         <RadzenMenuItem Text="Creative Commons" Icon="spoke">
                             @foreach (var CCMagnet in WebTorrentService.CCMagnets)
@@ -16,6 +18,7 @@
                                 <RadzenMenuItem Text="@($"Add {CCMagnet.Key}")" Value="@($"add_magnet {CCMagnet.Value}")" Icon="add"></RadzenMenuItem>
                             }
                         </RadzenMenuItem>
+                        <RadzenMenuItem Text="Remove All Completed" Value="@("remove_done")" Icon="delete"></RadzenMenuItem>
                     </RadzenMenuItem>
                     <RadzenMenuItem Text="Tools" Icon="settings">
                         <RadzenMenuItem Text="Options" Value="@("checkbox")" Icon="tune"></RadzenMenuItem>
@@ -29,9 +32,12 @@
             <RadzenPanelMenuItem Text="Home" Icon="home" Path="" />
             <RadzenPanelMenuItem Target="_blank" Text="GitHub" Image="github-mark-white.svg" Path="https://github.com/LostBeard/SpawnDev.BlazorJS.WebTorrents" />
         </RadzenPanelMenu>
-        @* <div class="rz-p-4">
-        Sidebar
-        </div> *@
+        <div class="rz-p-4">
+            @if (!string.IsNullOrEmpty(AppService.PosterHref))
+            {
+                <RadzenImage Path="@AppService.PosterHref" Style="width: 100%;" />
+            }
+        </div>
     </RadzenSidebar>
     <RadzenBody Style="position: relative;">
         <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
@@ -45,12 +51,52 @@
 
 @code {
     [Inject]
+    AppService AppService { get; set; }
+
+    [Inject]
+    BlazorJSRuntime JS { get; set; }
+
+    [Inject]
     NotificationService NotificationService { get; set; }
+
     [Inject]
     DialogService DialogService { get; set; }
 
     [Inject]
     WebTorrentService WebTorrentService { get; set; }
+
+    FilePicker? FilePicker = null;
+
+    protected override void OnInitialized()
+    {
+        FilePicker = new FilePicker();
+        FilePicker.OnChange += FilePicker_OnChange;
+        AppService.OnStateChanged += AppService_OnStateChanged;
+    }
+    async void FilePicker_OnChange(FilePicker filePicker, JSObjects.File[] files)
+    {
+        switch (FilePicker?.Id)
+        {
+            case "torrent_file":
+                foreach(var file in files)
+                {
+                    try
+                    {
+                        using var arrayBuffer = await file.ArrayBuffer();
+                        using var uint8array = new Uint8Array(arrayBuffer);
+                        // TODO - add dialog with add torrent options (also use it when adding torrent via magnet)
+                        WebTorrentService.Client!.Add(uint8array);
+                    }
+                    catch { }
+                    file.Dispose();
+                }
+                break;
+        }
+    }
+    void AppService_OnStateChanged()
+    {
+        StateHasChanged();
+    }
 
     string content = "";
     bool sidebar1Expanded = true;
@@ -65,6 +111,9 @@
             }
             switch (valueStr)
             {
+                case "torrent_file_picker":
+                    FilePicker?.ShowFilePicker("torrent_file", true, ".torrent");
+                    break;
                 case "add_magnet":
                     var magnet = await AddMagnetDialog.Show(DialogService);
                     if (!string.IsNullOrEmpty(magnet))
@@ -79,6 +128,19 @@
                             NotificationService.Notify(NotificationSeverity.Error, ex.Message, "Failed to add torrent");
                         }
                     }
+                    break;
+                case "remove_done":
+                    try
+                    {
+                        var count = await WebTorrentService.RemoveCompleted(false);
+
+                        var confirmation = await DialogService.Confirm($"Remove {count} torrents and all the related data?");
+                        if (confirmation == true)
+                        {
+                            await WebTorrentService.RemoveCompleted(true);
+                        }
+                    }
+                    catch { }
                     break;
             }
         }

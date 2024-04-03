@@ -7,15 +7,14 @@ namespace SpawnDev.BlazorJS.WebTorrents
 {
     public class TrackerAnnounce
     {
-        [JsonConverter(typeof(DateTimeEpochConverter))]
-        public DateTime Time { get; set; }
+        public EpochDateTime? Time { get; set; }
         public string InfoHash { get; set; }
         public string Announce { get; set; }
         public int Interval { get; set; }
         public int Complete { get; set; }
         public int Incomplete { get; set; }
         [JsonIgnore]
-        public bool Expired => DateTime.Now > (Time + TimeSpan.FromSeconds(Interval + ExpiredPadding));
+        public bool Expired => Time != null && DateTime.Now > ((DateTime)Time + TimeSpan.FromSeconds(Interval + ExpiredPadding));
         static int ExpiredPadding { get; set; } = 10;
     }
     // https://github.com/feross/simple-peer

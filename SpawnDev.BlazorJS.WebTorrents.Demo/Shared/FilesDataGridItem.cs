@@ -2,7 +2,7 @@
 
 namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
 {
-    public class FileStateInfo
+    public class FilesDataGridItem
     {
         public ProgressBarStyle ProgressBarStyle
         {
@@ -22,17 +22,21 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
         public double Length => File.Length;
         public double Downloaded => File.Downloaded;
         public double Progress => File.Progress;
+        public string MimeType { get; }
+        public string ImageHref { get; }
         public string Name => File.Name;
         public JSObjects.Array<Wire> Wires;
         public JSObjects.Array<File> Files;
         public Torrent Torrent { get; }
         public File File { get; }
-        public FileStateInfo(Torrent torrent, File file)
+        public FilesDataGridItem(Torrent torrent, File file, string? mimeType, string imageHref)
         {
             Torrent = torrent;
             File = file;
             Wires = torrent.Wires;
             Files = torrent.Files;
+            MimeType = mimeType ?? "";
+            ImageHref = imageHref;
         }
     }
 }

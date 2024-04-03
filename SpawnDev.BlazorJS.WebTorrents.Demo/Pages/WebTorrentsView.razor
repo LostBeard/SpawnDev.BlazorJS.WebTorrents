@@ -1,11 +1,10 @@
 ﻿@page "/"
 @implements IDisposable
 
-
 <div style="height: 100%; height: 100%;">
     <RadzenSplitter Orientation="Orientation.Vertical" style="height: 100%; height: 100%;">
         <RadzenSplitterPane Size="40%" Min="30px">
-            <WebTorrentDataGrid SelectedTorrentChanged="@SelectedTorrentChanged" />
+            <TorrentsDataGrid SelectedTorrentChanged="@SelectedTorrentChanged" />
         </RadzenSplitterPane>
         <RadzenSplitterPane>
             <RadzenTabs RenderMode="TabRenderMode.Client" Style="position: relative; height: 100%;">
@@ -16,10 +15,10 @@
                         </div>
                     </RadzenTabsItem>
                     <RadzenTabsItem Text="Files">
-                        <TorrentFilesDataGrid TorrentInstanceId="@SelectedTorrentInstanceId" />
+                        <FilesDataGrid TorrentInstanceId="@SelectedTorrentInstanceId" />
                     </RadzenTabsItem>
                     <RadzenTabsItem Text="Peers">
-                        <TorrentWiresDataGrid TorrentInstanceId="@SelectedTorrentInstanceId" />
+                        <WiresDataGrid TorrentInstanceId="@SelectedTorrentInstanceId" />
                     </RadzenTabsItem>
                 </Tabs>
             </RadzenTabs>
@@ -28,16 +27,22 @@
 </div>
 
 @code {
-    // upload, download speeds
-    // upload, download totals
+    // overall download
+    // overall upload
+    // overall speed 
+    // overall progress
+    // torrent upload, download speeds ✔
+    // torrent upload, download totals ✔
     // torrent pieces
-    // torrent files
-    // torrent peers
+    // torrent files ✔
+    // torrent peers ✔
+    // torrent total peers ✔
+    // torrent total seeds ✔
     // play torrent
-    // delete torrent
-    // pause/resume
+    // delete torrent ✔
+    // pause/resume ✔
     // select/deselect file
-    // add magnet
+    // add magnet ✔
     // add torrent file picker
     // seed file picker
     // seed dir picker
@@ -67,10 +72,6 @@
     }
 
     System.Timers.Timer _tmr = new();
-    void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
-    {
-        StateHasChanged();
-    }
     protected override async Task OnInitializedAsync()
     {
         WebTorrentService.OnTorrentAdd += Rendezvous_OnTorrentAdd;
@@ -91,20 +92,24 @@
         WebTorrentService.OnTorrentWireAdd -= Rendezvous_OnTorrentWireAdd;
         WebTorrentService.OnTorrentWireRemove -= Rendezvous_OnTorrentWireRemove;
     }
+    void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        //StateHasChanged();
+    }
     void Rendezvous_OnTorrentWireRemove(Torrent torrent, Wire wire)
     {
-        StateHasChanged();
+        //StateHasChanged();
     }
     void Rendezvous_OnTorrentWireAdd(Torrent torrent, Wire wire)
     {
-        StateHasChanged();
+        //StateHasChanged();
     }
     void Rendezvous_OnTorrentAdd(Torrent torrent)
     {
-        StateHasChanged();
+        //StateHasChanged();
     }
     void Rendezvous_OnTorrentRemove(Torrent torrent)
     {
-        StateHasChanged();
+        //StateHasChanged();
     }
 }

@@ -3,53 +3,53 @@
 
 <RadzenDataGrid SelectionMode="DataGridSelectionMode.Single" RowSelect="RowSelect" RowDeselect="RowDeselect"
                 AllowColumnResize="true" @ref="grid" style="height: 100%; width: 100%" GridLines="DataGridGridLines.Both"
-                TItem="TorrentStateInfo" IsLoading=@isLoading Count="@count" Data="@Torrents" LoadData="@LoadData" AllowSorting="true" AllowFiltering="true" AllowPaging="false"
+                TItem="TorrentsDataGridItem" IsLoading=@isLoading Count="@count" Data="@Torrents" LoadData="@LoadData" AllowSorting="true" AllowFiltering="true" AllowPaging="false"
                 CellContextMenu="ShowContextMenuWithItems">
     <Columns>
-        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="Progress" Title="%" Width="66px" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="Progress" Title="%" Width="66px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 <RadzenProgressBarCircular Size="ProgressBarCircularSize.Small" ProgressBarStyle="@torrent.ProgressBarStyle" Value="@(Math.Round(torrent.Progress * 100d))" />
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentStateInfo" Property="Name" Width="300px" Title="Name" TextAlign="TextAlign.Left" />
-        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="TimeRemaining" Title="TimeRemaining" Width="150px" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Property="Name" Width="300px" Title="Name" TextAlign="TextAlign.Left" />
+        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="TimeRemaining" Title="TimeRemaining" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(HumanReadableSeconds(torrent.TimeRemaining))
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="Seeds" Title="Seeds" Width="90px" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="Seeds" Title="Seeds" Width="90px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @torrent.Seeds (@torrent.TrackerSeeders)
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="Peers" Title="Peers" Width="90px" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="Peers" Title="Peers" Width="90px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @torrent.Peers (@torrent.TrackerPeers)
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="DownloadSpeed" Title="Download Speed" Width="150px" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="DownloadSpeed" Title="Download Speed" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableBps(torrent.DownloadSpeed))
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="UploadSpeed" Title="Upload Speed" Width="150px" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="UploadSpeed" Title="Upload Speed" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableBps(torrent.UploadSpeed))
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="Downloaded" Title="Downloaded" Width="150px" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="Downloaded" Title="Downloaded" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableByteLength(torrent.Downloaded))
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Property="Length" Title="Size" Width="150px" TextAlign="TextAlign.Center">
+        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="Length" Title="Size" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableByteLength(torrent.Length))
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentStateInfo" Property="InfoHash" Title="InfoHash" Width="350px" TextAlign="TextAlign.Left" />
+        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Property="InfoHash" Title="InfoHash" Width="350px" TextAlign="TextAlign.Left" />
         <!-- Below Column fixes a sizing bug if all columns have a specified width -->
-        <RadzenDataGridColumn TItem="TorrentStateInfo" Filterable="false" Sortable="false"><Template Context="data"></Template></RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Sortable="false"><Template Context="data"></Template></RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
 
@@ -63,53 +63,59 @@
 
     string HumanReadableSeconds(double duration)
     {
-        var timeSpan = TimeSpan.FromSeconds(duration);
-        return string.Format("{0:dd\\.hh\\:mm\\:ss}", timeSpan);
+        return duration > TimeSpan.MaxValue.TotalSeconds ? "∞" : string.Format("{0:dd\\.hh\\:mm\\:ss}", TimeSpan.FromSeconds(duration));
     }
 
     public string SelectedTorrentInstanceId { get; set; } = "";
 
-    public TorrentStateInfo? SelectedTorrentInfo { get; private set; } = null;
+    public TorrentsDataGridItem? SelectedTorrentInfo { get; private set; } = null;
 
-    void ShowContextMenuWithItems(DataGridCellMouseEventArgs<TorrentStateInfo> args)
+    void ShowContextMenuWithItems(DataGridCellMouseEventArgs<TorrentsDataGridItem> args)
     {
         var selectedTorrentInfo = args.Data;
         if (selectedTorrentInfo == null) return;
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "Pause", Icon = "home", Value = () =>
+                new ContextMenuItem(){ Text = "Pause", Disabled = selectedTorrentInfo.Torrent.Paused, Icon = "pause", Value = () =>
                 {
                     selectedTorrentInfo?.Torrent.Pause();
                 }},
-                new ContextMenuItem(){ Text = "Resume", Icon = "search", Value = () =>
+                new ContextMenuItem(){ Text = "Resume", Disabled = !selectedTorrentInfo.Torrent.Paused, Icon = "play_arrow", Value = () =>
                 {
                     selectedTorrentInfo?.Torrent.Resume();
                 } },
-                new ContextMenuItem(){ Text = "Deselect All", Icon = "info", Value = () =>
+                new ContextMenuItem(){ Text = "Deselect All", Disabled = selectedTorrentInfo.Torrent.Selections.Length == 0, Icon = "deselect", Value = () =>
                 {
                     selectedTorrentInfo?.Torrent.DeselectAll();
                 } },
-                new ContextMenuItem(){ Text = "Select All", Icon = "info", Value = () =>
+                new ContextMenuItem(){ Text = "Select All", Icon = "done_all", Value = () =>
                 {
                     selectedTorrentInfo?.Torrent.SelectAll();
                 } },
-                new ContextMenuItem(){ Text = "Delete", Icon = "info", Value = async () =>
+                new ContextMenuItem(){ Text = "Delete", Icon = "delete", Value = async () =>
                 {
                     if (selectedTorrentInfo == null) return;
                     try
                     {
                         var confirmation = await DialogService.Confirm($"Delete {selectedTorrentInfo.Torrent.Name}?");
-                        selectedTorrentInfo?.Torrent.Destroy(new DestroyTorrentOptions{ DestroyStore = true });
+                        if (confirmation == true)
+                        {
+                            await selectedTorrentInfo?.Torrent.DestroyAsync(new DestroyTorrentOptions{ DestroyStore = true });
+                        }
                     }catch{}
                 } },
-                new ContextMenuItem(){ Text = "Save Torrent File", Icon = "info", Value = () =>
+                new ContextMenuItem(){ Text = "Save Torrent", Icon = "save", Disabled=selectedTorrentInfo.Torrent.TorrentFileBlob == null, Value = async () =>
                 {
-                    // TODO
-                    var announced = selectedTorrentInfo.Torrent.Announced;
-                    var nmt = true;
+                    try
+                    {
+                        await selectedTorrentInfo.Torrent.TorrentFileBlob!.StartDownload($"{selectedTorrentInfo.Name}.torrent");
+                    }
+                    catch
+                    {
 
+                    }
                 } },
-                new ContextMenuItem(){ Text = "Copy Magnet URI", Icon = "info", Value = () =>
+                new ContextMenuItem(){ Text = "Copy Magnet", Disabled = string.IsNullOrEmpty(selectedTorrentInfo.InfoHash), Icon = "link", Value = () =>
                 {
                     if (selectedTorrentInfo != null)
                     {
@@ -118,7 +124,7 @@
                         clipboard.WriteText(selectedTorrentInfo.Torrent.MagnetURI ?? "");
                     }
                 } },
-                new ContextMenuItem(){ Text = "Copy InfoHash", Icon = "info", Value = () =>
+                new ContextMenuItem(){ Text = "Copy InfoHash", Disabled = string.IsNullOrEmpty(selectedTorrentInfo.InfoHash), Icon = "tag", Value = () =>
                 {
                     if (selectedTorrentInfo != null)
                     {
@@ -127,7 +133,7 @@
                         clipboard.WriteText(selectedTorrentInfo.InfoHash);
                     }
                 } },
-            }, OnMenuItemClick);
+                        }, OnMenuItemClick);
     }
     void OnMenuItemClick(MenuItemEventArgs args)
     {
@@ -149,19 +155,24 @@
     [Parameter]
     public EventCallback<string> SelectedTorrentChanged { get; set; }
 
-    async Task RowSelect(TorrentStateInfo torrentStateInfo)
+    [Inject]
+    AppService AppService { get; set; }
+
+    async Task RowSelect(TorrentsDataGridItem torrentStateInfo)
     {
         Console.WriteLine("RowSelect");
         SelectedTorrentInfo = torrentStateInfo;
         SelectedTorrentInstanceId = torrentStateInfo.InstanceId;
         await SelectedTorrentChanged.InvokeAsync(SelectedTorrentInstanceId);
+        await AppService.SelectTorrentsDataGridItem(SelectedTorrentInfo);
     }
-    async Task RowDeselect(TorrentStateInfo torrentStateInfo)
+    async Task RowDeselect(TorrentsDataGridItem torrentStateInfo)
     {
         Console.WriteLine("RowDeselect");
         SelectedTorrentInstanceId = "";
         SelectedTorrentInfo = null;
         await SelectedTorrentChanged.InvokeAsync(SelectedTorrentInstanceId);
+        await AppService.SelectTorrentsDataGridItem(SelectedTorrentInfo);
     }
     static string ReadableBps(double len)
     {
@@ -184,9 +195,9 @@
     [Inject]
     WebTorrentService WebTorrentService { get; set; }
 
-    RadzenDataGrid<TorrentStateInfo> grid { get; set; }
+    RadzenDataGrid<TorrentsDataGridItem> grid { get; set; }
     int count;
-    IEnumerable<TorrentStateInfo> Torrents = new List<TorrentStateInfo>();
+    IEnumerable<TorrentsDataGridItem> Torrents = new List<TorrentsDataGridItem>();
     bool isLoading = false;
     System.Timers.Timer _tmr = new();
 
@@ -210,7 +221,7 @@
         Console.WriteLine("LoadData");
         isLoading = true;
         await Task.Yield();
-        var torrentInfos = WebTorrentService.Client!.Torrents.Select(o => new TorrentStateInfo(o)).ToList();
+        var torrentInfos = WebTorrentService.Client!.Torrents.Select(o => new TorrentsDataGridItem(o)).ToList();
         var query = torrentInfos.AsQueryable();
         if (!string.IsNullOrEmpty(args.Filter))
         {

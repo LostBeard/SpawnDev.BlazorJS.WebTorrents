@@ -16,7 +16,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
             { "Sintel", "magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fsintel.torrent" },
             { "Tears of Steel", "magnet:?xt=urn:btih:209c8226b299b308beaf2b9cd3fb49212dbd13ec&dn=Tears+of+Steel&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Ftears-of-steel.torrent" },
         };
-        public bool Verbose { get; set; }   
+        public bool Verbose { get; set; }
         /// <summary>
         /// Called when a torrent is removed
         /// </summary>
@@ -179,7 +179,8 @@ namespace SpawnDev.BlazorJS.WebTorrents
             {
                 wire.Use(factory);
             }
-            wire.OnBitfield += (bitfield) => {
+            wire.OnBitfield += (bitfield) =>
+            {
                 JS.Log("Wire_OnBitfield", bitfield);
                 JS.Set("Wire_OnBitfield", bitfield);
             };
@@ -370,6 +371,51 @@ namespace SpawnDev.BlazorJS.WebTorrents
             if (Verbose) JS.Log("adding torrent");
             //options.Announce = AnnounceTrackers;
             return Client.Add(torrentId, addTorrentOptions);
+        }
+
+        public async Task<int> RemoveCompleted(bool hasBeenConfirmed = false)
+        {
+            var ret = 0;
+            using var torrents = Client!.Torrents;
+            var ts = torrents.ToArray();
+            foreach(var t in ts)
+            {
+                if (t.Done)
+                {
+                    if (hasBeenConfirmed) await t.DestroyAsync();
+                    ret++;
+                }
+            }
+            ts.DisposeAll();
+            return ret;
+        }
+
+        string[] ImageExtensions { get; set; } = new string[] { "png", "jpg", "jpeg", "webm" };
+        Dictionary<string, string> TorrentPosters = new Dictionary<string, string>();
+
+        public async Task<string> GetTorrentPoster(Torrent torrent)
+        {
+            if (string.IsNullOrEmpty(torrent.InfoHash)) return "";
+            if (TorrentPosters.TryGetValue(torrent.InfoHash, out var r)) return r;
+            using var files = torrent.Files;
+            foreach (File file in files)
+            {
+                var ext = !file.Name.Contains(".") ? "" : file.Name.Substring(file.Name.LastIndexOf(".") + 1);
+                var baseName = !file.Name.Contains(".") ? file.Name : file.Name.Substring(0, file.Name.LastIndexOf("."));
+                if (baseName.Equals("poster", StringComparison.OrdinalIgnoreCase) && ImageExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase))
+                {
+                    if (file.IsDone())
+                    {
+                        using var blob = await file.Blob();
+                        var base64Url = await blob.ToDataURLAsync();
+                        file.Dispose();
+                        TorrentPosters[torrent.InfoHash] = base64Url!;
+                        return base64Url!;
+                    }
+                }
+                file.Dispose();
+            }
+            return "";
         }
     }
 }

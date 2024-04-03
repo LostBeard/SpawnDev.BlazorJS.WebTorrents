@@ -3,7 +3,7 @@ using Radzen;
 
 namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
 {
-    public class TorrentStateInfo
+    public class TorrentsDataGridItem
     {
         public ProgressBarStyle ProgressBarStyle
         {
@@ -19,7 +19,7 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
         public int TrackerSeeders => Torrent.Announced?.Values.Where(o => !o.Expired).Sum(o => o.Complete) ?? 0;
         public int TrackerPeers => Torrent.Announced?.Values.Where(o => !o.Expired).Sum(o => o.Incomplete) ?? 0;
         public double UploadSpeed => Torrent.UploadSpeed;
-        public double TimeRemaining => Torrent.TimeRemaining ?? 0;
+        public double TimeRemaining => Torrent.TimeRemaining ?? TimeSpan.MaxValue.TotalSeconds + 1d;
         public double DownloadSpeed => Torrent.DownloadSpeed;
         public double Length => Torrent.Length;
         public double Downloaded => Torrent.Downloaded;
@@ -49,7 +49,7 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
             }
         }
         public Torrent Torrent { get; }
-        public TorrentStateInfo(Torrent torrent)
+        public TorrentsDataGridItem(Torrent torrent)
         {
             Torrent = torrent;
             Wires = torrent.Wires;
