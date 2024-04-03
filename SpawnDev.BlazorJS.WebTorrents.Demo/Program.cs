@@ -15,7 +15,7 @@ builder.Services.AddWebTorrentService(new WebTorrentOptions {
 }, webTorrentService =>
 {
     webTorrentService.EnableRecent = true;
-    webTorrentService.Verbose = true;
+    webTorrentService.Verbose = false;
 });
 //builder.Services.AddSingleton<FilePickerService>();
 builder.Services.AddSingleton<MimeTypeService>();
