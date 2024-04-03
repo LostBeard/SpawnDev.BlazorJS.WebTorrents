@@ -59,7 +59,7 @@ foreach (File file in torrent.Files)
 // destory the torrent and related resources
 await torrent.DestroyAsync(new DestroyTorrentOptions { DestroyStore = true });
 ```
-### Screenshot of demo app
+### Screenshots of demo app
 ![Screenshot 2](https://raw.githubusercontent.com/LostBeard/SpawnDev.BlazorJS.WebTorrents/main/SpawnDev.BlazorJS.WebTorrents.Demo/wwwroot/screenshots/WebTorrents2.jpg)  
 
 ![Screenshot 1](https://raw.githubusercontent.com/LostBeard/SpawnDev.BlazorJS.WebTorrents/main/SpawnDev.BlazorJS.WebTorrents.Demo/wwwroot/screenshots/WebTorrents1.jpg)
