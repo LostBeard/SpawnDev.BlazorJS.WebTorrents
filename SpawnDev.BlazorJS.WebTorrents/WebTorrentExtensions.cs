@@ -96,7 +96,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public static bool GetTorrentByInstanceId(this WebTorrent _this, string instanceId, out Torrent? torrentRet)
         {
             using var torrents = _this.Torrents;
-            torrentRet = torrents.ToArray().UsingFilter(o => o.InstanceId == instanceId).FirstOrDefault();
+            torrentRet = torrents.ToArray().UsingWhere(o => o.InstanceId == instanceId).FirstOrDefault();
             return torrentRet != null;
         }
         /// <summary>
@@ -143,7 +143,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         {
             if (string.IsNullOrEmpty(instanceId)) return null;
             using var torrents = _this.Torrents;
-            return torrents.ToArray().UsingFilter(o => o.InstanceId == instanceId).FirstOrDefault();
+            return torrents.ToArray().UsingWhere(o => o.InstanceId == instanceId).FirstOrDefault();
         }
     }
 }

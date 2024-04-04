@@ -1,4 +1,5 @@
-﻿using Radzen;
+﻿using BencodeNET.Torrents;
+using Radzen;
 
 namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
 {
@@ -20,7 +21,7 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
         public double Uploaded => Wire.Uploaded;
         public double UploadSpeed => Wire.UploadSpeed();
         public double DownloadSpeed => Wire.DownloadSpeed();
-        public string RemoteAddress => Wire.RemoteAddress ?? "";
+        public string RemoteAddress { get; set; }
         public double PeerProgress
         {
             get
@@ -41,6 +42,31 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
         {
             Torrent = torrent;
             Wire = wire;
+            if (Type == "webSeed")
+            {
+                //Object.values(_torrent._peers).filter(o => o.wire.peerId == _wire.peerId)
+                using var peer = Torrent.Peers.UsingWhere(peer =>
+                {
+                    using var wire = peer.Wire;
+                    return wire?.InstanceId == InstanceId;
+                }).FirstOrDefault();
+                var url = peer?.Id ?? "";
+                if (!string.IsNullOrEmpty(url))
+                {
+                    try
+                    {
+                        RemoteAddress = new Uri(url).Host;
+                    }
+                    catch
+                    {
+                        RemoteAddress = url;
+                    }
+                }
+            }
+            else
+            {
+                RemoteAddress = Wire.RemoteAddress ?? "";
+            }
         }
     }
 }

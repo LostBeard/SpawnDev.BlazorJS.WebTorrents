@@ -12,16 +12,14 @@
                     <RadzenMenuItem Text="Torrent" Image="favicon.png">
                         <RadzenMenuItem Text="Add Torrent" Value="@("torrent_file_picker")" Icon="add"></RadzenMenuItem>
                         <RadzenMenuItem Text="Add Magnet" Value="@("add_magnet")" Icon="add"></RadzenMenuItem>
-
-                        <RadzenMenuItem Text="Seed Files" Value="@("seed_files")" Icon="add"></RadzenMenuItem>
-                        @* <RadzenMenuItem Text="Seed Folder" Value="@("seed_folder")" Icon="add"></RadzenMenuItem> *@
-
                         <RadzenMenuItem Text="Creative Commons" Icon="spoke">
                             @foreach (var CCMagnet in WebTorrentService.CCMagnets)
                             {
                                 <RadzenMenuItem Text="@($"Add {CCMagnet.Key}")" Value="@($"add_magnet {CCMagnet.Value}")" Icon="add"></RadzenMenuItem>
                             }
                         </RadzenMenuItem>
+                        <RadzenMenuItem Text="Seed Files" Value="@("seed_files")" Icon="add"></RadzenMenuItem>
+                        @* <RadzenMenuItem Text="Seed Folder" Value="@("seed_folder")" Icon="add"></RadzenMenuItem> *@
                         <RadzenMenuItem Text="Pause All" Value="@("pause_all")" Icon="pause"></RadzenMenuItem>
                         <RadzenMenuItem Text="Resume All" Value="@("play_arrow")" Icon="play_arrow"></RadzenMenuItem>
                         <RadzenMenuItem Text="Deselect All" Value="@("deselect_all")" Icon="deselect"></RadzenMenuItem>
@@ -39,7 +37,7 @@
     <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
         <RadzenPanelMenu>
             <RadzenPanelMenuItem Text="Home" Icon="home" Path="" />
-            <RadzenPanelMenuItem Text="Peers" Icon="hub" Path="peers" />
+            <RadzenPanelMenuItem Text="Network" Icon="hub" Path="network" />
             <RadzenPanelMenuItem Target="_blank" Text="GitHub" Image="github-mark-white.svg" Path="https://github.com/LostBeard/SpawnDev.BlazorJS.WebTorrents" />
         </RadzenPanelMenu>
         <div class="rz-p-4">

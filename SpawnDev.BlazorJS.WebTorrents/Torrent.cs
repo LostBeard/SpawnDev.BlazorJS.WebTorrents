@@ -49,7 +49,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Peers (peers underpin wires)
         /// </summary>
-        public Dictionary<string, Peer> Peers => JSRef.Get<Dictionary<string, Peer>>("_peers");
+        public Peer[] Peers => JSRef.Get<JSObject>("_peers").Using(o => JS.Call<Peer[]>("Object.values", o));
         /// <summary>
         /// Torrent storage
         /// </summary>
