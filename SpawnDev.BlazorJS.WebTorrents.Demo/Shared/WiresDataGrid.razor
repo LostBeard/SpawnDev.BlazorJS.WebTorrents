@@ -167,6 +167,7 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
     }
     void WebTorrent_OnTorrentWireAdd(Torrent torrent, Wire wire)
     {
+        if (torrent.InstanceId != TorrentInstanceId) return;
         var info = new WiresDataGridItem(torrent, wire);
         wiresDataGridItems.Add(info.InstanceId, info);
         grid.Reload();
@@ -180,7 +181,7 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
                 _ = RowDeselect(info);
             }
             wiresDataGridItems.Remove(wire.InstanceId);
+            grid.Reload();
         }
-        grid.Reload();
     }
 }

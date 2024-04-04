@@ -168,6 +168,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         public string CreatedBy => JSRef.Get<string>("createdBy");
         /// <summary>
+        /// WebTorrent client
+        /// </summary>
+        public WebTorrent Client => JSRef.Get<WebTorrent>("client");
+        /// <summary>
         /// A comment optionally set by the author (string).
         /// </summary>
         public string Comment => JSRef.Get<string>("comment");
