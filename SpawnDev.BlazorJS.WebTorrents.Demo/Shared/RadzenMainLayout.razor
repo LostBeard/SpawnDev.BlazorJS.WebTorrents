@@ -12,6 +12,10 @@
                     <RadzenMenuItem Text="Torrent" Image="favicon.png">
                         <RadzenMenuItem Text="Add Torrent" Value="@("torrent_file_picker")" Icon="add"></RadzenMenuItem>
                         <RadzenMenuItem Text="Add Magnet" Value="@("add_magnet")" Icon="add"></RadzenMenuItem>
+
+                        <RadzenMenuItem Text="Seed Files" Value="@("seed_files")" Icon="add"></RadzenMenuItem>
+                        @* <RadzenMenuItem Text="Seed Folder" Value="@("seed_folder")" Icon="add"></RadzenMenuItem> *@
+
                         <RadzenMenuItem Text="Creative Commons" Icon="spoke">
                             @foreach (var CCMagnet in WebTorrentService.CCMagnets)
                             {
@@ -26,7 +30,7 @@
                         <RadzenMenuItem Text="Remove All" Value="@("remove_all")" Icon="delete"></RadzenMenuItem>
                     </RadzenMenuItem>
                     @* <RadzenMenuItem Text="Tools" Icon="settings">
-                        <RadzenMenuItem Text="Options" Value="@("checkbox")" Icon="tune"></RadzenMenuItem>
+                    <RadzenMenuItem Text="Options" Value="@("checkbox")" Icon="tune"></RadzenMenuItem>
                     </RadzenMenuItem> *@
                 </RadzenMenu>
             </div>
@@ -124,6 +128,24 @@
             }
             switch (valueStr)
             {
+                case "seed_folder":
+
+                    break;
+                case "seed_files":
+                    var seedFiles = await FilePicker.ShowOpenFilePicker(null, true);
+                    if (seedFiles != null && seedFiles.Length > 0)
+                    {
+                        try
+                        {
+                            WebTorrentService.Client!.Seed(seedFiles, new SeedTorrentOptions
+                            {
+
+                            });
+                        }
+                        catch { }
+                        seedFiles.DisposeAll();
+                    }
+                    break;
                 case "torrent_file_picker":
                     var files = await FilePicker.ShowOpenFilePicker(".torrent", true);
                     if (files != null)
@@ -160,11 +182,11 @@
                 case "remove_done":
                     try
                     {
-                        var count = await WebTorrentService.RemoveCompleted(false);
+                        var count = WebTorrentService.RemoveCompleted(false);
                         var confirmation = await DialogService.Confirm($"Remove {count} torrents and all the related data?");
                         if (confirmation == true)
                         {
-                            await WebTorrentService.RemoveCompleted(true);
+                            WebTorrentService.RemoveCompleted(true);
                         }
                     }
                     catch { }
@@ -172,11 +194,11 @@
                 case "remove_all":
                     try
                     {
-                        var count = await WebTorrentService.RemoveAllTorrents(false);
+                        var count = WebTorrentService.RemoveAllTorrents(false);
                         var confirmation = await DialogService.Confirm($"Remove {count} torrents and all the related data?");
                         if (confirmation == true)
                         {
-                            await WebTorrentService.RemoveAllTorrents(true);
+                            WebTorrentService.RemoveAllTorrents(true);
                         }
                     }
                     catch { }

@@ -1,13 +1,24 @@
+/** 
+ * FetchStats overrides the global fetch method to enable http to https upgrades, stats logging, rate limiting, and request blocking
+ * WebTorrent can cause millions of error messages in minutes in the devtools if some torrents use http:// webSeed addresses and the 
+ * WebTorrent client app was loaded over https://
+ * Error:
+ * Mixed Content: The page at '<URL>' as loaded over HTTPS, but requested an insecure resource '<URL>'. This request has been blocked; the content must be served over HTTPS.
+ * - upgrading http:// to https:// is (likely) the best fix
+ * **/
+
 (() => {
     var fetchStats = {};
     globalThis.fetchStats = fetchStats;
-    var upgradeHttp = new URL(document.baseURI).protocol === 'https:';  // might also be able to use 'window.isSecureContext'
+    var upgradeInsecureRequests = true;
+    var rateLimit = true;
+    var rateLimitDelayBase = 10000;
+    var isSecureContext = new URL(document.baseURI).protocol === 'https:';  // might also be able to use 'window.isSecureContext'
     var fetchOrig = fetch;
     var sleep = (ms) => new Promise(r => setTimeout(r, ms));
-    var fails = {};
-    var originFails = {};
-    var originPings = {};
-    fetchStats.originPings = originPings;
+    var hostFails = {};
+    var hostPings = {};
+    fetchStats.hostPings = hostPings;
     var blockedHosts = [];
     fetchStats.blockHost = function (hostname) {
         if (hostname.indexOf('://') !== -1) hostname = new URL(hostname).hostname;
@@ -31,34 +42,25 @@
         // blockedHosts = [];
         return true;
     };
-    fetchStats.isBlockedHost = function (hostname) {
+    fetchStats.isHostBlocked = function (hostname) {
         if (hostname.indexOf('://') !== -1) hostname = new URL(hostname).hostname;
         return blockedHosts.indexOf(hostname) !== -1;
     };
     globalThis.fetch = async (resource, options) => {
-        var orig = resource;
         if (typeof resource === 'string') {
             var url = new URL(resource, document.baseURI);
             resource = url.toString();
-            // resource is a string
-            if (upgradeHttp && resource.indexOf('http://') === 0) {
+            var insecureRequst = resource.indexOf('http://') === 0;
+            if (isSecureContext && insecureRequst && upgradeInsecureRequests) {
                 resource = `https://${resource.substring('http://'.length)}`;
             }
-            var origin = new URL(resource).origin;
             var hostname = url.hostname;
-            var isBlocked = fetchStats.isBlockedHost(hostname);
-            if (isBlocked) {
-                //console.log('Blocked host', hostname);
-                await sleep(5);
-                throw new DOMException('Failed it');
-            }
             var now = new Date().getTime();
-            var originFail = originFails[origin];
-            var fail = fails[resource];
-            var originPing = originPings[origin];
-            if (originPing == null) {
-                originPing = {
-                    origin: origin,
+            var hostFail = hostFails[hostname];
+            var hostPing = hostPings[hostname];
+            if (hostPing == null) {
+                hostPing = {
+                    hostName: hostname,
                     bestPing: -1,
                     failCount: 0,
                     successCount: 0,
@@ -68,84 +70,65 @@
                     lastSuccess: null,
                     lastFail: null,
                     ping: -1,
+                    blockCount: 0,
                 };
-                originPings[origin] = originPing;
+                hostPings[hostname] = hostPing;
             }
-            if (originFail) {
-                var elapsedSinceLastFail = now - originFail.lastFail;
-                if (elapsedSinceLastFail < 5000 && fail.count > 1) {
-                    await sleep(5);
-                    throw new DOMException('Failed it');
-                }
+            var isBlocked = fetchStats.isHostBlocked(hostname);
+            if (isBlocked) {
+                //console.log('Blocked host', hostname);
+                hostPing.blockCount++;
+                await sleep(5);
+                throw new DOMException('Blocked it');
             }
-            if (fail) {
-                var elapsedSinceLastFail = now - fail.lastFail;
-                var sleep = 0;
-                var retryDelay = Math.min(fail.count + 2, 30) * 1000;
-                var left = retryDelay - elapsedSinceLastFail;
-                if (elapsedSinceLastFail < 5000 && fail.count > 1) {
+            if (hostFail && rateLimit) {
+                var elapsedSinceLastFail = now - hostFail.lastFail;
+                if (elapsedSinceLastFail < rateLimitDelayBase && hostFail.count > 2) {
                     await sleep(5);
-                    throw new DOMException('Failed it');
+                    throw new DOMException('Rate limited');
                 }
             }
             try {
                 now = new Date().getTime();
                 var nowBefore = now;
-                originPing.pinged = now;
+                hostPing.pinged = now;
                 var ret = await fetchOrig(resource, options);
                 now = new Date().getTime();
-                originPing.pinged = now;
-                originPing.lastSuccess = now;
-                originPing.ping = now - nowBefore;
-                originPing.failCount = 0;
-                originPing.successCount++;
-                originPing.successTotal++;
-                if (originPing.bestPing < 0 || originPing.ping < originPing.bestPing) {
-                    originPing.bestPing = originPing.ping;
+                hostPing.pinged = now;
+                hostPing.lastSuccess = now;
+                hostPing.ping = now - nowBefore;
+                hostPing.failCount = 0;
+                hostPing.successCount++;
+                hostPing.successTotal++;
+                if (hostPing.bestPing < 0 || hostPing.ping < hostPing.bestPing) {
+                    hostPing.bestPing = hostPing.ping;
                 }
-                if (fail) {
-                    delete fails[resource];
-                }
-                if (originFail) {
-                    delete originFails[origin];
+                if (hostFail) {
+                    delete hostFails[hostname];
                 }
                 return ret;
             } catch (e) {
                 now = new Date().getTime();
-                originPing.pinged = now;
-                originPing.lastFail = now;
-                originPing.ping = -1;
-                originPing.failCount++;
-                originPing.failTotal++;
-                originPing.successCount = 0;
-                if (!fail) {
-                    fail = {
-                        origin: origin,
-                        url: resource,
+                hostPing.pinged = now;
+                hostPing.lastFail = now;
+                hostPing.ping = -1;
+                hostPing.failCount++;
+                hostPing.failTotal++;
+                hostPing.successCount = 0;
+                if (!hostFail) {
+                    hostFail = {
+                        hostName: hostname,
                         count: 0,
-                        passStart: 0,
                         lastFail: 0,
                     };
-                    fails[resource] = fail;
+                    hostFails[hostname] = hostFail;
                 }
-                fail.lastFail = now;
-                fail.count++;
-                if (!originFail) {
-                    originFail = {
-                        origin: origin,
-                        count: 0,
-                        passStart: 0,
-                        lastFail: 0,
-                    };
-                    originFail[origin] = originFail;
-                }
-                originFail.lastFail = now;
-                originFail.count++;
+                hostFail.lastFail = now;
+                hostFail.count++;
                 throw e;
             }
         } else {
             // resource is a Request object
-            // currently not modified. could cause issues if a relative path was used to create the Request object.
             try {
                 return await fetchOrig(resource, options);
             } catch (e) {
@@ -154,4 +137,33 @@
             }
         }
     };
+    var useWebSocketProxy = false;
+    var WebSocketOrig = WebSocket;
+    var blockedHostTarget = 'wss://localhost:65535/host_blocked';
+    var WebSocket = function (wsUrl, protocols) {
+        var url = new URL(wsUrl);
+        var hostname = url.hostname;
+        var isBlocked = fetchStats.isHostBlocked(hostname);
+        //console.log('new WebSocket', hostname, wsUrl, protocols);
+        if (isBlocked) {
+            //console.log('Blocked WebSocket connection to host', hostname);
+            wsUrl = blockedHostTarget;
+        }
+        var ws = new WebSocketOrig(wsUrl, protocols);
+        if (!useWebSocketProxy) return ws;
+        var overrides = {
+            //
+        };
+        var wsp = new Proxy(ws, {
+            get(target, key) {
+                if (key in overrides) {
+                    return overrides[key];
+                }
+                var ret = Reflect.get(target, key, this);
+                return ret;
+            }
+        });
+        return wsp;
+    }
+    globalThis.WebSocket = WebSocket;
 })();

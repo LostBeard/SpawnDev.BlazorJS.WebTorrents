@@ -19,28 +19,5 @@
             //var originPings = FetchStats.OriginPings;
             //JS.Log("Pings", originPings);
         }
-
-        //bestPing: -1,
-        //failCount: 0,
-        //successCount: 0,
-        //failTotal: 0,
-        //successTotal: 0,
-        //pinged: null,
-        //lastSuccess: null,
-        //lastFail: null,
-        //ping: -1,
-        public class OriginPing
-        {
-            public string Origin { get; set; }
-            public int BestPing { get; set; }
-            public int FailCount { get; set; }
-            public int SuccessCount { get; set; }
-            public int FailTotal { get; set; }
-            public int SuccessTotal { get; set; }
-            public EpochDateTime? Pinged { get; set; }
-            public EpochDateTime? LastSuccess { get; set; }
-            public EpochDateTime? LastFail { get; set; }
-            public int Ping { get; set; }
-        }
     }
 }

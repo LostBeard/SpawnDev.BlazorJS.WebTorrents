@@ -131,7 +131,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public static bool IsMagnet(string value)
         {
             if (value == null) return false;
-            return value.StartsWith(@"magnet:\?xt=urn:btih:");// Regex.IsMatch(value, @"^magnet:\?xt=urn:btih:[a-f0-9]{40}\S*$", RegexOptions.IgnoreCase);
+            return value.StartsWith(@"magnet:?xt=urn:btih:");// Regex.IsMatch(value, @"^magnet:\?xt=urn:btih:[a-f0-9]{40}\S*$", RegexOptions.IgnoreCase);
         }
         public static bool IsInfoHash(string value)
         {
@@ -394,36 +394,31 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         /// <param name="hasBeenConfirmed"></param>
         /// <returns></returns>
-        public async Task<int> RemoveCompleted(bool hasBeenConfirmed)
+        public int RemoveCompleted(bool hasBeenConfirmed)
         {
             var ret = 0;
             using var torrents = Client!.Torrents;
-            var ts = torrents.ToArray();
-            foreach (var t in ts)
+            torrents.ToArray().UsingEach(t =>
             {
                 if (t.Done)
                 {
-                    if (hasBeenConfirmed) await t.DestroyAsync(new DestroyTorrentOptions { DestroyStore = true });
+                    if (hasBeenConfirmed) t.Destroy(new DestroyTorrentOptions { DestroyStore = true });
                     ret++;
                 }
-            }
-            ts.DisposeAll();
+            });
             return ret;
         }
-        public async Task<int> RemoveAllTorrents(bool hasBeenConfirmed, Func<Torrent, bool>? predicate = null)
+        public int RemoveAllTorrents(bool hasBeenConfirmed, Func<Torrent, bool>? predicate = null)
         {
             var ret = 0;
             using var torrents = Client!.Torrents;
-            var ts = torrents.ToArray();
-            foreach (var t in ts)
-            {
+            torrents.ToArray().UsingEach(t => {
                 if (predicate == null || predicate(t))
                 {
-                    if (hasBeenConfirmed) await t.DestroyAsync(new DestroyTorrentOptions { DestroyStore = true });
+                    if (hasBeenConfirmed) t.Destroy(new DestroyTorrentOptions { DestroyStore = true });
                     ret++;
                 }
-            }
-            ts.DisposeAll();
+            });
             return ret;
         }
 
