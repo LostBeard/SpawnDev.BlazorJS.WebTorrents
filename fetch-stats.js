@@ -1,10 +1,12 @@
 /** 
  * FetchStats overrides the global fetch method to enable http to https upgrades, stats logging, rate limiting, and request blocking
- * WebTorrent can cause millions of error messages in minutes in the devtools if some torrents use http:// webSeed addresses and the 
- * WebTorrent client app was loaded over https://
+ * WebTorrent can cause millions of error messages in minutes in the devtools if some torrents use http:// webSeed addresses and
+ * the WebTorrent client app was loaded over https://
  * Error:
  * Mixed Content: The page at '<URL>' as loaded over HTTPS, but requested an insecure resource '<URL>'. This request has been blocked; the content must be served over HTTPS.
- * - upgrading http:// to https:// is (likely) the best fix
+ * - upgrading fetch requests from http:// to https:// when on a secure context is (likely) the best/easiest fix
+ * - This not a problem with WebTorrent but an incompatiblity between the the torrents and a browser environment. 
+ * - Upgrading to https:// when on a secure context may not fix the issue if the server does not actually provide the same resoruce over https://
  * **/
 
 (() => {
