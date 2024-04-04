@@ -49,6 +49,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// peer Peer - the peer<br />
         /// source string - the peer source
         /// </summary>
-        public JSEventCallback<Peer, string> OnPeer { get => new JSEventCallback<Peer, string>("peer", On, RemoveListener); set { } }
+        public JSEventCallback<DiscoveredPeer, string> OnPeer { get => new JSEventCallback<DiscoveredPeer, string>("peer", On, RemoveListener); set { } }
     }
 }

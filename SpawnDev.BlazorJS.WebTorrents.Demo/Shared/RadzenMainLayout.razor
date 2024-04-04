@@ -159,7 +159,10 @@
                                 // TODO - add dialog with add torrent options (also use it when adding torrent via magnet)
                                 WebTorrentService.Client!.Add(uint8array);
                             }
-                            catch { }
+                            catch(Exception ex)
+                            {
+                                JS.Log("torrent_file_picker failed:", ex.Message);
+                            }
                             file.Dispose();
                         }
                     }

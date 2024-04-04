@@ -47,6 +47,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         public Array<Wire> Wires => JSRef.Get<Array<Wire>>("wires");
         /// <summary>
+        /// Peers (peers underpin wires)
+        /// </summary>
+        public Dictionary<string, Peer> Peers => JSRef.Get<Dictionary<string, Peer>>("_peers");
+        /// <summary>
         /// Torrent storage
         /// </summary>
         public TorrentStore Store => JSRef.Get<TorrentStore>("store");

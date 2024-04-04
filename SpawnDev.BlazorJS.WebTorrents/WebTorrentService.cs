@@ -237,7 +237,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
             torrent.OnError += onError;
             OnTorrentAdd?.Invoke(torrent);
         }
-        void Discovery_OnPeer(Peer peer, string source)
+        void Discovery_OnPeer(DiscoveredPeer peer, string source)
         {
             if (Verbose) JS.Log("Discovery_OnPeer", peer, source);
         }

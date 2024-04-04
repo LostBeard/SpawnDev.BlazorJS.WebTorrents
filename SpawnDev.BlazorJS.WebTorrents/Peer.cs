@@ -2,9 +2,6 @@
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
-    /// <summary>
-    /// Peer class
-    /// </summary>
     public class Peer : JSObject
     {
         /// <summary>
@@ -12,12 +9,14 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         /// <param name="_ref"></param>
         public Peer(IJSInProcessObjectReference _ref) : base(_ref) { }
-        public string ChannelName => JSRef.Get<string>("channelName");
         public string Id => JSRef.Get<string>("id");
-        public bool Initiator => JSRef.Get<bool>("initiator");
-        public bool Trickle => JSRef.Get<bool>("trickle");
-        public string? RemoteAddress => JSRef.Get<string?>("remoteAddress");
-        public string? RemoteFamily => JSRef.Get<string?>("remoteFamily");
-        public ushort? RemotePort => JSRef.Get<ushort?>("remotePort");
+        public string Type => JSRef.Get<string>("type");
+        public bool Destroyed => JSRef.Get<bool>("destroyed");
+        public bool Connected => JSRef.Get<bool>("connected");
+        public bool SendHandshake => JSRef.Get<bool>("sendHandshake");
+        public int HandshakeTimeout => JSRef.Get<int>("handshakeTimeout");
+        public int Retries => JSRef.Get<int>("retries");
+        public Wire? Wire => JSRef.Get<Wire>("wire");
+        public Torrent? Swarm => JSRef.Get<Torrent?>("swarm");
     }
 }
