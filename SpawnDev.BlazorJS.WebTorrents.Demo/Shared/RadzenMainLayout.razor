@@ -35,6 +35,7 @@
     <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
         <RadzenPanelMenu>
             <RadzenPanelMenuItem Text="Home" Icon="home" Path="" />
+            <RadzenPanelMenuItem Text="Peers" Icon="hub" Path="peers" />
             <RadzenPanelMenuItem Target="_blank" Text="GitHub" Image="github-mark-white.svg" Path="https://github.com/LostBeard/SpawnDev.BlazorJS.WebTorrents" />
         </RadzenPanelMenu>
         <div class="rz-p-4">
@@ -71,7 +72,43 @@
     WebTorrentService WebTorrentService { get; set; }
 
     bool sidebar1Expanded = true;
-
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += NavigationManager_LocationChanged;
+    }
+    private void NavigationManager_LocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        AfterLocationChanged(e.HistoryEntryState);
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            AfterLocationChanged();
+        }
+    }
+    [Inject]
+    protected NavigationManager NavigationManager { get; set; }
+    public Type? PageType { get; private set; }
+    public string PageTypeName => PageType?.Name ?? "";
+    public string Location { get; private set; } = "";
+    public string? HistoryEntryState { get; private set; }
+    public DateTime LocationUpdated { get; private set; } = DateTime.MinValue;
+    void AfterLocationChanged(string? historyEntryState = null)
+    {
+        var pageType = Body != null && Body.Target != null && Body.Target is RouteView routeView ? routeView.RouteData.PageType : null;
+        var location = NavigationManager.Uri;
+        if (PageType == pageType && Location == location)
+        {
+            Console.WriteLine($"SendLocationChanged: false");
+            return;
+        }
+        LocationUpdated = DateTime.Now;
+        PageType = pageType;
+        Location = location;
+        HistoryEntryState = historyEntryState;
+        Console.WriteLine($"LocationChanged: {PageTypeName} [{HistoryEntryState ?? ""}] {Location}");
+    }
     void AppService_OnStateChanged()
     {
         StateHasChanged();

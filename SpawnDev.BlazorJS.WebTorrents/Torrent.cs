@@ -123,9 +123,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         public double Progress => JSRef.Get<double>("progress");
         /// <summary>
-        /// Torrent "seed ratio" (uploaded / downloaded).
+        /// Torrent "seed ratio" (uploaded / downloaded).<br />
+        /// This can be null. If null, this property will return 0;
         /// </summary>
-        public double Ratio => JSRef.Get<double>("ratio");
+        public double Ratio => JSRef.Get<double?>("ratio") ?? 0;
         /// <summary>
         /// Number of peers in the torrent swarm.
         /// </summary>

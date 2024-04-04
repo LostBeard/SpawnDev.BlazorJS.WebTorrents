@@ -30,9 +30,11 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
         }
         public double UploadSpeed => Torrent.UploadSpeed;
         public double TimeRemaining => Torrent.TimeRemaining ?? TimeSpan.MaxValue.TotalSeconds + 1d;
+        public bool TimeRemainingInfinite => Torrent.TimeRemaining == null || Torrent.TimeRemaining > TimeSpan.MaxValue.TotalSeconds;
         public double DownloadSpeed => Torrent.DownloadSpeed;
         public double Length => Torrent.Length;
         public double Downloaded => Torrent.Downloaded;
+        public double Ratio => Torrent.Ratio;
         public int TotalPieces => Torrent.Pieces.Length;
         public int SelectedPieces => Torrent.Selections.Length;
         public double Progress => Torrent.Progress;

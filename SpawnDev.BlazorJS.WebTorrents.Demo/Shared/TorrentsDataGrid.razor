@@ -10,6 +10,9 @@
             <Template Context="torrent">
                 <RadzenProgressBarCircular Size="ProgressBarCircularSize.Small" ProgressBarStyle="@torrent.ProgressBarStyle" Value="@(Math.Round(torrent.Progress * 100d))" />
             </Template>
+            <FooterTemplate>
+                <RadzenProgressBarCircular Size="ProgressBarCircularSize.Small" ProgressBarStyle="@ClientProgressBarStyle" Value="@(Math.Round(Progress * 100d))" />
+            </FooterTemplate>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="TorrentsDataGridItem" Property="Name" Width="300px" Title="Name" TextAlign="TextAlign.Left" />
         <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="TimeRemaining" Title="TimeRemaining" Width="150px" TextAlign="TextAlign.Center">
@@ -31,21 +34,41 @@
             <Template Context="torrent">
                 @(ReadableBps(torrent.DownloadSpeed))
             </Template>
+            <FooterTemplate>
+                <b>@(ReadableBps(DownloadSpeed))</b>
+            </FooterTemplate>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="UploadSpeed" Title="Upload Speed" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableBps(torrent.UploadSpeed))
             </Template>
+            <FooterTemplate>
+                <b>@(ReadableBps(UploadSpeed))</b>
+            </FooterTemplate>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="Downloaded" Title="Downloaded" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableByteLength(torrent.Downloaded))
             </Template>
+            <FooterTemplate>
+                <b>@(ReadableByteLength(Downloaded))</b>
+            </FooterTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="Ratio" Title="Ratio" Width="150px" TextAlign="TextAlign.Center">
+            <Template Context="torrent">
+                @(Math.Round(torrent.Ratio * 100d, 2))%
+            </Template>
+            <FooterTemplate>
+                <b>@(Math.Round(Ratio * 100d, 2))%</b>
+            </FooterTemplate>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="Length" Title="Size" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableByteLength(torrent.Length))
             </Template>
+            <FooterTemplate>
+                <b>@(ReadableByteLength(Size))</b>
+            </FooterTemplate>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="TorrentsDataGridItem" Property="InfoHash" Title="InfoHash" Width="350px" TextAlign="TextAlign.Left" />
         <!-- Below Column fixes a sizing bug if all columns have a specified width -->
@@ -54,6 +77,15 @@
 </RadzenDataGrid>
 
 @code {
+    ProgressBarStyle ClientProgressBarStyle = ProgressBarStyle.Primary;
+    double UploadSpeed => torrentsDataGridItems.Values.Sum(o => o.UploadSpeed);
+    //double TimeRemaining => torrentsDataGridItems.Values.Where().Sum(o => o.TimeRemaining);
+    double DownloadSpeed => torrentsDataGridItems.Values.Sum(o => o.DownloadSpeed);
+    double Downloaded => torrentsDataGridItems.Values.Sum(o => o.Downloaded);
+    double Size => torrentsDataGridItems.Values.Sum(o => o.Length);
+    double Progress => WebTorrentService.Client!.Progress;
+    double Ratio => WebTorrentService.Client!.Ratio;
+
     [Inject]
     BlazorJSRuntime JS { get; set; }
     [Inject]

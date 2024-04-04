@@ -17,6 +17,7 @@ builder.Services.AddWebTorrentService(new WebTorrentOptions {
     //webTorrentService.Verbose = true;
 });
 builder.Services.AddSingleton<MimeTypeService>();
+builder.Services.AddSingleton<FetchStatsService>();
 builder.Services.AddSingleton<AppService>();
 builder.Services.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddRadzenComponents();
