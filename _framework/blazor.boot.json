@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "SpawnDev.BlazorJS.WebTorrents.Demo",
   "resources": {
-    "hash": "sha256-+V5gyKzbGs4qwKQ1KQAdeFObCZfT9ZQHRrb/4QhpVMM=",
+    "hash": "sha256-LcfogF2eooK0HvNIFkZwVZmzSjbOBohR3w7XkqNOn00=",
     "jsModuleNative": {
       "dotnet.native.8.0.3.ui8bbliwqa.js": "sha256-+33kzLRJ+iBOS9Ph+qce6OWgxtc5BovRjgrlEhioszw="
     },
@@ -19,7 +19,7 @@
     "assembly": {
       "BencodeNET.wasm": "sha256-sVDV8TMr7uuN09gMVgL0EI6sD0lskZoV5RH1ahbUQXU=",
       "Microsoft.AspNetCore.Components.Forms.wasm": "sha256-IRbeeCDd4HJMWmax1EU8bQ2vzzlBg8PksRVYxNFZIoo=",
-      "Microsoft.AspNetCore.Components.wasm": "sha256-cOlabfSrgk39dYcCh2RkTN6W62pmi0Pxa8YYkOlpQy8=",
+      "Microsoft.AspNetCore.Components.wasm": "sha256-9k5Pr35eEltL21u09m5qNeOJ3nVlfVcfhm2Kvp1sik8=",
       "Microsoft.AspNetCore.Components.Web.wasm": "sha256-xoWn1y7YtIEITfacRYmSa0DzFqaD4Tj6hMTcsSVo3Sw=",
       "Microsoft.AspNetCore.Components.WebAssembly.wasm": "sha256-TxKYomtx9MsYYYMDM0KKcSIl71KI0RLkfQiOkoATY7c=",
       "Microsoft.CSharp.wasm": "sha256-y1q4zcQEnTpBZUpLuftGx63IY85qrU4WBVWWOWOTnGY=",
@@ -37,8 +37,8 @@
       "Radzen.Blazor.wasm": "sha256-K8f1CYM6v4ha/jVoDREYtUdSncADKgYJqA4NHQrKRJE=",
       "SpawnDev.BlazorJS.VisNetwork.wasm": "sha256-wqO0XwS0WkLNuIUBq0baLjvmnrpztSWBMNoexTy91NE=",
       "SpawnDev.BlazorJS.wasm": "sha256-QJL8wJbNF5mExVqdH7+zdlfbU6Qf09YnwfAnHjNka1s=",
-      "SpawnDev.BlazorJS.WebTorrents.Demo.wasm": "sha256-w/tBRf17x0TF+Y2ac6Q94huBbTsglA2xj5wDDKT+Kjc=",
-      "SpawnDev.BlazorJS.WebTorrents.wasm": "sha256-0RwgrlAQ9xH6z9sK3xZRAlGz//oCQGuo3uxDei3GQ70=",
+      "SpawnDev.BlazorJS.WebTorrents.Demo.wasm": "sha256-m0tz9Y7rF0eGhX77/W7Ht6Bd4122H1fAgk+66i0VnaE=",
+      "SpawnDev.BlazorJS.WebTorrents.wasm": "sha256-qDRNKT7YgCu164+mqdCvGEuzf2Z++qzNWta4neG1wr0=",
       "System.Collections.Concurrent.wasm": "sha256-OWyvoIzz0iFOd1nt8Qg3BE+iKzzEHIUN0Mg0YxuAlDs=",
       "System.Collections.Immutable.wasm": "sha256-px9UWWAMiOueqORPJpj/5VyDp477Wbxi9nJ009fuHvo=",
       "System.Collections.NonGeneric.wasm": "sha256-xapdfc6kCKe7zteiJrSgeecmw+GcTYOGL+jCQ+Ar9Bc=",
