@@ -321,20 +321,15 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public void DeselectAll()
         {
             using var files = Files;
-            foreach (File file in files)
-            {
-                file.Deselect();
-                file.Dispose();
-            }
+            files.ToArray().UsingEach(x => x.Deselect());
         }
+        /// <summary>
+        /// Select all files
+        /// </summary>
         public void SelectAll()
         {
             using var files = Files;
-            foreach(File file in files)
-            {
-                file.Select();
-                file.Dispose();
-            }
+            files.ToArray().UsingEach(x => x.Select());
         }
         /// <summary>
         /// Returns when the torrent is ready

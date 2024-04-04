@@ -96,17 +96,8 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public static bool GetTorrentByInstanceId(this WebTorrent _this, string instanceId, out Torrent? torrentRet)
         {
             using var torrents = _this.Torrents;
-            foreach (Torrent torrent in torrents)
-            {
-                if (torrent.InstanceId == instanceId)
-                {
-                    torrentRet = torrent;
-                    return true;
-                }
-                torrent.Dispose();
-            }
-            torrentRet = null;
-            return false;
+            torrentRet = torrents.ToArray().UsingFilter(o => o.InstanceId == instanceId).FirstOrDefault();
+            return torrentRet != null;
         }
         /// <summary>
         /// Returns the torrent and wire from the given wire instanceId
@@ -119,24 +110,27 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public static bool GetWireByInstanceId(this WebTorrent _this, string instanceId, out Torrent? torrentRet, out Wire? wireRet)
         {
             using var torrents = _this.Torrents;
-            foreach (Torrent torrent in torrents)
-            {
-                using var wires = torrent.Wires;
-                foreach (Wire wire in wires)
-                {
-                    if (wire.InstanceId == instanceId)
-                    {
-                        torrentRet = torrent;
-                        wireRet = wire;
-                        return true;
-                    }
-                    wire.Dispose();
-                }
-                torrent.Dispose();
-            }
             torrentRet = null;
             wireRet = null;
-            return false;
+            foreach (Torrent torrent in torrents.ToArray())
+            {
+                if (wireRet == null)
+                {
+                    using var wires = torrent.Wires;
+                    foreach (Wire wire in wires.ToArray())
+                    {
+                        if (wireRet == null && wire.InstanceId == instanceId)
+                        {
+                            torrentRet = torrent;
+                            wireRet = wire;
+                            break;
+                        }
+                        wire.Dispose();
+                    }
+                }
+                if (torrentRet != torrent) torrent.Dispose();
+            }
+            return wireRet != null;
         }
 
         /// <summary>
@@ -148,12 +142,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public static Torrent? GetTorrentByInstanceId(this WebTorrent _this, string instanceId)
         {
             using var torrents = _this.Torrents;
-            foreach (Torrent torrent in torrents)
-            {
-                if (torrent.InstanceId == instanceId) return torrent;
-                torrent.Dispose();
-            }
-            return null;
+            return torrents.ToArray().UsingFilter(o => o.InstanceId == instanceId).FirstOrDefault();
         }
     }
 }

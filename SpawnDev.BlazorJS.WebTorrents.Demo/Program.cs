@@ -14,7 +14,7 @@ builder.Services.AddWebTorrentService(new WebTorrentOptions {
     //DownloadLimit = 50000,
 }, webTorrentService =>
 {
-    webTorrentService.Verbose = false;
+    //webTorrentService.Verbose = true;
 });
 builder.Services.AddSingleton<MimeTypeService>();
 builder.Services.AddSingleton<AppService>();

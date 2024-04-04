@@ -41,9 +41,15 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
     bool isLoading2 = false;
     [Parameter]
     public string TorrentInstanceId { get; set; }
-
+    public Dictionary<string, WiresDataGridItem> wiresDataGridItems { get; private set; } = new Dictionary<string, WiresDataGridItem>();
     Torrent? Torrent { get; set; }
-
+    [Inject]
+    WebTorrentService WebTorrentService { get; set; }
+    RadzenDataGrid<WiresDataGridItem> grid { get; set; }
+    int Count;
+    IEnumerable<WiresDataGridItem> Infos = new List<WiresDataGridItem>();
+    bool isLoading = false;
+    System.Timers.Timer _tmr = new();
     protected override void OnParametersSet()
     {
         if (Torrent != null)
@@ -53,10 +59,19 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
                 return;
             }
         }
+        wiresDataGridItems.Clear();
         Torrent = WebTorrentService.Client!.GetTorrentByInstanceId(TorrentInstanceId);
+        if (Torrent != null)
+        {
+            using var wires = Torrent!.Wires;
+            var infos = wires!.ToArray().Select(o => new WiresDataGridItem(Torrent, o));
+            foreach (var info in infos)
+            {
+                wiresDataGridItems.Add(info.InstanceId, info);
+            }
+        }
         grid?.Reload();
     }
-
     async Task RowSelect(WiresDataGridItem torrentStateInfo)
     {
         Console.WriteLine("RowSelect");
@@ -82,37 +97,16 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
         // show a single decimal place, and no space.
         return String.Format("{0:0.##} {1}", len, sizes[order]);
     }
-
-    [Inject]
-    WebTorrentService WebTorrentService { get; set; }
-
-    RadzenDataGrid<WiresDataGridItem> grid { get; set; }
-    int Count;
-    IEnumerable<WiresDataGridItem> Infos = new List<WiresDataGridItem>();
-    bool isLoading = false;
-    System.Timers.Timer _tmr = new();
-
-    async Task OnSelectedTitlesChange(object value)
-    {
-        // if (selectedTitles != null && !selectedTitles.Any())
-        // {
-        //     selectedTitles = null;
-        // }
-        await grid.FirstPage();
-    }
-
     async Task Reset()
     {
         grid.Reset(true);
         await grid.FirstPage(true);
     }
-
     async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;
         await Task.Yield();
-        var infos = Torrent == null ? new List<WiresDataGridItem>() : Torrent.Wires.Select(o => new WiresDataGridItem(Torrent, o)).ToList();
-        var query = infos.AsQueryable();
+        var query = wiresDataGridItems.Values.AsQueryable();
         if (!string.IsNullOrEmpty(args.Filter))
         {
             // Filter via the Where method
@@ -134,6 +128,8 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
     }
     protected override void OnAfterRender(bool firstRender)
     {
+        _tmr.Enabled = false;
+        _tmr.Enabled = true;
         if (firstRender)
         {
             grid.Reload();
@@ -141,10 +137,8 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
     }
     protected override void OnInitialized()
     {
-        WebTorrentService.OnTorrentAdd += Rendezvous_OnTorrentAdd;
-        WebTorrentService.OnTorrentRemove += Rendezvous_OnTorrentRemove;
-        WebTorrentService.OnTorrentWireAdd += Rendezvous_OnTorrentWireAdd;
-        WebTorrentService.OnTorrentWireRemove += Rendezvous_OnTorrentWireRemove;
+        WebTorrentService.OnTorrentWireAdd += WebTorrent_OnTorrentWireAdd;
+        WebTorrentService.OnTorrentWireRemove += WebTorrent_OnTorrentWireRemove;
         _tmr.Elapsed += Timer_Elapsed;
         _tmr.Interval = 1000;
         _tmr.Enabled = true;
@@ -153,25 +147,18 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
     {
         _tmr.Enabled = false;
         _tmr.Elapsed -= Timer_Elapsed;
-        WebTorrentService.OnTorrentAdd -= Rendezvous_OnTorrentAdd;
-        WebTorrentService.OnTorrentRemove -= Rendezvous_OnTorrentRemove;
-        WebTorrentService.OnTorrentWireAdd -= Rendezvous_OnTorrentWireAdd;
-        WebTorrentService.OnTorrentWireRemove -= Rendezvous_OnTorrentWireRemove;
+        WebTorrentService.OnTorrentWireAdd -= WebTorrent_OnTorrentWireAdd;
+        WebTorrentService.OnTorrentWireRemove -= WebTorrent_OnTorrentWireRemove;
     }
-    void Rendezvous_OnTorrentWireRemove(Torrent torrent, Wire wire)
+    void WebTorrent_OnTorrentWireRemove(Torrent torrent, Wire wire)
     {
+        var info = new WiresDataGridItem(torrent, wire);
+        wiresDataGridItems.Add(info.InstanceId, info);
         grid.Reload();
     }
-    void Rendezvous_OnTorrentWireAdd(Torrent torrent, Wire wire)
+    void WebTorrent_OnTorrentWireAdd(Torrent torrent, Wire wire)
     {
+        wiresDataGridItems.Remove(wire.InstanceId);
         grid.Reload();
-    }
-    void Rendezvous_OnTorrentAdd(Torrent torrent)
-    {
-        StateHasChanged();
-    }
-    void Rendezvous_OnTorrentRemove(Torrent torrent)
-    {
-        StateHasChanged();
     }
 }

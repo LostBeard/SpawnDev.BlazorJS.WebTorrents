@@ -26,19 +26,21 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
             get
             {
                 float totalPieces = Torrent.Bitfield?.Length ?? 0;
-                float donePieces = Wire.IsSeeder ? totalPieces : Wire.PeerPieces?.PopCount() ?? 0;
+                using var bitfield = Wire.IsSeeder ? null : Wire.PeerPieces;
+                float donePieces = Wire.IsSeeder ? totalPieces : bitfield?.PopCount() ?? 0;
                 var percentDone = totalPieces == 0 ? 0 : donePieces / totalPieces;
                 return percentDone;
             }
         }
+        public string InstanceId => Wire.InstanceId;
         public string Type => Wire.Type;
         public string PeerId => Wire.PeerId;
         public Torrent Torrent { get; }
         public Wire Wire { get; }
-        public WiresDataGridItem(Torrent torrent, Wire file)
+        public WiresDataGridItem(Torrent torrent, Wire wire)
         {
             Torrent = torrent;
-            Wire = file;
+            Wire = wire;
         }
     }
 }

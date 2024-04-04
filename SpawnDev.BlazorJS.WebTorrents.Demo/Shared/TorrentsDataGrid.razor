@@ -42,11 +42,6 @@
                 @(ReadableByteLength(torrent.Downloaded))
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="SelectedPieces" Title="Pieces" Width="90px" TextAlign="TextAlign.Center">
-            <Template Context="torrent">
-                @torrent.SelectedPieces (@torrent.TotalPieces)
-            </Template>
-        </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="Length" Title="Size" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableByteLength(torrent.Length))
@@ -65,16 +60,24 @@
     ContextMenuService ContextMenuService { get; set; }
     [Inject]
     DialogService DialogService { get; set; }
-
+    [Parameter]
+    public EventCallback<string> SelectedTorrentChanged { get; set; }
+    [Inject]
+    AppService AppService { get; set; }
+    [Inject]
+    WebTorrentService WebTorrentService { get; set; }
+    public Dictionary<string, TorrentsDataGridItem> torrentsDataGridItems { get; private set; } = new Dictionary<string, TorrentsDataGridItem>();
+    RadzenDataGrid<TorrentsDataGridItem> grid { get; set; }
+    int count;
+    IEnumerable<TorrentsDataGridItem> Torrents = new List<TorrentsDataGridItem>();
+    bool isLoading = false;
+    System.Timers.Timer _tmr = new();
+    public string SelectedTorrentInstanceId { get; set; } = "";
+    public TorrentsDataGridItem? SelectedTorrentInfo { get; private set; } = null;
     string HumanReadableSeconds(double duration)
     {
         return duration > TimeSpan.MaxValue.TotalSeconds ? "∞" : string.Format("{0:dd\\.hh\\:mm\\:ss}", TimeSpan.FromSeconds(duration));
     }
-
-    public string SelectedTorrentInstanceId { get; set; } = "";
-
-    public TorrentsDataGridItem? SelectedTorrentInfo { get; private set; } = null;
-
     void ShowContextMenuWithItems(DataGridCellMouseEventArgs<TorrentsDataGridItem> args)
     {
         var selectedTorrentInfo = args.Data;
@@ -151,18 +154,8 @@
         {
             _ = task();
         }
-        // if (!args.Value.Equals(3) && !args.Value.Equals(4))
-        // {
-        //     ContextMenuService.Close();
-        // }
         ContextMenuService.Close();
     }
-    [Parameter]
-    public EventCallback<string> SelectedTorrentChanged { get; set; }
-
-    [Inject]
-    AppService AppService { get; set; }
-
     async Task RowSelect(TorrentsDataGridItem torrentStateInfo)
     {
         Console.WriteLine("RowSelect");
@@ -196,48 +189,18 @@
         // show a single decimal place, and no space.
         return string.Format("{0:0.##} {1}", len, sizes[order]);
     }
-
-    [Inject]
-    WebTorrentService WebTorrentService { get; set; }
-
-    RadzenDataGrid<TorrentsDataGridItem> grid { get; set; }
-    int count;
-    IEnumerable<TorrentsDataGridItem> Torrents = new List<TorrentsDataGridItem>();
-    bool isLoading = false;
-    System.Timers.Timer _tmr = new();
-
-    async Task OnSelectedTitlesChange(object value)
-    {
-        // if (selectedTitles != null && !selectedTitles.Any())
-        // {
-        //     selectedTitles = null;
-        // }
-        await grid.FirstPage();
-    }
-
     async Task Reset()
     {
         grid.Reset(true);
         await grid.FirstPage(true);
     }
-
     async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;
         await Task.Yield();
-        var torrentInfos = WebTorrentService.Client!.Torrents.Select(o => new TorrentsDataGridItem(o)).ToList();
-        var query = torrentInfos.AsQueryable();
-        if (!string.IsNullOrEmpty(args.Filter))
-        {
-            // Filter via the Where method
-            query = query.Where(args.Filter);
-        }
-        if (!string.IsNullOrEmpty(args.OrderBy))
-        {
-            // Sort via the OrderBy method
-            query = query.OrderBy(args.OrderBy);
-        }
-        // Important!!! Make sure the Count property of RadzenDataGrid is set.
+        var query = torrentsDataGridItems.Values.AsQueryable();
+        if (!string.IsNullOrEmpty(args.Filter)) query = query.Where(args.Filter);
+        if (!string.IsNullOrEmpty(args.OrderBy)) query = query.OrderBy(args.OrderBy);
         count = query.Count();
         Torrents = query.Skip(args.Skip!.Value).Take(args.Top!.Value).ToList();
         isLoading = false;
@@ -248,6 +211,8 @@
     }
     protected override void OnAfterRender(bool firstRender)
     {
+        _tmr.Enabled = false;
+        _tmr.Enabled = true;
         if (firstRender)
         {
             grid.Reload();
@@ -255,37 +220,47 @@
     }
     protected override void OnInitialized()
     {
-        WebTorrentService.OnTorrentAdd += Rendezvous_OnTorrentAdd;
-        WebTorrentService.OnTorrentRemove += Rendezvous_OnTorrentRemove;
-        WebTorrentService.OnTorrentWireAdd += Rendezvous_OnTorrentWireAdd;
-        WebTorrentService.OnTorrentWireRemove += Rendezvous_OnTorrentWireRemove;
+        WebTorrentService.OnTorrentAdd += WebTorrent_OnTorrentAdd;
+        WebTorrentService.OnTorrentRemove += WebTorrent_OnTorrentRemove;
+        WebTorrentService.OnTorrentWireAdd += WebTorrent_OnTorrentWireAdd;
+        WebTorrentService.OnTorrentWireRemove += WebTorrent_OnTorrentWireRemove;
         _tmr.Elapsed += Timer_Elapsed;
         _tmr.Interval = 1000;
-        _tmr.Enabled = true;
+        using var torrents = WebTorrentService.Client!.Torrents;
+        var infos = torrents!.ToArray().ToList().Select(o => new TorrentsDataGridItem(o));
+        foreach (var info in infos)
+        {
+            torrentsDataGridItems.Add(info.InstanceId, info);
+        }
     }
+    bool Disposed = false;
     public void Dispose()
     {
+        Disposed = true;
         _tmr.Enabled = false;
         _tmr.Elapsed -= Timer_Elapsed;
-        WebTorrentService.OnTorrentAdd -= Rendezvous_OnTorrentAdd;
-        WebTorrentService.OnTorrentRemove -= Rendezvous_OnTorrentRemove;
-        WebTorrentService.OnTorrentWireAdd -= Rendezvous_OnTorrentWireAdd;
-        WebTorrentService.OnTorrentWireRemove -= Rendezvous_OnTorrentWireRemove;
+        WebTorrentService.OnTorrentAdd -= WebTorrent_OnTorrentAdd;
+        WebTorrentService.OnTorrentRemove -= WebTorrent_OnTorrentRemove;
+        WebTorrentService.OnTorrentWireAdd -= WebTorrent_OnTorrentWireAdd;
+        WebTorrentService.OnTorrentWireRemove -= WebTorrent_OnTorrentWireRemove;
     }
-    void Rendezvous_OnTorrentWireRemove(Torrent torrent, Wire wire)
+    void WebTorrent_OnTorrentAdd(Torrent torrent)
+    {
+        var info = new TorrentsDataGridItem(torrent);
+        torrentsDataGridItems.Add(info.InstanceId, info);
+        grid.Reload();
+    }
+    void WebTorrent_OnTorrentRemove(Torrent torrent)
+    {
+        torrentsDataGridItems.Remove(torrent.InstanceId);
+        grid.Reload();
+    }
+    void WebTorrent_OnTorrentWireAdd(Torrent torrent, Wire wire)
     {
         StateHasChanged();
     }
-    void Rendezvous_OnTorrentWireAdd(Torrent torrent, Wire wire)
+    void WebTorrent_OnTorrentWireRemove(Torrent torrent, Wire wire)
     {
         StateHasChanged();
-    }
-    void Rendezvous_OnTorrentAdd(Torrent torrent)
-    {
-        grid.Reload();
-    }
-    void Rendezvous_OnTorrentRemove(Torrent torrent)
-    {
-        grid.Reload();
     }
 }

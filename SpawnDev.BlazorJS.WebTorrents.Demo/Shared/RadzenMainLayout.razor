@@ -139,7 +139,7 @@
                         var confirmation = await DialogService.Confirm($"Remove {count} torrents and all the related data?");
                         if (confirmation == true)
                         {
-                            await WebTorrentService.RemoveCompleted(true);
+                            await WebTorrentService.RemoveAllTorrents(true);
                         }
                     }
                     catch { }
@@ -148,7 +148,7 @@
                     try
                     {
                         using var torrents = WebTorrentService.Client!.Torrents;
-                        foreach(Torrent t in torrents)
+                        foreach (Torrent t in torrents.ToArray())
                         {
                             t.DeselectAll();
                             t.Dispose();
@@ -160,7 +160,7 @@
                     try
                     {
                         using var torrents = WebTorrentService.Client!.Torrents;
-                        foreach (Torrent t in torrents)
+                        foreach (Torrent t in torrents.ToArray())
                         {
                             t.SelectAll();
                             t.Dispose();
@@ -172,7 +172,7 @@
                     try
                     {
                         using var torrents = WebTorrentService.Client!.Torrents;
-                        foreach (Torrent t in torrents)
+                        foreach (Torrent t in torrents.ToArray())
                         {
                             t.Pause();
                             t.Dispose();
@@ -184,7 +184,7 @@
                     try
                     {
                         using var torrents = WebTorrentService.Client!.Torrents;
-                        foreach (Torrent t in torrents)
+                        foreach (Torrent t in torrents.ToArray())
                         {
                             t.Resume();
                             t.Dispose();

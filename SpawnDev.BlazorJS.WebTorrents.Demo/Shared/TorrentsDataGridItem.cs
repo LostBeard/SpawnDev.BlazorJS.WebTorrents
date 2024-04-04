@@ -1,5 +1,4 @@
-﻿using BencodeNET.Torrents;
-using Radzen;
+﻿using Radzen;
 
 namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
 {
@@ -18,19 +17,28 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
         }
         public int TotalSeeders => (Torrent.Announced?.Values.Where(o => !o.Expired()).Sum(o => o.Complete) ?? 0) + WebSeeds;
         public int TotalPeers => Torrent.Announced?.Values.Where(o => !o.Expired()).Sum(o => o.Incomplete) ?? 0;
-        public int WebSeeds => Torrent.Wires.Where(o => o.Type == "webSeed").Count();
+        public int WebSeeds
+        {
+            get
+            {
+                using var wires = Torrent.Wires;
+                var w = wires.ToArray();
+                var ret = w.Where(o => o.Type == "webSeed").Count();
+                w.DisposeAll();
+                return ret;
+            }
+        }
         public double UploadSpeed => Torrent.UploadSpeed;
         public double TimeRemaining => Torrent.TimeRemaining ?? TimeSpan.MaxValue.TotalSeconds + 1d;
         public double DownloadSpeed => Torrent.DownloadSpeed;
         public double Length => Torrent.Length;
         public double Downloaded => Torrent.Downloaded;
+        public int TotalPieces => Torrent.Pieces.Length;
         public int SelectedPieces => Torrent.Selections.Length;
-        public int TotalPieces => Torrent.Bitfield?.Length ?? 0;
         public double Progress => Torrent.Progress;
         public string Name => Torrent.Name;
         public string InstanceId => Torrent.InstanceId;
         public string InfoHash => Torrent.InfoHash;
-        public JSObjects.Array<Wire> Wires;
         public int Seeds
         {
             get
@@ -52,6 +60,7 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
             }
         }
         public Torrent Torrent { get; }
+        public JSObjects.Array<Wire> Wires { get; }
         public TorrentsDataGridItem(Torrent torrent)
         {
             Torrent = torrent;

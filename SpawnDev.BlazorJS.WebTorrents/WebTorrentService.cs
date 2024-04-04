@@ -179,10 +179,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
             {
                 wire.Use(factory);
             }
-            wire.OnBitfield += (bitfield) =>
-            {
-                if (Verbose) JS.Log("Wire_OnBitfield", bitfield);
-            };
+            //wire.OnBitfield += (bitfield) =>
+            //{
+            //    if (Verbose) JS.Log("Wire_OnBitfield", bitfield);
+            //};
             //wire.OnRequest += (index, offset, length, d) => {
             //    JS.Log("Wire_OnRequest", index, offset, length, d);
             //};
@@ -200,13 +200,13 @@ namespace SpawnDev.BlazorJS.WebTorrents
         void Torrent_OnReady(Torrent torrent)
         {
             if (Verbose) JS.Log("Torrent_OnReady", torrent);
-            using var discovery = torrent.Discovery;
-            discovery.OnPeer += Discovery_OnPeer;
-            torrent.Once("close", () =>
-            {
-                using var discovery = torrent.Discovery;
-                discovery.OnPeer += Discovery_OnPeer;
-            });
+            //using var discovery = torrent.Discovery;
+            //discovery.OnPeer += Discovery_OnPeer;
+            //torrent.Once("close", () =>
+            //{
+            //    using var discovery = torrent.Discovery;
+            //    discovery.OnPeer += Discovery_OnPeer;
+            //});
         }
         void Torrent_OnError(Torrent torrent, JSObject? error)
         {
@@ -435,7 +435,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
             if (string.IsNullOrEmpty(torrent.InfoHash)) return "";
             if (TorrentPosters.TryGetValue(torrent.InfoHash, out var r)) return r;
             using var files = torrent.Files;
-            foreach (File file in files)
+            foreach (File file in files.ToArray())
             {
                 var ext = !file.Name.Contains(".") ? "" : file.Name.Substring(file.Name.LastIndexOf(".") + 1);
                 var baseName = !file.Name.Contains(".") ? file.Name : file.Name.Substring(0, file.Name.LastIndexOf("."));

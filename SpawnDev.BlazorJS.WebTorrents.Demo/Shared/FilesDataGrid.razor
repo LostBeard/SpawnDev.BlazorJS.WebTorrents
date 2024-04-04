@@ -60,6 +60,16 @@
             }
         }
         Torrent = WebTorrentService.Client!.GetTorrentByInstanceId(TorrentInstanceId);
+        filesDataGridItems.Clear();
+        if (Torrent != null)
+        {
+            using var files = Torrent!.Files;
+            var infos = files!.ToArray().Select(o => new FilesDataGridItem(Torrent, o, MimeTypeService.GetExtensionMimeType(o.Name), MimeTypeService.GetExtensionImageHref(o.Name)));
+            foreach (var info in infos)
+            {
+                filesDataGridItems.Add(info.Path, info);
+            }
+        }
         grid?.Reload();
     }
     async Task RowSelect(FilesDataGridItem torrentStateInfo)
@@ -85,20 +95,17 @@
         }
         return String.Format("{0:0.##} {1}", len, sizes[order]);
     }
-    async Task OnSelectedTitlesChange(object value)
-    {
-        await grid.FirstPage();
-    }
     async Task Reset()
     {
         grid.Reset(true);
         await grid.FirstPage(true);
     }
+    public Dictionary<string, FilesDataGridItem> filesDataGridItems { get; private set; } = new Dictionary<string, FilesDataGridItem>();
     async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;
         await Task.Yield();
-        var fileInfos = Torrent == null ? new List<FilesDataGridItem>() : Torrent.Files.Select(o => new FilesDataGridItem(Torrent, o, MimeTypeService.GetExtensionMimeType(o.Name), MimeTypeService.GetExtensionImageHref(o.Name))).ToList();
+        var fileInfos = filesDataGridItems.Values;
         var query = fileInfos.AsQueryable();
         if (!string.IsNullOrEmpty(args.Filter))
         {
@@ -110,7 +117,6 @@
             // Sort via the OrderBy method
             query = query.OrderBy(args.OrderBy);
         }
-        // Important!!! Make sure the Count property of RadzenDataGrid is set.
         count = query.Count();
         Files = query.Skip(args.Skip!.Value).Take(args.Top!.Value).ToList();
         isLoading = false;
@@ -128,10 +134,10 @@
     }
     protected override void OnInitialized()
     {
-        WebTorrentService.OnTorrentAdd += Rendezvous_OnTorrentAdd;
-        WebTorrentService.OnTorrentRemove += Rendezvous_OnTorrentRemove;
-        WebTorrentService.OnTorrentWireAdd += Rendezvous_OnTorrentWireAdd;
-        WebTorrentService.OnTorrentWireRemove += Rendezvous_OnTorrentWireRemove;
+        // WebTorrentService.OnTorrentAdd += WebTorrent_OnTorrentAdd;
+        // WebTorrentService.OnTorrentRemove += WebTorrent_OnTorrentRemove;
+        // WebTorrentService.OnTorrentWireAdd += WebTorrent_OnTorrentWireAdd;
+        // WebTorrentService.OnTorrentWireRemove += WebTorrent_OnTorrentWireRemove;
         _tmr.Elapsed += Timer_Elapsed;
         _tmr.Interval = 1000;
         _tmr.Enabled = true;
@@ -140,27 +146,27 @@
     {
         _tmr.Enabled = false;
         _tmr.Elapsed -= Timer_Elapsed;
-        WebTorrentService.OnTorrentAdd -= Rendezvous_OnTorrentAdd;
-        WebTorrentService.OnTorrentRemove -= Rendezvous_OnTorrentRemove;
-        WebTorrentService.OnTorrentWireAdd -= Rendezvous_OnTorrentWireAdd;
-        WebTorrentService.OnTorrentWireRemove -= Rendezvous_OnTorrentWireRemove;
+        // WebTorrentService.OnTorrentAdd -= WebTorrent_OnTorrentAdd;
+        // WebTorrentService.OnTorrentRemove -= WebTorrent_OnTorrentRemove;
+        // WebTorrentService.OnTorrentWireAdd -= WebTorrent_OnTorrentWireAdd;
+        // WebTorrentService.OnTorrentWireRemove -= WebTorrent_OnTorrentWireRemove;
     }
-    void Rendezvous_OnTorrentWireRemove(Torrent torrent, Wire wire)
-    {
-        StateHasChanged();
-    }
-    void Rendezvous_OnTorrentWireAdd(Torrent torrent, Wire wire)
-    {
-        StateHasChanged();
-    }
-    void Rendezvous_OnTorrentAdd(Torrent torrent)
-    {
-        StateHasChanged();
-    }
-    void Rendezvous_OnTorrentRemove(Torrent torrent)
-    {
-        StateHasChanged();
-    }
+    // void WebTorrent_OnTorrentWireRemove(Torrent torrent, Wire wire)
+    // {
+    //     StateHasChanged();
+    // }
+    // void WebTorrent_OnTorrentWireAdd(Torrent torrent, Wire wire)
+    // {
+    //     StateHasChanged();
+    // }
+    // void WebTorrent_OnTorrentAdd(Torrent torrent)
+    // {
+    //     StateHasChanged();
+    // }
+    // void WebTorrent_OnTorrentRemove(Torrent torrent)
+    // {
+    //     StateHasChanged();
+    // }
     void ShowContextMenuWithItems(DataGridCellMouseEventArgs<FilesDataGridItem> args)
     {
         var selected = args.Data;
