@@ -137,33 +137,33 @@
             }
         }
     };
-    var useWebSocketProxy = false;
-    var WebSocketOrig = WebSocket;
-    var blockedHostTarget = 'wss://localhost:65535/host_blocked';
-    var WebSocket = function (wsUrl, protocols) {
-        var url = new URL(wsUrl);
-        var hostname = url.hostname;
-        var isBlocked = fetchStats.isHostBlocked(hostname);
-        //console.log('new WebSocket', hostname, wsUrl, protocols);
-        if (isBlocked) {
-            //console.log('Blocked WebSocket connection to host', hostname);
-            wsUrl = blockedHostTarget;
-        }
-        var ws = new WebSocketOrig(wsUrl, protocols);
-        if (!useWebSocketProxy) return ws;
-        var overrides = {
-            //
-        };
-        var wsp = new Proxy(ws, {
-            get(target, key) {
-                if (key in overrides) {
-                    return overrides[key];
-                }
-                var ret = Reflect.get(target, key, this);
-                return ret;
-            }
-        });
-        return wsp;
-    }
-    globalThis.WebSocket = WebSocket;
+    //var useWebSocketProxy = false;
+    //var WebSocketOrig = WebSocket;
+    //var blockedHostTarget = 'wss://localhost:65535/host_blocked';
+    //var WebSocket = function (wsUrl, protocols) {
+    //    var url = new URL(wsUrl);
+    //    var hostname = url.hostname;
+    //    var isBlocked = fetchStats.isHostBlocked(hostname);
+    //    //console.log('new WebSocket', hostname, wsUrl, protocols);
+    //    if (isBlocked) {
+    //        //console.log('Blocked WebSocket connection to host', hostname);
+    //        wsUrl = blockedHostTarget;
+    //    }
+    //    var ws = new WebSocketOrig(wsUrl, protocols);
+    //    if (!useWebSocketProxy) return ws;
+    //    var overrides = {
+    //        //
+    //    };
+    //    var wsp = new Proxy(ws, {
+    //        get(target, key) {
+    //            if (key in overrides) {
+    //                return overrides[key];
+    //            }
+    //            var ret = Reflect.get(target, key, this);
+    //            return ret;
+    //        }
+    //    });
+    //    return wsp;
+    //}
+    //globalThis.WebSocket = WebSocket;
 })();
