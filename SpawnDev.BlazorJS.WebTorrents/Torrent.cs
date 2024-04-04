@@ -1,7 +1,6 @@
 ﻿using Microsoft.JSInterop;
 using SpawnDev.BlazorJS.JSObjects;
 using System.Security.Cryptography;
-using System.Text.Json.Serialization;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
@@ -27,7 +26,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
                 var value = JSRef!.Get<string?>("instanceId");
                 if (string.IsNullOrEmpty(value))
                 {
-                    value = $"TORRENT_{Convert.ToHexString(RandomNumberGenerator.GetBytes(16))}";
+                    value = $"{GetType().Name}_{Convert.ToHexString(RandomNumberGenerator.GetBytes(16))}";
                     JSRef!.Set("instanceId", value);
                 }
                 return value;

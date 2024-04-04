@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using SpawnDev.BlazorJS.JSObjects;
+using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 
 namespace SpawnDev.BlazorJS.WebTorrents
@@ -11,6 +12,22 @@ namespace SpawnDev.BlazorJS.WebTorrents
     /// </summary>
     public class File : EventEmitter
     {
+        /// <summary>
+        /// Returns the property instanceId, setting to a new value if not set
+        /// </summary>
+        public string InstanceId
+        {
+            get
+            {
+                var value = JSRef!.Get<string?>("instanceId");
+                if (string.IsNullOrEmpty(value))
+                {
+                    value = $"{GetType().Name}_{Convert.ToHexString(RandomNumberGenerator.GetBytes(16))}";
+                    JSRef!.Set("instanceId", value);
+                }
+                return value;
+            }
+        }
         /// <summary>
         /// Deserialization constructor
         /// </summary>

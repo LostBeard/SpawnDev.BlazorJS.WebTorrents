@@ -41,10 +41,16 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
     bool isLoading2 = false;
     [Parameter]
     public string TorrentInstanceId { get; set; }
+    [Parameter]
+    public EventCallback<string> SelectedChanged { get; set; }
     public Dictionary<string, WiresDataGridItem> wiresDataGridItems { get; private set; } = new Dictionary<string, WiresDataGridItem>();
     Torrent? Torrent { get; set; }
     [Inject]
     WebTorrentService WebTorrentService { get; set; }
+    [Inject]
+    AppService AppService { get; set; }
+    [Inject]
+    BlazorJSRuntime JS { get; set; }
     RadzenDataGrid<WiresDataGridItem> grid { get; set; }
     int Count;
     IEnumerable<WiresDataGridItem> Infos = new List<WiresDataGridItem>();
@@ -60,6 +66,7 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
             }
         }
         wiresDataGridItems.Clear();
+        JS.Log("WiresDataGrid_OnParametersSet");
         Torrent = WebTorrentService.Client!.GetTorrentByInstanceId(TorrentInstanceId);
         if (Torrent != null)
         {
@@ -72,13 +79,22 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
         }
         grid?.Reload();
     }
-    async Task RowSelect(WiresDataGridItem torrentStateInfo)
+    public WiresDataGridItem? SelectedInfo { get; private set; }
+    public string SelectedInstanceId => SelectedInfo?.InstanceId ?? "";
+    async Task RowSelect(WiresDataGridItem info)
     {
+        Console.WriteLine("RowSelect");
+        SelectedInfo = info;
+        await SelectedChanged.InvokeAsync(SelectedInstanceId);
+        await AppService.SelectWiresDataGridItem(SelectedInfo);
         Console.WriteLine("RowSelect");
     }
     async Task RowDeselect(WiresDataGridItem torrentStateInfo)
     {
         Console.WriteLine("RowDeselect");
+        SelectedInfo = null;
+        await SelectedChanged.InvokeAsync(SelectedInstanceId);
+        await AppService.SelectWiresDataGridItem(SelectedInfo);
     }
     static string ReadableBps(double len)
     {
@@ -117,7 +133,6 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
             // Sort via the OrderBy method
             query = query.OrderBy(args.OrderBy);
         }
-        // Important!!! Make sure the Count property of RadzenDataGrid is set.
         Count = query.Count();
         Infos = query.Skip(args.Skip!.Value).Take(args.Top!.Value).ToList();
         isLoading = false;
@@ -150,15 +165,22 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
         WebTorrentService.OnTorrentWireAdd -= WebTorrent_OnTorrentWireAdd;
         WebTorrentService.OnTorrentWireRemove -= WebTorrent_OnTorrentWireRemove;
     }
-    void WebTorrent_OnTorrentWireRemove(Torrent torrent, Wire wire)
+    void WebTorrent_OnTorrentWireAdd(Torrent torrent, Wire wire)
     {
         var info = new WiresDataGridItem(torrent, wire);
         wiresDataGridItems.Add(info.InstanceId, info);
         grid.Reload();
     }
-    void WebTorrent_OnTorrentWireAdd(Torrent torrent, Wire wire)
+    void WebTorrent_OnTorrentWireRemove(Torrent torrent, Wire wire)
     {
-        wiresDataGridItems.Remove(wire.InstanceId);
+        if (wiresDataGridItems.TryGetValue(wire.InstanceId, out var info))
+        {
+            if (SelectedInstanceId == torrent.InstanceId)
+            {
+                _ = RowDeselect(info);
+            }
+            wiresDataGridItems.Remove(wire.InstanceId);
+        }
         grid.Reload();
     }
 }

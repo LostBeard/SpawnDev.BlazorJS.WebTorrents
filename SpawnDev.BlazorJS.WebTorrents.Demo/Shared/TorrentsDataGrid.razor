@@ -61,7 +61,7 @@
     [Inject]
     DialogService DialogService { get; set; }
     [Parameter]
-    public EventCallback<string> SelectedTorrentChanged { get; set; }
+    public EventCallback<string> SelectedChanged { get; set; }
     [Inject]
     AppService AppService { get; set; }
     [Inject]
@@ -72,8 +72,8 @@
     IEnumerable<TorrentsDataGridItem> Torrents = new List<TorrentsDataGridItem>();
     bool isLoading = false;
     System.Timers.Timer _tmr = new();
-    public string SelectedTorrentInstanceId { get; set; } = "";
-    public TorrentsDataGridItem? SelectedTorrentInfo { get; private set; } = null;
+    public string SelectedInstanceId => SelectedInfo?.InstanceId ?? "";
+    public TorrentsDataGridItem? SelectedInfo { get; private set; } = null;
     string HumanReadableSeconds(double duration)
     {
         return duration > TimeSpan.MaxValue.TotalSeconds ? "∞" : string.Format("{0:dd\\.hh\\:mm\\:ss}", TimeSpan.FromSeconds(duration));
@@ -86,19 +86,19 @@
             new List<ContextMenuItem> {
                 new ContextMenuItem(){ Text = "Pause", Disabled = selectedTorrentInfo.Torrent.Paused, Icon = "pause", Value = () =>
                 {
-                    selectedTorrentInfo?.Torrent.Pause();
+                    selectedTorrentInfo.Torrent.Pause();
                 }},
                 new ContextMenuItem(){ Text = "Resume", Disabled = !selectedTorrentInfo.Torrent.Paused, Icon = "play_arrow", Value = () =>
                 {
-                    selectedTorrentInfo?.Torrent.Resume();
+                    selectedTorrentInfo.Torrent.Resume();
                 } },
                 new ContextMenuItem(){ Text = "Deselect All", Disabled = selectedTorrentInfo.Torrent.Selections.Length == 0, Icon = "deselect", Value = () =>
                 {
-                    selectedTorrentInfo?.Torrent.DeselectAll();
+                    selectedTorrentInfo.Torrent.DeselectAll();
                 } },
                 new ContextMenuItem(){ Text = "Select All", Icon = "done_all", Value = () =>
                 {
-                    selectedTorrentInfo?.Torrent.SelectAll();
+                    selectedTorrentInfo.Torrent.SelectAll();
                 } },
                 new ContextMenuItem(){ Text = "Delete", Icon = "delete", Value = async () =>
                 {
@@ -108,20 +108,16 @@
                         var confirmation = await DialogService.Confirm($"Delete {selectedTorrentInfo.Torrent.Name}?");
                         if (confirmation == true)
                         {
-                            await selectedTorrentInfo?.Torrent.DestroyAsync(new DestroyTorrentOptions{ DestroyStore = true });
+                            await selectedTorrentInfo.Torrent.DestroyAsync(new DestroyTorrentOptions{ DestroyStore = true });
                         }
-                    }catch{}
+                    } catch { }
                 } },
                 new ContextMenuItem(){ Text = "Save Torrent", Icon = "save", Disabled=selectedTorrentInfo.Torrent.TorrentFileBlob == null, Value = async () =>
                 {
                     try
                     {
                         await selectedTorrentInfo.Torrent.TorrentFileBlob!.StartDownload($"{selectedTorrentInfo.Name}.torrent");
-                    }
-                    catch
-                    {
-
-                    }
+                    } catch { }
                 } },
                 new ContextMenuItem(){ Text = "Copy Magnet", Disabled = string.IsNullOrEmpty(selectedTorrentInfo.InfoHash), Icon = "link", Value = () =>
                 {
@@ -141,7 +137,7 @@
                         clipboard.WriteText(selectedTorrentInfo.InfoHash);
                     }
                 } },
-                        }, OnMenuItemClick);
+                }, OnMenuItemClick);
     }
     void OnMenuItemClick(MenuItemEventArgs args)
     {
@@ -156,21 +152,19 @@
         }
         ContextMenuService.Close();
     }
-    async Task RowSelect(TorrentsDataGridItem torrentStateInfo)
+    async Task RowSelect(TorrentsDataGridItem info)
     {
         Console.WriteLine("RowSelect");
-        SelectedTorrentInfo = torrentStateInfo;
-        SelectedTorrentInstanceId = torrentStateInfo.InstanceId;
-        await SelectedTorrentChanged.InvokeAsync(SelectedTorrentInstanceId);
-        await AppService.SelectTorrentsDataGridItem(SelectedTorrentInfo);
+        SelectedInfo = info;
+        await SelectedChanged.InvokeAsync(SelectedInstanceId);
+        await AppService.SelectTorrentsDataGridItem(SelectedInfo);
     }
-    async Task RowDeselect(TorrentsDataGridItem torrentStateInfo)
+    async Task RowDeselect(TorrentsDataGridItem info)
     {
         Console.WriteLine("RowDeselect");
-        SelectedTorrentInstanceId = "";
-        SelectedTorrentInfo = null;
-        await SelectedTorrentChanged.InvokeAsync(SelectedTorrentInstanceId);
-        await AppService.SelectTorrentsDataGridItem(SelectedTorrentInfo);
+        SelectedInfo = null;
+        await SelectedChanged.InvokeAsync(SelectedInstanceId);
+        await AppService.SelectTorrentsDataGridItem(SelectedInfo);
     }
     static string ReadableBps(double len)
     {
@@ -252,8 +246,15 @@
     }
     void WebTorrent_OnTorrentRemove(Torrent torrent)
     {
-        torrentsDataGridItems.Remove(torrent.InstanceId);
-        grid.Reload();
+        if (torrentsDataGridItems.TryGetValue(torrent.InstanceId, out var torrentInfo))
+        {
+            if (SelectedInstanceId == torrent.InstanceId)
+            {
+                _ = RowDeselect(torrentInfo);
+            }
+            torrentsDataGridItems.Remove(torrent.InstanceId);
+            grid.Reload();
+        }
     }
     void WebTorrent_OnTorrentWireAdd(Torrent torrent, Wire wire)
     {

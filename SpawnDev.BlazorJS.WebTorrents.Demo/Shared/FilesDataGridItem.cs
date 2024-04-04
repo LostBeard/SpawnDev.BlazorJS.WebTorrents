@@ -24,6 +24,7 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
         public double Progress => File.Progress;
         public string MimeType { get; }
         public string Path => File.Path;
+        public string InstanceId => File.InstanceId;
         public string ImageHref { get; }
         public string Name => File.Name;
         public JSObjects.Array<Wire> Wires { get; }

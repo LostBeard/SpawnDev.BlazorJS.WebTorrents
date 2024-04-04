@@ -35,6 +35,8 @@
     [Inject]
     WebTorrentService WebTorrentService { get; set; }
     [Inject]
+    AppService AppService { get; set; }
+    [Inject]
     BlazorJSRuntime JS { get; set; }
     [Inject]
     ContextMenuService ContextMenuService { get; set; }
@@ -42,6 +44,8 @@
     DialogService DialogService { get; set; }
     [Parameter]
     public string TorrentInstanceId { get; set; }
+    [Parameter]
+    public EventCallback<string> SelectedChanged { get; set; }
     [Inject]
     MimeTypeService MimeTypeService { get; set; }
     Torrent? Torrent { get; set; }
@@ -72,13 +76,22 @@
         }
         grid?.Reload();
     }
-    async Task RowSelect(FilesDataGridItem torrentStateInfo)
+    public FilesDataGridItem? SelectedInfo { get; private set; }
+    public string SelectedInstanceId => SelectedInfo?.InstanceId ?? "";
+    async Task RowSelect(FilesDataGridItem info)
     {
         Console.WriteLine("RowSelect");
+        SelectedInfo = info;
+        await SelectedChanged.InvokeAsync(SelectedInstanceId);
+        await AppService.SelectFilesDataGridItem(SelectedInfo);
+        Console.WriteLine("RowSelect");
     }
-    async Task RowDeselect(FilesDataGridItem torrentStateInfo)
+    async Task RowDeselect(FilesDataGridItem info)
     {
         Console.WriteLine("RowDeselect");
+        SelectedInfo = null;
+        await SelectedChanged.InvokeAsync(SelectedInstanceId);
+        await AppService.SelectFilesDataGridItem(SelectedInfo);
     }
     static string ReadableBps(double len)
     {
@@ -134,10 +147,6 @@
     }
     protected override void OnInitialized()
     {
-        // WebTorrentService.OnTorrentAdd += WebTorrent_OnTorrentAdd;
-        // WebTorrentService.OnTorrentRemove += WebTorrent_OnTorrentRemove;
-        // WebTorrentService.OnTorrentWireAdd += WebTorrent_OnTorrentWireAdd;
-        // WebTorrentService.OnTorrentWireRemove += WebTorrent_OnTorrentWireRemove;
         _tmr.Elapsed += Timer_Elapsed;
         _tmr.Interval = 1000;
         _tmr.Enabled = true;
@@ -146,27 +155,7 @@
     {
         _tmr.Enabled = false;
         _tmr.Elapsed -= Timer_Elapsed;
-        // WebTorrentService.OnTorrentAdd -= WebTorrent_OnTorrentAdd;
-        // WebTorrentService.OnTorrentRemove -= WebTorrent_OnTorrentRemove;
-        // WebTorrentService.OnTorrentWireAdd -= WebTorrent_OnTorrentWireAdd;
-        // WebTorrentService.OnTorrentWireRemove -= WebTorrent_OnTorrentWireRemove;
     }
-    // void WebTorrent_OnTorrentWireRemove(Torrent torrent, Wire wire)
-    // {
-    //     StateHasChanged();
-    // }
-    // void WebTorrent_OnTorrentWireAdd(Torrent torrent, Wire wire)
-    // {
-    //     StateHasChanged();
-    // }
-    // void WebTorrent_OnTorrentAdd(Torrent torrent)
-    // {
-    //     StateHasChanged();
-    // }
-    // void WebTorrent_OnTorrentRemove(Torrent torrent)
-    // {
-    //     StateHasChanged();
-    // }
     void ShowContextMenuWithItems(DataGridCellMouseEventArgs<FilesDataGridItem> args)
     {
         var selected = args.Data;

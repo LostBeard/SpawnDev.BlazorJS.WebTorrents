@@ -141,6 +141,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <returns></returns>
         public static Torrent? GetTorrentByInstanceId(this WebTorrent _this, string instanceId)
         {
+            if (string.IsNullOrEmpty(instanceId)) return null;
             using var torrents = _this.Torrents;
             return torrents.ToArray().UsingFilter(o => o.InstanceId == instanceId).FirstOrDefault();
         }

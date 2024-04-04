@@ -4,23 +4,51 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Services
 {
     public class AppService
     {
-        string SelectedTorrentsDataGridItemInstanceId = "";
+        public string SelectedTorrentsDataGridItemInstanceId => SelectedTorrentsDataGridItem?.InstanceId ?? "";
         public TorrentsDataGridItem? SelectedTorrentsDataGridItem { get; set; }
         public async Task SelectTorrentsDataGridItem(TorrentsDataGridItem? torrentsDataGridItem)
         {
-            var instanceId = torrentsDataGridItem == null ? "" : torrentsDataGridItem.InstanceId;
+            var instanceId = torrentsDataGridItem?.InstanceId ?? "";
             if (instanceId != SelectedTorrentsDataGridItemInstanceId)
             {
-                SelectedTorrentsDataGridItemInstanceId = instanceId;
                 SelectedTorrentsDataGridItem = torrentsDataGridItem;
                 PosterHref = "";
                 StateHasChanged();
-                var posterHref = torrentsDataGridItem == null ? "" : await WebTorrentService.GetTorrentPoster(torrentsDataGridItem.Torrent);
-                if (SelectedTorrentsDataGridItemInstanceId == instanceId)
+                await Task.Yield();
+                if (torrentsDataGridItem != null)
                 {
-                    PosterHref = posterHref;
-                    StateHasChanged();
+                    var posterHref = await WebTorrentService.GetTorrentPoster(torrentsDataGridItem.Torrent);
+                    // if still selected
+                    if (SelectedTorrentsDataGridItemInstanceId == instanceId)
+                    {
+                        PosterHref = posterHref;
+                        StateHasChanged();
+                    }
                 }
+            }
+        }
+        public string SelectedWiresDataGridItemInstanceId => SelectedWiresDataGridItem?.InstanceId ?? "";
+        public WiresDataGridItem? SelectedWiresDataGridItem { get; set; }
+        public async Task SelectWiresDataGridItem(WiresDataGridItem? wiresDataGridItem)
+        {
+            var instanceId = wiresDataGridItem?.InstanceId ?? "";
+            if (instanceId != SelectedTorrentsDataGridItemInstanceId)
+            {
+                SelectedWiresDataGridItem = wiresDataGridItem;
+                StateHasChanged();
+                await Task.Yield();
+            }
+        }
+        public string SelectedFilesDataGridItemInstanceId => SelectedFilesDataGridItem?.InstanceId ?? "";
+        public FilesDataGridItem? SelectedFilesDataGridItem { get; set; }
+        public async Task SelectFilesDataGridItem(FilesDataGridItem? filesDataGridItem)
+        {
+            var instanceId = filesDataGridItem?.InstanceId ?? "";
+            if (instanceId != SelectedTorrentsDataGridItemInstanceId)
+            {
+                SelectedFilesDataGridItem = filesDataGridItem;
+                StateHasChanged();
+                await Task.Yield();
             }
         }
         public string PosterHref { get; set; }
