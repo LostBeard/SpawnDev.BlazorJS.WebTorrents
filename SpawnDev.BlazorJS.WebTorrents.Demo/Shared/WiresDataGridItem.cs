@@ -45,12 +45,7 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
             if (Type == "webSeed")
             {
                 //Object.values(_torrent._peers).filter(o => o.wire.peerId == _wire.peerId)
-                using var peer = Torrent.Peers.UsingWhere(peer =>
-                {
-                    using var wire = peer.Wire;
-                    return wire?.InstanceId == InstanceId;
-                }).FirstOrDefault();
-                var url = peer?.Id ?? "";
+                var url = Torrent.Peers.UsingFirstOrDefault(peer => peer.Wire?.Using(w => w.InstanceId == InstanceId) ?? false)?.Using(peer => peer.Id) ?? "";
                 if (!string.IsNullOrEmpty(url))
                 {
                     try
