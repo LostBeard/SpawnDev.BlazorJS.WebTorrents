@@ -200,13 +200,13 @@ namespace SpawnDev.BlazorJS.WebTorrents
         void Torrent_OnReady(Torrent torrent)
         {
             if (Verbose) JS.Log("Torrent_OnReady", torrent);
-            //using var discovery = torrent.Discovery;
-            //discovery.OnPeer += Discovery_OnPeer;
-            //torrent.Once("close", () =>
-            //{
-            //    using var discovery = torrent.Discovery;
-            //    discovery.OnPeer += Discovery_OnPeer;
-            //});
+            using var discovery = torrent.Discovery;
+            discovery.OnPeer += Discovery_OnPeer;
+            torrent.Once("close", () =>
+            {
+                using var discovery = torrent.Discovery;
+                discovery.OnPeer += Discovery_OnPeer;
+            });
         }
         void Torrent_OnError(Torrent torrent, JSObject? error)
         {

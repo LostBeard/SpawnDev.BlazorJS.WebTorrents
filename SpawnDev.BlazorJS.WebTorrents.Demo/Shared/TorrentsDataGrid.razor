@@ -140,7 +140,7 @@
                         var confirmation = await DialogService.Confirm($"Delete {selectedTorrentInfo.Torrent.Name}?");
                         if (confirmation == true)
                         {
-                            await selectedTorrentInfo.Torrent.DestroyAsync(new DestroyTorrentOptions{ DestroyStore = true });
+                            selectedTorrentInfo.Torrent.Destroy(new DestroyTorrentOptions{ DestroyStore = true });
                         }
                     } catch { }
                 } },
