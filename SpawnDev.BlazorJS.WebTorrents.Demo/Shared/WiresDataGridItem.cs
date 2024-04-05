@@ -22,17 +22,8 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
         public double UploadSpeed => Wire.UploadSpeed();
         public double DownloadSpeed => Wire.DownloadSpeed();
         public string RemoteAddress { get; set; }
-        public double PeerProgress
-        {
-            get
-            {
-                float totalPieces = Torrent.Bitfield?.Length ?? 0;
-                using var bitfield = Wire.IsSeeder ? null : Wire.PeerPieces;
-                float donePieces = Wire.IsSeeder ? totalPieces : bitfield?.PopCount() ?? 0;
-                var percentDone = totalPieces == 0 ? 0 : donePieces / totalPieces;
-                return percentDone;
-            }
-        }
+        public int TotalPieces => Torrent.Pieces.Using(o => o.Length);
+        public double PeerProgress => Wire.IsSeeder || TotalPieces == 0 ? TotalPieces : (float)Wire.PeerPieces.Using(o => o?.PopCount() ?? 0) / (float)TotalPieces;
         public string InstanceId => Wire.InstanceId;
         public string Type => Wire.Type;
         public string PeerId => Wire.PeerId;
@@ -44,7 +35,6 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
             Wire = wire;
             if (Type == "webSeed")
             {
-                //Object.values(_torrent._peers).filter(o => o.wire.peerId == _wire.peerId)
                 var url = Torrent.Peers.UsingFirstOrDefault(peer => peer.Wire?.Using(w => w.InstanceId == InstanceId) ?? false)?.Using(peer => peer.Id) ?? "";
                 if (!string.IsNullOrEmpty(url))
                 {

@@ -54,20 +54,20 @@
                 <b>@(ReadableByteLength(Downloaded))</b>
             </FooterTemplate>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="Ratio" Title="Ratio" Width="150px" TextAlign="TextAlign.Center">
-            <Template Context="torrent">
-                @(Math.Round(torrent.Ratio * 100d, 2))%
-            </Template>
-            <FooterTemplate>
-                <b>@(Math.Round(Ratio * 100d, 2))%</b>
-            </FooterTemplate>
-        </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="Length" Title="Size" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(ReadableByteLength(torrent.Length))
             </Template>
             <FooterTemplate>
                 <b>@(ReadableByteLength(Size))</b>
+            </FooterTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="Ratio" Title="Ratio" Width="150px" TextAlign="TextAlign.Center">
+            <Template Context="torrent">
+                @(Math.Round(torrent.Ratio * 100d, 2))%
+            </Template>
+            <FooterTemplate>
+                <b>@(Math.Round(Ratio * 100d, 2))%</b>
             </FooterTemplate>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="TorrentsDataGridItem" Property="InfoHash" Title="InfoHash" Width="350px" TextAlign="TextAlign.Left" />
