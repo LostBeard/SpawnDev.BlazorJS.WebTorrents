@@ -7,19 +7,31 @@ namespace SpawnDev.BlazorJS.WebTorrents
     /// <summary>
     /// An instance of this class is created and returned by the WireExtensionFactory class for use with a new wire instance (if both sides support it)
     /// </summary>
-    public class WireExtension : IDisposable
+    public abstract class WireExtension : IDisposable
     {
         // This object is serialized and passed to javascript. Only the below few properties are needed on that end.
         // that is why the properties after have JsonIgnore.
+        /// <summary>
+        /// onHandshake?(infoHash: string, peerId: string, extensions: { [name: string]: boolean }): void;
+        /// </summary>
         [JsonInclude]
         [JsonPropertyName("onHandshake")]
-        public ActionCallback<string, string, JSObject> OnHandshake { get; }
+        public ActionCallback<string, string, Dictionary<string, bool>> OnHandshake { get; }
+        /// <summary>
+        /// onExtendedHandshake?(handshake: { [key: string]: any }): void;
+        /// </summary>
         [JsonInclude]
         [JsonPropertyName("onExtendedHandshake")]
         public ActionCallback<WireExtendedHandshakeEvent> OnExtendedHandshake { get; }
+        /// <summary>
+        /// onMessage?(buf: Buffer): void;
+        /// </summary>
         [JsonInclude]
         [JsonPropertyName("onMessage")]
         public ActionCallback<byte[]> OnMessage { get; }
+        /// <summary>
+        /// name: string;
+        /// </summary>
         [JsonInclude]
         [JsonPropertyName("name")]
         public string Name { get; set; }
@@ -49,7 +61,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         {
             JS = BlazorJSRuntime.JS;
             Name = extensionName;
-            OnHandshake = _callbacks.Add(new ActionCallback<string, string, JSObject>(_OnHandshake));
+            OnHandshake = _callbacks.Add(new ActionCallback<string, string, Dictionary<string, bool>>(_OnHandshake));
             OnExtendedHandshake = _callbacks.Add(new ActionCallback<WireExtendedHandshakeEvent>(_OnExtendedHandshake));
             OnMessage = _callbacks.Add(new ActionCallback<byte[]>(_OnMessage));
             Wire = JS.ReturnMe(wire);
@@ -96,11 +108,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
             return false;
         }
 
-        protected virtual void _OnHandshake(string infoHash, string peerId, JSObject extensions)
+        protected virtual void _OnHandshake(string infoHash, string peerId, Dictionary<string, bool> extensions)
         {
             InfoHash = infoHash;
             JS.Log(Name, "_OnHandshake", infoHash, peerId, extensions);
-            extensions.Dispose();
         }
 
         public delegate void SupportedPeerConnectedDelegate(WireExtension wireExtension, WireExtendedHandshakeEvent extendedHandshake);

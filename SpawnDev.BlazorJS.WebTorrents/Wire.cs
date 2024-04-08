@@ -4,6 +4,13 @@ using System.Security.Cryptography;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
+    public class Request : JSObject
+    {
+        public Request(IJSInProcessObjectReference _ref) : base(_ref) { }
+        public int Piece => JSRef.Get<int>("piece");
+        public int Offset => JSRef.Get<int>("offset");
+        public int Length => JSRef.Get<int>("length");
+    }
     /// <summary>
     /// WebTorrent Wire class<br />
     /// node_modules\@types\bittorrent-protocol\index.d.ts<br />
@@ -100,6 +107,20 @@ namespace SpawnDev.BlazorJS.WebTorrents
             JSRef!.CallVoid("use", extensionFactory.CreateWireExtension);
         }
         /// <summary>
+        /// Tell the wire to use Extension constructor
+        /// </summary>
+        /// <param name="extensionName"></param>
+        /// <param name="extensionConstructor"></param>
+        public void Use(string extensionName, Func<Wire, WireExtension> extensionConstructor)
+        {
+            // the "use" method checks for extension.prototype.name
+            // verify set here
+            var callback = new FuncCallback<Wire, WireExtension>(extensionConstructor, true);
+            using var callbackFN = JS.ReturnMe<Function>(callback)!;
+            callbackFN.JSRef!.Set("prototype.name", extensionName);
+            JSRef!.CallVoid("use", callback);
+        }
+        /// <summary>
         /// Send data to the named extension on the other end of the wire<br />
         /// byte arrays and Uint8Array data will be sent, without change, as a Uint8Array<br />
         /// all other data is BEncoded before being sent
@@ -131,6 +152,22 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Returns true if the peer is interested in pieces we have
         /// </summary>
         public bool PeerInterested => JSRef.Get<bool>("peerInterested");
+        /// <summary>
+        /// Requests
+        /// </summary>
+        public Array<Request> Requests => JSRef.Get<Array<Request>>("requests");
+        /// <summary>
+        /// Peer requests
+        /// </summary>
+        public Array<Request> PeerRequests => JSRef.Get<Array<Request>>("peerRequests");
+        /// <summary>
+        /// ExtendedMapping
+        /// </summary>
+        public Dictionary<int,string> ExtendedMapping => JSRef.Get<Dictionary<int, string>>("extendedMapping");
+        /// <summary>
+        /// PeerExtendedMapping
+        /// </summary>
+        public Dictionary<string, int> PeerExtendedMapping => JSRef.Get<Dictionary<string, int>>("peerExtendedMapping");
         /// <summary>
         /// Returns true if the torrent stroe is readable
         /// </summary>

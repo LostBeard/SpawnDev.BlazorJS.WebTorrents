@@ -32,7 +32,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         public static string LatestVersionSrc { get; } = $"./_content/SpawnDev.BlazorJS.WebTorrents/webtorrent.min.js";
         /// <summary>
-        /// Imports WebTorrent library fro mthe given location or the default one included with the package
+        /// Imports WebTorrent library from the given location or the default one included with the package
         /// </summary>
         /// <param name="webtorrentJsUrl"></param>
         /// <returns></returns>

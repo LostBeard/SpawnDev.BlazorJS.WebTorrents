@@ -22,13 +22,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="NewFolder\**" />
-	  <Content Remove="NewFolder\**" />
-	  <EmbeddedResource Remove="NewFolder\**" />
-	  <None Remove="NewFolder\**" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<None Include="Assets\icon-128.png" Pack="true" PackagePath="\" />
 		<None Include="..\README.md" Pack="true" PackagePath="\" />
 		<None Include="..\LICENSE.txt" Pack="true" PackagePath="\" />
@@ -36,7 +29,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="BencodeNET" Version="5.0.0" />
-		<PackageReference Include="SpawnDev.BlazorJS" Version="2.2.77" />
+		<PackageReference Include="SpawnDev.BlazorJS" Version="2.2.81" />
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
