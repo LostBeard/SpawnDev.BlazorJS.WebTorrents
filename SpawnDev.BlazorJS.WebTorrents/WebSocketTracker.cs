@@ -13,14 +13,14 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         /// <param name="tracker"></param>
         /// <returns></returns>
-        public static bool IsThisTackerType(Tracker tracker) => !tracker.JSRef!.PropertyIsUndefined("expectingResponse") && !tracker.JSRef!.PropertyIsUndefined("peers");
+        public static bool IsThisTackerType(Tracker tracker) => tracker.AnnounceUrl.StartsWith("ws://") || tracker.AnnounceUrl.StartsWith("wss://");
         /// <summary>
         /// Deserialization constructor
         /// </summary>
         /// <param name="_ref"></param>
         public WebSocketTracker(IJSInProcessObjectReference _ref) : base(_ref) { }
         /// <summary>
-        /// Returns true if the expectign a response
+        /// Returns true if the expecting a response
         /// </summary>
         public bool ExpectingResponse => JSRef.Get<bool>("expectingResponse");
         /// <summary>

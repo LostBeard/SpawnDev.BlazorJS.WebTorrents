@@ -5,11 +5,11 @@ namespace SpawnDev.BlazorJS.WebTorrents
     public class HTTPTracker : Tracker
     {
         /// <summary>
-        /// Returns true if the tracker looks liek this type
+        /// Returns true if the tracker looks like this type
         /// </summary>
         /// <param name="tracker"></param>
         /// <returns></returns>
-        public static bool IsThisTackerType(Tracker tracker) => !tracker.JSRef!.PropertyIsUndefined("scrapeUrl");
+        public static bool IsThisTackerType(Tracker tracker) => tracker.AnnounceUrl.StartsWith("http://") || tracker.AnnounceUrl.StartsWith("https://");
         /// <summary>
         /// Deserialization constructor
         /// </summary>
