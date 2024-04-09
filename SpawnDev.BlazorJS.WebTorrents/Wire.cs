@@ -70,10 +70,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         public long Downloaded => JSRef.Get<long>("downloaded");
         /// <summary>
-        /// True if this Wire has been destroyed
-        /// </summary>
-        public bool Destroyed => JSRef.Get<bool>("destroyed");
-        /// <summary>
         /// PeerPieces instance
         /// </summary>
         public Bitfield PeerPieces => JSRef.Get<Bitfield>("peerPieces");
