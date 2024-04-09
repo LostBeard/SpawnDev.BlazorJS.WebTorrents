@@ -1,12 +1,8 @@
 ﻿using Microsoft.JSInterop;
-using SpawnDev.BlazorJS.JSObjects;
+using System.Security.Cryptography;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
-    /// <summary>
-    /// Tracker client class<br />
-    /// https://github.com/webtorrent/bittorrent-tracker
-    /// </summary>
     public class Tracker : EventEmitter
     {
         /// <summary>
@@ -14,17 +10,45 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         /// <param name="_ref"></param>
         public Tracker(IJSInProcessObjectReference _ref) : base(_ref) { }
-        public JSEventCallback<JSObject> OnWarning { get => new JSEventCallback<JSObject>("warning", On, RemoveListener); set { } }
-        public JSEventCallback<JSObject> OnError { get => new JSEventCallback<JSObject>("error", On, RemoveListener); set { } }
-        public JSEventCallback<DiscoveredPeer> OnPeer { get => new JSEventCallback<DiscoveredPeer>("peer", On, RemoveListener); set { } }
-        public JSEventCallback<TrackerUpdateMessage> OnUpdate { get => new JSEventCallback<TrackerUpdateMessage>("update", On, RemoveListener); set { } }
-        public string UserAgent => JSRef.Get<string>("_userAgent");
-        public Array<TrackerConnection> Trackers => JSRef.Get<Array<TrackerConnection>>("_trackers");
-        public void Start() => JSRef.CallVoid("start");
-        public void Complete() => JSRef.CallVoid("complete");
-        public void Update() => JSRef.CallVoid("update");
-        public void Stop() => JSRef.CallVoid("stop");
-        public void Destroy() => JSRef.CallVoid("destroy");
-        public void Scrape() => JSRef.CallVoid("scrape");
+        /// <summary>
+        /// Tracker url
+        /// </summary>
+        public string AnnounceUrl => JSRef.Get<string>("announceUrl");
+        /// <summary>
+        /// True if the tracker connection has been destroyed
+        /// </summary>
+        public bool Destroyed => JSRef.Get<bool>("destroyed");
+        /// <summary>
+        /// Tracker Client
+        /// </summary>
+        public Client Client => JSRef.Get<Client>("client");
+        /// <summary>
+        /// Returns the tracker type
+        /// </summary>
+        public string Type
+        {
+            get
+            {
+                if (WebSocketTracker.IsThisTackerType(this)) return nameof(WebSocketTracker);
+                if (HTTPTracker.IsThisTackerType(this)) return nameof(HTTPTracker);
+                return "";
+            }
+        }
+        /// <summary>
+        /// Returns the property instanceId, setting to a new value if not set
+        /// </summary>
+        public string InstanceId
+        {
+            get
+            {
+                var value = JSRef!.Get<string?>("instanceId");
+                if (string.IsNullOrEmpty(value))
+                {
+                    value = $"{GetType().Name}_{Convert.ToHexString(RandomNumberGenerator.GetBytes(16))}";
+                    JSRef!.Set("instanceId", value);
+                }
+                return value;
+            }
+        }
     }
 }

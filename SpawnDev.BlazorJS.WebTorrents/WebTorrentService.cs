@@ -207,6 +207,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
                 using var discovery = torrent.Discovery;
                 discovery.OnPeer += Discovery_OnPeer;
             });
+            
         }
         void Torrent_OnError(Torrent torrent, JSObject? error)
         {

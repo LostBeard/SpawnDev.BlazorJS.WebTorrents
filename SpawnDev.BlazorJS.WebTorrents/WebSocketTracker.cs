@@ -1,25 +1,24 @@
 ﻿using Microsoft.JSInterop;
+using SpawnDev.BlazorJS.JSObjects;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
     /// <summary>
     /// Represents a Tracker client connection to a tracker
     /// </summary>
-    public class TrackerConnection : JSObject
+    public class WebSocketTracker : Tracker
     {
+        /// <summary>
+        /// Returns true if the tracker looks like this type
+        /// </summary>
+        /// <param name="tracker"></param>
+        /// <returns></returns>
+        public static bool IsThisTackerType(Tracker tracker) => !tracker.JSRef!.PropertyIsUndefined("expectingResponse") && !tracker.JSRef!.PropertyIsUndefined("peers");
         /// <summary>
         /// Deserialization constructor
         /// </summary>
         /// <param name="_ref"></param>
-        public TrackerConnection(IJSInProcessObjectReference _ref) : base(_ref) { }
-        /// <summary>
-        /// Tracker url
-        /// </summary>
-        public string AnnounceUrl => JSRef.Get<string>("announceUrl");
-        /// <summary>
-        /// True if the tracker connection has been destroyed
-        /// </summary>
-        public bool Destroyed => JSRef.Get<bool>("destroyed");
+        public WebSocketTracker(IJSInProcessObjectReference _ref) : base(_ref) { }
         /// <summary>
         /// Returns true if the expectign a response
         /// </summary>
@@ -32,5 +31,9 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// The number of reconnect retries
         /// </summary>
         public int Retries => JSRef.Get<int>("retries");
+        /// <summary>
+        /// Array of Peers
+        /// </summary>
+        public Array<Peer> Peers => JSRef.Get<Array<Peer>>("peers");
     }
 }

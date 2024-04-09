@@ -58,13 +58,11 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
     System.Timers.Timer _tmr = new();
     protected override void OnParametersSet()
     {
-        if (Torrent != null)
+        if ((Torrent != null && Torrent.InstanceId == TorrentInstanceId) || (Torrent == null && string.IsNullOrEmpty(TorrentInstanceId)))
         {
-            if (Torrent.InstanceId == TorrentInstanceId)
-            {
-                return;
-            }
+            return;
         }
+        //Torrent?.Dispose();
         wiresDataGridItems.Clear();
         JS.Log("WiresDataGrid_OnParametersSet");
         Torrent = WebTorrentService.Client!.GetTorrentByInstanceId(TorrentInstanceId);

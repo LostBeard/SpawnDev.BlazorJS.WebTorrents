@@ -19,7 +19,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Torrent tracker client instance
         /// </summary>
-        public Tracker Tracker => JSRef.Get<Tracker>("tracker");
+        public Client Tracker => JSRef.Get<Client>("tracker");
         /// <summary>
         /// The client's peerId
         /// </summary>

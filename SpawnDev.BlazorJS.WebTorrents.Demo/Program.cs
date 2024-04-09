@@ -10,8 +10,14 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddBlazorJSRuntime();
-builder.Services.AddWebTorrentService(new WebTorrentOptions { 
+builder.Services.AddWebTorrentService(new WebTorrentOptions
+{
     //DownloadLimit = 50000,
+    Tracker = new TrackerClientOptions
+    {
+        Announce = new string[] { "wss://pi.spawndev.com:44365/", "wss://psi.spawndev.com:44365/" },
+    }
+
 }, webTorrentService =>
 {
     webTorrentService.Verbose = true;

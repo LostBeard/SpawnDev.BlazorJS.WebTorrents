@@ -90,6 +90,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         public WebTorrent() : base(JS.New("WebTorrent")) { }
         /// <summary>
+        /// Tracker options that will be used for by added torrents<br />
+        /// </summary>
+        public TrackerClientOptions Tracker { get => JSRef.Get<TrackerClientOptions>("tracker"); set => JSRef.Set("tracker", value); }
+        /// <summary>
         /// Create a new WebTorrent instance.
         /// </summary>
         /// <param name="options"></param>

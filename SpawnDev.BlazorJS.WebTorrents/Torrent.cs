@@ -180,6 +180,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         public Bitfield? Bitfield => JSRef.Get<Bitfield>("bitfield");
         /// <summary>
+        /// True if this Torrent has been destroyed
+        /// </summary>
+        public bool Destroyed => JSRef.Get<bool>("destroyed");
+        /// <summary>
         /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
         /// </summary>
         public void Destroy(DestroyTorrentOptions options) => JSRef.CallVoid("destroy", options);

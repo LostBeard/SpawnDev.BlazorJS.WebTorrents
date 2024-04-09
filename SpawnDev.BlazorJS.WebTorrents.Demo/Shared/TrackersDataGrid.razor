@@ -1,0 +1,163 @@
+﻿@using System.Linq.Dynamic.Core
+
+<RadzenDataGrid SelectionMode="DataGridSelectionMode.Single" RowSelect="RowSelect" RowDeselect="RowDeselect" 
+AllowColumnResize="true" @ref="grid" style="height: 100%; width: 100%;" GridLines="DataGridGridLines.Both" TItem="TrackersDataGridItem" IsLoading=@isLoading2 
+Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFiltering="true" AllowPaging="false">
+    <Columns>
+        <RadzenDataGridColumn TItem="TrackersDataGridItem" Filterable="true" Property="AnnounceUrl" Width="300px" Title="AnnounceUrl" TextAlign="TextAlign.Left" />
+        <RadzenDataGridColumn TItem="TrackersDataGridItem" Filterable="true" Property="Type" Width="180px" Title="Type" TextAlign="TextAlign.Left" />
+        <RadzenDataGridColumn TItem="TrackersDataGridItem" Filterable="true" Property="PeerCount" Width="120px" Title="Peers" TextAlign="TextAlign.Center" />
+        <!-- Below Column fixes a sizing bug if all columns have a specified width -->
+        <RadzenDataGridColumn TItem="TrackersDataGridItem" Filterable="false" Sortable="false"><Template Context="data"></Template></RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    bool isLoading2 = false;
+    [Parameter]
+    public string TorrentInstanceId { get; set; }
+    [Parameter]
+    public EventCallback<string> SelectedChanged { get; set; }
+    public Dictionary<string, TrackersDataGridItem> trackersDataGridItems { get; private set; } = new Dictionary<string, TrackersDataGridItem>();
+    Torrent? Torrent { get; set; }
+    [Inject]
+    WebTorrentService WebTorrentService { get; set; }
+    [Inject]
+    AppService AppService { get; set; }
+    [Inject]
+    BlazorJSRuntime JS { get; set; }
+    RadzenDataGrid<TrackersDataGridItem> grid { get; set; }
+    int Count;
+    IEnumerable<TrackersDataGridItem> Infos = new List<TrackersDataGridItem>();
+    bool isLoading = false;
+    System.Timers.Timer _tmr = new();
+    protected override void OnParametersSet()
+    {
+        if ((Torrent != null && Torrent.InstanceId == TorrentInstanceId) || (Torrent == null && string.IsNullOrEmpty(TorrentInstanceId)))
+        {
+            return;
+        }
+        //Torrent?.Dispose();
+        trackersDataGridItems.Clear();
+        JS.Log("TrackersDataGrid_OnParametersSet");
+        Torrent = WebTorrentService.Client!.GetTorrentByInstanceId(TorrentInstanceId);
+        if (Torrent != null)
+        {
+            using var trackers = Torrent!.Discovery?.Using(d => d.Tracker)?.Using(t => t.Trackers);
+            var infos = trackers?.ToArray().Select(o => new TrackersDataGridItem(Torrent, o));
+            if (infos != null)
+            {
+                foreach (var info in infos)
+                {
+                    trackersDataGridItems.Add(info.InstanceId, info);
+                }
+            }
+        }
+        grid?.Reload();
+    }
+    public TrackersDataGridItem? SelectedInfo { get; private set; }
+    public string SelectedInstanceId => SelectedInfo?.InstanceId ?? "";
+    async Task RowSelect(TrackersDataGridItem info)
+    {
+        Console.WriteLine("RowSelect");
+        SelectedInfo = info;
+        await SelectedChanged.InvokeAsync(SelectedInstanceId);
+        await AppService.SelectTrackersDataGridItem(SelectedInfo);
+        Console.WriteLine("RowSelect");
+    }
+    async Task RowDeselect(TrackersDataGridItem torrentStateInfo)
+    {
+        Console.WriteLine("RowDeselect");
+        SelectedInfo = null;
+        await SelectedChanged.InvokeAsync(SelectedInstanceId);
+        await AppService.SelectTrackersDataGridItem(SelectedInfo);
+    }
+    static string ReadableBps(double len)
+    {
+        return $"{ReadableByteLength(len)}/s";
+    }
+    static string ReadableByteLength(double len)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        // Adjust the format string to your preferences. For example "{0:0.#}{1}" would
+        // show a single decimal place, and no space.
+        return String.Format("{0:0.##} {1}", len, sizes[order]);
+    }
+    async Task Reset()
+    {
+        grid.Reset(true);
+        await grid.FirstPage(true);
+    }
+    async Task LoadData(LoadDataArgs args)
+    {
+        isLoading = true;
+        await Task.Yield();
+        var query = trackersDataGridItems.Values.AsQueryable();
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            // Filter via the Where method
+            query = query.Where(args.Filter);
+        }
+        if (!string.IsNullOrEmpty(args.OrderBy))
+        {
+            // Sort via the OrderBy method
+            query = query.OrderBy(args.OrderBy);
+        }
+        Count = query.Count();
+        Infos = query.Skip(args.Skip!.Value).Take(args.Top!.Value).ToList();
+        isLoading = false;
+    }
+    void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+    {
+        StateHasChanged();
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        _tmr.Enabled = false;
+        _tmr.Enabled = true;
+        if (firstRender)
+        {
+            grid.Reload();
+        }
+    }
+    protected override void OnInitialized()
+    {
+        // WebTorrentService.OnTorrentWireAdd += WebTorrent_OnTorrentWireAdd;
+        // WebTorrentService.OnTorrentWireRemove += WebTorrent_OnTorrentWireRemove;
+        _tmr.Elapsed += Timer_Elapsed;
+        _tmr.Interval = 1000;
+        _tmr.Enabled = true;
+    }
+    public void Dispose()
+    {
+        _tmr.Enabled = false;
+        _tmr.Elapsed -= Timer_Elapsed;
+        // WebTorrentService.OnTorrentWireAdd -= WebTorrent_OnTorrentWireAdd;
+        // WebTorrentService.OnTorrentWireRemove -= WebTorrent_OnTorrentWireRemove;
+    }
+    // void WebTorrent_OnTorrentWireAdd(Torrent torrent, Wire tracker)
+    // {
+    //     if (torrent.InstanceId != TorrentInstanceId) return;
+    //     var info = new TrackersDataGridItem(torrent, tracker);
+    //     trackersDataGridItems.Add(info.InstanceId, info);
+    //     grid.Reload();
+    // }
+    // void WebTorrent_OnTorrentWireRemove(Torrent torrent, Wire tracker)
+    // {
+    //     if (trackersDataGridItems.TryGetValue(tracker.InstanceId, out var info))
+    //     {
+    //         if (SelectedInstanceId == torrent.InstanceId)
+    //         {
+    //             _ = RowDeselect(info);
+    //         }
+    //         trackersDataGridItems.Remove(tracker.InstanceId);
+    //         grid.Reload();
+    //     }
+    // }
+}

@@ -56,15 +56,13 @@
     System.Timers.Timer _tmr = new();
     protected override void OnParametersSet()
     {
-        if (Torrent != null)
+        if ((Torrent != null && Torrent.InstanceId == TorrentInstanceId) || (Torrent == null && string.IsNullOrEmpty(TorrentInstanceId)))
         {
-            if (Torrent.InstanceId == TorrentInstanceId)
-            {
-                return;
-            }
+            return;
         }
-        Torrent = WebTorrentService.Client!.GetTorrentByInstanceId(TorrentInstanceId);
+        //Torrent?.Dispose();
         filesDataGridItems.Clear();
+        Torrent = WebTorrentService.Client!.GetTorrentByInstanceId(TorrentInstanceId);
         if (Torrent != null)
         {
             using var files = Torrent!.Files;

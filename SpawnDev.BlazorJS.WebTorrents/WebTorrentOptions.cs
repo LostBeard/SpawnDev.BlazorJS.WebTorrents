@@ -27,7 +27,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Enable trackers (default=true), or options object for Tracker
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public bool? Tracker { get; set; } = null;
+        public Union<bool, TrackerClientOptions>? Tracker { get; set; } = null;
         /// <summary>
         /// Enable DHT (default=true), or options object for DHT
         /// </summary>
