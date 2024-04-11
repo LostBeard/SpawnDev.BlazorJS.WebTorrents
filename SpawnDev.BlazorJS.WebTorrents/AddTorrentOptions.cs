@@ -12,7 +12,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Torrent trackers to use (added to list in .torrent or magnet uri)
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public List<string>? Announce { get; set; }
+        public Union<string, List<string>>? Announce { get; set; }
         /// <summary>
         /// Custom callback to allow sending extra parameters to the tracker
         /// </summary>

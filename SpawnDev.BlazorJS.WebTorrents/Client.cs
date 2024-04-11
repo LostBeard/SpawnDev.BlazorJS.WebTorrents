@@ -19,7 +19,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         //public JSEventCallback<DiscoveredPeer> OnPeer { get => new JSEventCallback<DiscoveredPeer>("peer", On, RemoveListener); set { } }
         // HTTPTracker emits a peer event on Client with a string
         // this.client.emit('peer', `${peer.ip}:${peer.port}`)
-        // WebSocketTracker emits peer with a Peer object
+        // WebSocketTracker emits peer with a new Peer object
         public JSEventCallback<JSObject> OnPeer { get => new JSEventCallback<JSObject>("peer", On, RemoveListener); set { } }
         public JSEventCallback<TrackerUpdateMessage> OnUpdate { get => new JSEventCallback<TrackerUpdateMessage>("update", On, RemoveListener); set { } }
         public string UserAgent => JSRef.Get<string>("_userAgent");

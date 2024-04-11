@@ -14,7 +14,11 @@
                 <RadzenProgressBarCircular Size="ProgressBarCircularSize.Small" ProgressBarStyle="@ClientProgressBarStyle" Value="@(Math.Round(Progress * 100d))" />
             </FooterTemplate>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Property="Name" Width="300px" Title="Name" TextAlign="TextAlign.Left" />
+        <RadzenDataGridColumn TItem="TorrentsDataGridItem" Property="Name" Width="300px" Title="Name" TextAlign="TextAlign.Left">
+            <FooterTemplate>
+                <b>@(count)</b>
+            </FooterTemplate>
+        </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="TorrentsDataGridItem" Filterable="false" Property="TimeRemaining" Title="TimeRemaining" Width="150px" TextAlign="TextAlign.Center">
             <Template Context="torrent">
                 @(HumanReadableSeconds(torrent.TimeRemaining))

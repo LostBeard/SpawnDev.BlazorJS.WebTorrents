@@ -6,7 +6,7 @@
             <TorrentsDataGrid SelectedChanged="@SelectedTorrentChanged" />
         </RadzenSplitterPane>
         <RadzenSplitterPane>
-            <RadzenTabs RenderMode="TabRenderMode.Client" Style="position: relative; height: 100%;">
+            <RadzenTabs RenderMode="TabRenderMode.Server" Style="position: relative; height: 100%;">
                 <Tabs>
                     <RadzenTabsItem Text="Network" Style="position: relative; height: 100%;">
                         <div style="position: relative; width: 100%; height: 100%;">
@@ -21,6 +21,9 @@
                     </RadzenTabsItem>
                     <RadzenTabsItem Text="Trackers">
                         <TrackersDataGrid TorrentInstanceId="@SelectedTorrentInstanceId" />
+                    </RadzenTabsItem>
+                    <RadzenTabsItem Text="Comment">
+                        @SelectedTorrent?.Comment
                     </RadzenTabsItem>
                 </Tabs>
             </RadzenTabs>

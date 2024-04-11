@@ -4,13 +4,6 @@ using System.Security.Cryptography;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
-    public class Request : JSObject
-    {
-        public Request(IJSInProcessObjectReference _ref) : base(_ref) { }
-        public int Piece => JSRef.Get<int>("piece");
-        public int Offset => JSRef.Get<int>("offset");
-        public int Length => JSRef.Get<int>("length");
-    }
     /// <summary>
     /// WebTorrent Wire class<br />
     /// node_modules\@types\bittorrent-protocol\index.d.ts<br />
@@ -98,27 +91,36 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Tell the wire to use the given extension factory<br />
         /// An "extension factory" 
         /// </summary>
-        /// <param name="extensionFactory"></param>
-        public void Use(IWireExtensionFactory extensionFactory)
+        /// <param name="extensionConstructor"></param>
+        /// <param name="extensionName"></param>
+        public void Use(Function extensionConstructor, string? extensionName = null)
         {
             // the "use" method checks for extension.prototype.name
-            // verify set here
-            extensionFactory.SetName();
-            JSRef!.CallVoid("use", extensionFactory.CreateWireExtension);
+            if (!string.IsNullOrEmpty(extensionName)) extensionConstructor.JSRef!.Set("prototype.name", extensionName);
+            JSRef!.CallVoid("use", extensionConstructor);
         }
         /// <summary>
         /// Tell the wire to use Extension constructor
         /// </summary>
         /// <param name="extensionName"></param>
         /// <param name="extensionConstructor"></param>
-        public void Use(string extensionName, Func<Wire, WireExtension> extensionConstructor)
+        public void Use(string extensionName, Func<Wire, Extension> extensionConstructor)
         {
             // the "use" method checks for extension.prototype.name
-            // verify set here
-            var callback = new FuncCallback<Wire, WireExtension>(extensionConstructor, true);
+            var callback = new FuncCallback<Wire, Extension>(extensionConstructor, true);
             using var callbackFN = JS.ReturnMe<Function>(callback)!;
             callbackFN.JSRef!.Set("prototype.name", extensionName);
             JSRef!.CallVoid("use", callback);
+        }
+        /// <summary>
+        /// Tell the wire to use Extension constructor
+        /// </summary>
+        /// <param name="torrent"></param>
+        /// <param name="extensionName"></param>
+        /// <param name="extensionConstructor"></param>
+        public void Use(Torrent torrent, string extensionName, Func<Torrent,  Wire, Extension> extensionConstructor)
+        {
+            Use(extensionName, (wire) => extensionConstructor(torrent, wire));
         }
         /// <summary>
         /// Send data to the named extension on the other end of the wire<br />

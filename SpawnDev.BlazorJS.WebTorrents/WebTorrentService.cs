@@ -75,7 +75,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         {
             JS = js;
             ServiceProvider = serviceProvider;
-            WireExtensionServices = serviceDescriptors.Where(o => typeof(IWireExtensionFactory).IsAssignableFrom(o.ServiceType) || typeof(IWireExtensionFactory).IsAssignableFrom(o.ImplementationType)).ToList();
+            WireExtensionServices = serviceDescriptors.Where(o => typeof(IExtensionFactory).IsAssignableFrom(o.ServiceType) || typeof(IExtensionFactory).IsAssignableFrom(o.ImplementationType)).ToList();
         }
         FileSystemDirectoryHandle? StorageDir = null;
 
@@ -90,7 +90,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
             "wss://tracker.openwebtorrent.com",
             "wss://tracker.webtorrent.dev"
         };
-
         public async Task InitAsync()
         {
             if (BeenInit) return;
@@ -174,10 +173,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
                 OnTorrentWireRemove?.Invoke(torrent, wire);
             });
             OnTorrentWireAdd?.Invoke(torrent, wire);
-            var wireExtensionFactoryServices = WireExtensionServices.Select(o => (IWireExtensionFactory)ServiceProvider.GetRequiredService(o.ServiceType)).ToList();
+            var wireExtensionFactoryServices = WireExtensionServices.Select(o => (IExtensionFactory)ServiceProvider.GetRequiredService(o.ServiceType)).ToList();
             foreach (var factory in wireExtensionFactoryServices)
             {
-                wire.Use(factory);
+                wire.Use(torrent, factory.ExtensionName, factory.CreateExtension);
             }
             //wire.OnBitfield += (bitfield) =>
             //{

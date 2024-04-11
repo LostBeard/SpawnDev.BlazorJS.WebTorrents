@@ -1,0 +1,233 @@
+﻿@using SpawnDev.BlazorJS.JSObjects
+@using System.Text.RegularExpressions
+@using SpawnDev.BlazorJS.Toolbox
+@using System.Globalization
+
+<div style="width: 100%; height: 100%;">
+    <RadzenTabs RenderMode="TabRenderMode.Client" Style="width: 100%; height: 100%;">
+        <Tabs>
+            <RadzenTabsItem Text="Files">
+                <RadzenStack Style="min-height: 619px;">
+                    <div style="flex-grow: 1; position: relative;">
+                        <RadzenDataGrid SelectionMode="DataGridSelectionMode.Single" RowSelect="RowSelect" RowDeselect="RowDeselect"
+                                        AllowColumnResize="true" @ref="grid" style="height: 100%; width: 100%; position: absolute;" GridLines="DataGridGridLines.Both"
+                                        TItem="File" Count="@count" Data="@model.Files" AllowSorting="true" AllowFiltering="true" AllowPaging="false"
+                                        CellContextMenu="ShowContextMenuWithItems">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="File" Property="Name" Width="300px" Title="Name" TextAlign="TextAlign.Left">
+                                    <Template Context="data">
+                                        @data.Name
+                                    </Template>
+                                    <FooterTemplate>
+                                        <b>@model.Files.Count Files</b>
+                                    </FooterTemplate>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="File" Property="Size" Width="140px" Title="Size" TextAlign="TextAlign.Left">
+                                    <Template Context="data">
+                                        @(ReadableByteLength(data.Size))
+                                    </Template>
+                                    <FooterTemplate>
+                                        <b>@(ReadableByteLength(TotalSize))</b>
+                                    </FooterTemplate>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="File" Property="Type" Width="130px" Title="Type" TextAlign="TextAlign.Left" />
+                                <RadzenDataGridColumn TItem="File" Property="LastModified" Width="200px" Title="Modified" TextAlign="TextAlign.Left">
+                                    <Template Context="data">
+                                        @data.LastModified.EpochTimeToDateTime().ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture)
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <!-- Below Column fixes a sizing bug if all columns have a specified width -->
+                                <RadzenDataGridColumn TItem="File" Filterable="false" Sortable="false"><Template Context="data"></Template></RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </div>
+                    <div style="flex-grow: 0; text-align: center;">
+                        <RadzenButton Icon="add" ButtonType="ButtonType.Button" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="AddFiles" Text="Add" />
+                        <RadzenButton Icon="close" ButtonType="ButtonType.Button" Size="ButtonSize.Small" Disabled="@NoFiles" ButtonStyle="ButtonStyle.Light" Click="ClearFiles" Text="Clear" />
+                    </div>
+                </RadzenStack>
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="Options">
+                <div>
+                    <p>
+                        <RadzenLabel Component="Name" Text="Torrent Name" /><br />
+                        <RadzenTextBox Style="width: 100%;" Placeholder="@NamePlaceHolder" Name="Name" @bind-Value=@model.Name />
+                    </p>
+                    <p>
+                        <RadzenLabel Component="CreatedBy" Text="Created By" /><br />
+                        <RadzenTextBox Style="width: 100%;" Placeholder="WebTorrent" Name="CreatedBy" @bind-Value=@model.CreatedBy />
+                    </p>
+                    <p>
+                        <RadzenLabel Component="Comment" Text="Comment" /><br />
+                        <RadzenTextArea Style="width: 100%;" Name="Comment" @bind-Value=@model.Comment />
+                    </p>
+                    <p>
+                        <RadzenLabel Component="Trackers" Text="Trackers" /><br />
+                        <RadzenTextArea Style="width: 100%;" Placeholder="@TrackersPlaceHolder" Name="Trackers" @bind-Value=@model.Trackers />
+                    </p>
+                    <p>
+                        <RadzenButton ButtonType="ButtonType.Button" Click="AddDefaultTrackers" Text="Add Default Trackers" />
+                    </p>
+                    <p>
+                        <RadzenLabel Component="WebSeeds" Text="Web Seeds" /><br />
+                        <RadzenTextArea Style="width: 100%;" Name="WebSeeds" @bind-Value=@model.WebSeeds />
+                    </p>
+                    <p>
+                        <RadzenCheckBox Name="Paused" @bind-Value=@model.Paused />
+                        <RadzenLabel Component="Paused" Text="Paused" />
+                    </p>
+                    <p>
+                        <RadzenCheckBox Name="Private" @bind-Value=@model.Private />
+                        <RadzenLabel Component="Private" Text="Private" />
+                    </p>
+                </div>
+            </RadzenTabsItem>
+        </Tabs>
+    </RadzenTabs>
+    <div style="text-align: right;">
+        <RadzenButton ButtonType="ButtonType.Button" Click="OnSubmit" Disabled="@NoFiles" ButtonStyle="ButtonStyle.Primary" Text="Confirm" />
+        <RadzenButton ButtonType="ButtonType.Button" Click="Cancel" ButtonStyle="ButtonStyle.Secondary" Text="Cancel" />
+    </div>
+</div>
+
+@code {
+    [Inject]
+    DialogService DialogService { get; set; }
+
+    async Task AddDefaultTrackers()
+    {
+        var trackers = model.Trackers.Trim();
+        if (trackers != "") trackers += "\n";
+        var changed = false;
+        foreach (var tracker in WebTorrentService.DefaultTrackers)
+        {
+            if (!trackers.Contains(tracker))
+            {
+                trackers += $"{tracker}\n";
+                changed = true;
+            }
+        }
+        if (changed)
+        {
+            model.Trackers = trackers;
+            StateHasChanged();
+        }
+    }
+
+    string TrackersPlaceHolder => string.Join("\n", WebTorrentService.DefaultTrackers);
+
+    RadzenDataGrid<File>? grid = null;
+
+    class SeedOptionsModel
+    {
+        public string Name { get; set; } = "";
+        public string CreatedBy { get; set; } = "";
+        public string Comment { get; set; }= "";
+        public string Trackers { get; set; } = "";
+        public string WebSeeds { get; set; } = "";
+        public bool Private { get; set; }
+        public bool Paused { get; set; }
+        public List<File> Files { get; set; } = new List<File>();
+    }
+    int count => model.Files.Count();
+    public class AddSeedOptions
+    {
+        public SeedTorrentOptions SeedOptions { get; set; }
+        public List<File> Files { get; set; } = new List<File>();
+    }
+
+    SeedOptionsModel model = new SeedOptionsModel();
+
+    async Task RowSelect(File info)
+    {
+        Console.WriteLine("RowSelect");
+
+    }
+    async Task RowDeselect(File info)
+    {
+        Console.WriteLine("RowDeselect");
+
+    }
+    void OnSubmit()
+    {
+        if (NoFiles) return;
+        // convert optionsModel to SeedTorrentOptions
+        var webSeeds = Regex.Split(model.WebSeeds.Trim(), @",?\s+|,\s*", RegexOptions.Compiled | RegexOptions.Multiline).ToList();
+        var trackers = Regex.Split(model.Trackers.Trim(), @",?\s+|,\s*", RegexOptions.Compiled | RegexOptions.Multiline);
+        var ret = new AddSeedOptions
+            {
+                // files
+                SeedOptions = new SeedTorrentOptions
+                {
+                    Name = string.IsNullOrEmpty(model.Name.Trim()) ? null : model.Name.Trim(),
+                    Comment = string.IsNullOrEmpty(model.Comment.Trim()) ? null : model.Comment.Trim(),
+                    CreatedBy = string.IsNullOrEmpty(model.CreatedBy.Trim()) ? null : model.CreatedBy.Trim(),
+                    CreationDate = DateTime.Now,
+                    UrlList = webSeeds,
+                    AnnounceList = trackers.Length == 0 ? null : new List<string[]> { trackers },
+                    Paused = model.Paused,
+                    Private = model.Private,
+                    //FilterJunkFiles = model.FilterJunkFiles,
+                    //Info = null,
+                    //PieceLength = null,
+                },
+                Files = model.Files,
+            };
+        DialogService.Close(ret);
+    }
+    void ShowContextMenuWithItems(DataGridCellMouseEventArgs<File> args)
+    {
+
+    }
+    bool NoFiles => model.Files.Count == 0;
+    string NamePlaceHolder => model.Files.Count == 0 ? "" : model.Files[0].Name;
+    void Cancel()
+    {
+        DialogService.Close(null);
+    }
+    public static async Task<AddSeedOptions?> Show(DialogService DialogService)
+    {
+        AddSeedOptions? ret = await DialogService.OpenAsync<NewSeedDialog>(
+            $"New Seed",
+            new Dictionary<string, object>()
+            {
+
+            },
+               new DialogOptions()
+                   {
+                       Width = "600px",
+                       Resizable = true,
+                       Draggable = true
+                   }
+        );
+        return ret;
+    }
+    async Task AddFiles()
+    {
+        var seedFiles = await FilePicker.ShowOpenFilePicker(null, true);
+        if (seedFiles != null && seedFiles.Length > 0)
+        {
+            model.Files.AddRange(seedFiles);
+            grid?.Reload();
+        }
+    }
+    long TotalSize => model.Files.Sum(o => o.Size);
+    void ClearFiles()
+    {
+        model.Files.Clear();
+        grid?.Reload();
+    }
+    static string ReadableByteLength(double len)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        // Adjust the format string to your preferences. For example "{0:0.#}{1}" would
+        // show a single decimal place, and no space.
+        return string.Format("{0:0.##} {1}", len, sizes[order]);
+    }
+}

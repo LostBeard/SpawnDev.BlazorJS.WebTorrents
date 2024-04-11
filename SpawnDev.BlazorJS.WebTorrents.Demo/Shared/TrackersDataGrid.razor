@@ -131,7 +131,7 @@ Count="@Count" Data="@Infos" LoadData="@LoadData" AllowSorting="true" AllowFilte
         // WebTorrentService.OnTorrentWireAdd += WebTorrent_OnTorrentWireAdd;
         // WebTorrentService.OnTorrentWireRemove += WebTorrent_OnTorrentWireRemove;
         _tmr.Elapsed += Timer_Elapsed;
-        _tmr.Interval = 1000;
+        _tmr.Interval = 5000;
         _tmr.Enabled = true;
     }
     public void Dispose()

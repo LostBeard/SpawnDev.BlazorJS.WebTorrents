@@ -4,10 +4,11 @@ using Timer = System.Timers.Timer;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
+
     /// <summary>
     /// An instance of this class is created and returned by the WireExtensionFactory class for use with a new wire instance (if both sides support it)
     /// </summary>
-    public abstract class WireExtension : IDisposable
+    public abstract class Extension : IDisposable
     {
         // This object is serialized and passed to javascript. Only the below few properties are needed on that end.
         // that is why the properties after have JsonIgnore.
@@ -16,29 +17,29 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         [JsonInclude]
         [JsonPropertyName("onHandshake")]
-        public ActionCallback<string, string, Dictionary<string, bool>> OnHandshake { get; }
+        protected ActionCallback<string, string, Dictionary<string, bool>> onHandshake { get; }
         /// <summary>
         /// onExtendedHandshake?(handshake: { [key: string]: any }): void;
         /// </summary>
         [JsonInclude]
         [JsonPropertyName("onExtendedHandshake")]
-        public ActionCallback<WireExtendedHandshakeEvent> OnExtendedHandshake { get; }
+        protected ActionCallback<WireExtendedHandshakeEvent> onExtendedHandshake { get; }
         /// <summary>
         /// onMessage?(buf: Buffer): void;
         /// </summary>
         [JsonInclude]
         [JsonPropertyName("onMessage")]
-        public ActionCallback<byte[]> OnMessage { get; }
+        protected ActionCallback<byte[]> onMessage { get; }
         /// <summary>
         /// name: string;
         /// </summary>
         [JsonInclude]
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string Name { get; private set; }
         // ******************************************************************************
-        public delegate void MessageReceivedDelegate(WireExtension extension, byte[] msg);
+        public delegate void MessageReceivedDelegate(Extension extension, byte[] msg);
         public event MessageReceivedDelegate OnMessageReceived;
-        public event Action<WireExtension> OnClose;
+        public event Action<Extension> OnClose;
         protected CallbackGroup _callbacks = new CallbackGroup();
         protected BlazorJSRuntime JS;
         protected Timer _tmr = new Timer();
@@ -57,13 +58,13 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Used to encode and decode BEncoded data
         /// </summary>
         protected BencodeParser BencodeParser = new BencodeParser();
-        public WireExtension(Wire wire, string extensionName)
+        public Extension(Wire wire, string extensionName)
         {
             JS = BlazorJSRuntime.JS;
             Name = extensionName;
-            OnHandshake = _callbacks.Add(new ActionCallback<string, string, Dictionary<string, bool>>(_OnHandshake));
-            OnExtendedHandshake = _callbacks.Add(new ActionCallback<WireExtendedHandshakeEvent>(_OnExtendedHandshake));
-            OnMessage = _callbacks.Add(new ActionCallback<byte[]>(_OnMessage));
+            onHandshake = _callbacks.Add(new ActionCallback<string, string, Dictionary<string, bool>>(_OnHandshake));
+            onExtendedHandshake = _callbacks.Add(new ActionCallback<WireExtendedHandshakeEvent>(_OnExtendedHandshake));
+            onMessage = _callbacks.Add(new ActionCallback<byte[]>(_OnMessage));
             Wire = JS.ReturnMe(wire);
             PeerId = Wire.PeerId;
             Wire.OnClose += Wire_OnClose;
@@ -114,7 +115,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
             JS.Log(Name, "_OnHandshake", infoHash, peerId, extensions);
         }
 
-        public delegate void SupportedPeerConnectedDelegate(WireExtension wireExtension, WireExtendedHandshakeEvent extendedHandshake);
+        public delegate void SupportedPeerConnectedDelegate(Extension wireExtension, WireExtendedHandshakeEvent extendedHandshake);
         public event SupportedPeerConnectedDelegate OnSupportedPeerConnected;
 
         protected virtual void _OnExtendedHandshake(WireExtendedHandshakeEvent extendedHandshake)
@@ -123,12 +124,15 @@ namespace SpawnDev.BlazorJS.WebTorrents
             ExtendedHandshake = extendedHandshake;
             var m = extendedHandshake.M;
             SupportedPeer = m != null && m.ContainsKey(Name);
-            //JS.Log(Name, "OnExtendedHandshake 1: supportsExtension", SupportedPeer, extendedHandshake);
+            JS.Log(Name, "OnExtendedHandshake 1: supportsExtension", SupportedPeer, extendedHandshake);
             if (SupportedPeer)
             {
                 OnSupportedPeerConnected?.Invoke(this, extendedHandshake);
-                JS.Log($"Sending: Hello World Ext > {Name}");
-                Send($"Hello World Ext > {Name}");
+                //JS.Log($"SupportedPeer: {SupportedPeer}");
+                //Send($"Hello World Ext > {Name}");
+            } else
+            {
+                
             }
         }
 

@@ -2,7 +2,11 @@
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
-    public class Peer : JSObject
+    /// <summary>
+    /// 
+    /// Inherits from Duplex stream
+    /// </summary>
+    public class Peer : JSObject    // Duplex
     {
         /// <summary>
         /// Deserialization constructor

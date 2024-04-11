@@ -33,7 +33,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// TODO - test this type works for this property
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public long? CreationDate { get; set; }
+        public EpochDateTime? CreationDate { get; set; }
         /// <summary>
         /// remove hidden and other junk files? (default = true)
         /// </summary>
@@ -73,7 +73,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// add non-standard info dict entries, e.g. info.source, a convention for cross-seeding
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public object? Info { get; set; }
+        public Dictionary<string, string>? Info { get; set; }
         /// <summary>
         /// called with the number of bytes hashed and estimated total size after every piece
         /// </summary>

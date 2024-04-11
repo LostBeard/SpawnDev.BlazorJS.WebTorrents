@@ -10,15 +10,15 @@
             <div>
                 <RadzenMenu Click="OnMenuClicked">
                     <RadzenMenuItem Text="Torrent" Image="favicon.png">
+                        <RadzenMenuItem Text="New Seed" Value="@("seed_files")" Icon="add_circle"></RadzenMenuItem>
+                        <RadzenMenuItem Text="Add Magnet" Value="@("add_magnet")" Icon="data_saver_on"></RadzenMenuItem>
                         <RadzenMenuItem Text="Add Torrent" Value="@("torrent_file_picker")" Icon="add"></RadzenMenuItem>
-                        <RadzenMenuItem Text="Add Magnet" Value="@("add_magnet")" Icon="add"></RadzenMenuItem>
                         <RadzenMenuItem Text="Creative Commons" Icon="spoke">
                             @foreach (var CCMagnet in WebTorrentService.CCMagnets)
                             {
                                 <RadzenMenuItem Text="@($"Add {CCMagnet.Key}")" Value="@($"add_magnet {CCMagnet.Value}")" Icon="add"></RadzenMenuItem>
                             }
                         </RadzenMenuItem>
-                        <RadzenMenuItem Text="Seed Files" Value="@("seed_files")" Icon="add"></RadzenMenuItem>
                         @* <RadzenMenuItem Text="Seed Folder" Value="@("seed_folder")" Icon="add"></RadzenMenuItem> *@
                         <RadzenMenuItem Text="Pause All" Value="@("pause_all")" Icon="pause"></RadzenMenuItem>
                         <RadzenMenuItem Text="Resume All" Value="@("play_arrow")" Icon="play_arrow"></RadzenMenuItem>
@@ -130,18 +130,17 @@
 
                     break;
                 case "seed_files":
-                    var seedFiles = await FilePicker.ShowOpenFilePicker(null, true);
-                    if (seedFiles != null && seedFiles.Length > 0)
+                    try
                     {
-                        try
+                        var seedOptions = await NewSeedDialog.Show(DialogService);
+                        if (seedOptions != null)
                         {
-                            WebTorrentService.Client!.Seed(seedFiles, new SeedTorrentOptions
-                            {
-
-                            });
+                            WebTorrentService.Client!.Seed(seedOptions.Files, seedOptions.SeedOptions);
                         }
-                        catch { }
-                        seedFiles.DisposeAll();
+                    }
+                    catch
+                    {
+                        
                     }
                     break;
                 case "torrent_file_picker":
@@ -157,7 +156,7 @@
                                 // TODO - add dialog with add torrent options (also use it when adding torrent via magnet)
                                 WebTorrentService.Client!.Add(uint8array);
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 JS.Log("torrent_file_picker failed:", ex.Message);
                             }
