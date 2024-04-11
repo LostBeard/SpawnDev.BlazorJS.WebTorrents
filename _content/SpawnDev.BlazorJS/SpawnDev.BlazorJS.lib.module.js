@@ -203,6 +203,13 @@
         }
     }
 
+    JSInterop._returnArrayJSObjectReferenceIds = function (obj) {
+        if (obj === null || obj === void 0) return null;
+        var ret = [];
+        for (var o of obj) ret.push(o === null || o === void 0 ? -1 : DotNet.createJSObjectReference(o).__jsObjectId);
+        return ret;
+    };
+
     // Instance
     JSInterop._set = function (obj, identifier, value) {
         if (obj === void 0 || obj === null) throw 'obj null or undefined';
