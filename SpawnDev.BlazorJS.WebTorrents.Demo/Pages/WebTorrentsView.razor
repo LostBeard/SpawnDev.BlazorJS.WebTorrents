@@ -23,7 +23,9 @@
                         <TrackersDataGrid TorrentInstanceId="@SelectedTorrentInstanceId" />
                     </RadzenTabsItem>
                     <RadzenTabsItem Text="Comment">
-                        @SelectedTorrent?.Comment
+                        <RadzenCard Style="border-radius: 8px;">
+                            @SelectedTorrent?.Comment
+                        </RadzenCard>
                     </RadzenTabsItem>
                 </Tabs>
             </RadzenTabs>

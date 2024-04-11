@@ -16,7 +16,7 @@
                         <RadzenMenuItem Text="Creative Commons" Icon="spoke">
                             @foreach (var CCMagnet in WebTorrentService.CCMagnets)
                             {
-                                <RadzenMenuItem Text="@($"Add {CCMagnet.Key}")" Value="@($"add_magnet {CCMagnet.Value}")" Icon="add"></RadzenMenuItem>
+                                <RadzenMenuItem Text="@($"Add {CCMagnet.Key}")" Value="@($"add_magnet {CCMagnet.Value}")" Icon="add_magnet"></RadzenMenuItem>
                             }
                         </RadzenMenuItem>
                         @* <RadzenMenuItem Text="Seed Folder" Value="@("seed_folder")" Icon="add"></RadzenMenuItem> *@
