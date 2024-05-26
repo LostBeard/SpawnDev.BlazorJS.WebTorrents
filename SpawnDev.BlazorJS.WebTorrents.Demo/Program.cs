@@ -7,9 +7,9 @@ using SpawnDev.BlazorJS.WebTorrents.Demo;
 using SpawnDev.BlazorJS.WebTorrents.Demo.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
+builder.Services.AddBlazorJSRuntime();
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
-builder.Services.AddBlazorJSRuntime();
 builder.Services.AddWebTorrentService(new WebTorrentOptions
 {
     //DownloadLimit = 50000,

@@ -120,19 +120,20 @@ namespace SpawnDev.BlazorJS.WebTorrents
 
         protected virtual void _OnExtendedHandshake(WireExtendedHandshakeEvent extendedHandshake)
         {
-            JS.Log(Name, "OnExtendedHandshake !!!!!!!!!!!!!!!:", extendedHandshake.Extensions, extendedHandshake);
+            //JS.Log(Name, "_OnExtendedHandshake !!!!!!!!!!!!!!!:", extendedHandshake.Extensions, extendedHandshake);
             ExtendedHandshake = extendedHandshake;
             var m = extendedHandshake.M;
             SupportedPeer = m != null && m.ContainsKey(Name);
-            JS.Log(Name, "OnExtendedHandshake 1: supportsExtension", SupportedPeer, extendedHandshake);
+            JS.Log(Name, "_OnExtendedHandshake: supportsExtension", SupportedPeer, extendedHandshake);
             if (SupportedPeer)
             {
                 OnSupportedPeerConnected?.Invoke(this, extendedHandshake);
                 //JS.Log($"SupportedPeer: {SupportedPeer}");
                 //Send($"Hello World Ext > {Name}");
-            } else
+            }
+            else
             {
-                
+
             }
         }
 
