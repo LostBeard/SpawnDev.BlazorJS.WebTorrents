@@ -79,7 +79,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         }
         FileSystemDirectoryHandle? StorageDir = null;
 
-        public static List<string> DefaultTrackers = new List<string>
+        public static List<string> DefaultTrackers { get; } = new List<string>
         {
             "udp://tracker.leechers-paradise.org:6969",
             "udp://tracker.coppersurfer.tk:6969",
@@ -90,13 +90,30 @@ namespace SpawnDev.BlazorJS.WebTorrents
             "wss://tracker.openwebtorrent.com",
             "wss://tracker.webtorrent.dev"
         };
+
+        /// <summary>
+        /// Trackers currently set in client.tracker options
+        /// </summary>
+        public string[] Announce => Client?.Tracker?.Announce ?? new string[0];
+
+        /// <summary>
+        /// Returns trackers to use for seeding based on client options and known public trackers.
+        /// </summary>
+        public string[] SeedTrackers => Announce.Length > 0 ? Announce : DefaultTrackers.ToArray();
+
         public async Task InitAsync()
         {
             if (BeenInit) return;
             BeenInit = true;
             if (IsDisposed) return;
             await WebTorrent.ImportWebTorrent();
+
+            JS.Set("_WebTorrentOptions", WebTorrentOptions);
+
             Client = WebTorrentOptions == null ? new WebTorrent() : new WebTorrent(WebTorrentOptions);
+
+            JS.Set("_Client", Client);
+
             Client.OnError += WebTorrent_OnError;
             Client.OnTorrent += WebTorrent_OnTorrent;
             Client.OnAdd += WebTorrent_OnAdd;

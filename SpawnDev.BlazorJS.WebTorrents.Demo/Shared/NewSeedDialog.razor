@@ -66,7 +66,11 @@
                         <RadzenTextArea Style="width: 100%;" Placeholder="@TrackersPlaceHolder" Name="Trackers" @bind-Value=@model.Trackers />
                     </p>
                     <p>
-                        <RadzenButton ButtonType="ButtonType.Button" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="AddDefaultTrackers" Text="Add Default Trackers" />
+                        <RadzenButton ButtonType="ButtonType.Button" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="AddDefaultTrackers" Text="Add Public Trackers" />
+                        @if (WebTorrentService.Announce.Length > 0)
+                        {
+                            <RadzenButton ButtonType="ButtonType.Button" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="AddClientTrackers" Text="Add Client Trackers" />
+                        }
                     </p>
                     <p>
                         <RadzenLabel Component="WebSeeds" Text="Web Seeds" /><br />
@@ -94,6 +98,14 @@
     [Inject]
     DialogService DialogService { get; set; }
 
+    [Inject]
+    WebTorrentService WebTorrentService { get; set; }
+
+    static BlazorJSRuntime JS => BlazorJSRuntime.JS;
+
+    List<string> WebSeedsList => Regex.Split(model.WebSeeds.Trim(), @",?\s+|,\s*", RegexOptions.Compiled | RegexOptions.Multiline).Select(o => o.Trim()).Where(o => o != "").ToList();
+    string[] TrackersList => Regex.Split(model.Trackers.Trim(), @",?\s+|,\s*", RegexOptions.Compiled | RegexOptions.Multiline).Select(o => o.Trim()).Where(o => o != "").ToArray();
+
     async Task AddDefaultTrackers()
     {
         var trackers = model.Trackers.Trim();
@@ -113,8 +125,28 @@
             StateHasChanged();
         }
     }
+    async Task AddClientTrackers()
+    {
+        var trackers = model.Trackers.Trim();
+        if (trackers != "") trackers += "\n";
+        var changed = false;
+        foreach (var tracker in WebTorrentService.Announce)
+        {
+            if (!trackers.Contains(tracker))
+            {
+                trackers += $"{tracker}\n";
+                changed = true;
+            }
+        }
+        if (changed)
+        {
+            model.Trackers = trackers;
+            StateHasChanged();
+        }
+    }
 
-    string TrackersPlaceHolder => string.Join("\n", WebTorrentService.DefaultTrackers);
+    string? _TrackersPlaceHolder = null;
+    string TrackersPlaceHolder => _TrackersPlaceHolder ??= string.Join("\n", WebTorrentService.Announce.Length > 0 ? WebTorrentService.Announce : WebTorrentService.DefaultTrackers);
 
     RadzenDataGrid<File>? grid = null;
 
@@ -152,8 +184,10 @@
     {
         if (NoFiles) return;
         // convert optionsModel to SeedTorrentOptions
-        var webSeeds = Regex.Split(model.WebSeeds.Trim(), @",?\s+|,\s*", RegexOptions.Compiled | RegexOptions.Multiline).ToList();
-        var trackers = Regex.Split(model.Trackers.Trim(), @",?\s+|,\s*", RegexOptions.Compiled | RegexOptions.Multiline);
+        var webSeeds = WebSeedsList;
+        var trackers = TrackersList;
+        // Use client trackers that were set when the WebTorrent client was created (if any)
+        if (trackers.Length == 0) trackers = WebTorrentService.Announce;
         var ret = new AddSeedOptions
             {
                 // files
@@ -163,7 +197,7 @@
                     Comment = string.IsNullOrEmpty(model.Comment.Trim()) ? null : model.Comment.Trim(),
                     CreatedBy = string.IsNullOrEmpty(model.CreatedBy.Trim()) ? null : model.CreatedBy.Trim(),
                     CreationDate = DateTime.Now,
-                    UrlList = webSeeds,
+                    UrlList = webSeeds.Count == 0 ? null : webSeeds,
                     AnnounceList = trackers.Length == 0 ? null : new List<string[]> { trackers },
                     Paused = model.Paused,
                     Private = model.Private,
@@ -200,6 +234,9 @@
                        Draggable = true
                    }
         );
+        #if DEBUG
+        JS.Log("Show.ret", ret);
+        #endif
         return ret;
     }
     async Task AddFiles()

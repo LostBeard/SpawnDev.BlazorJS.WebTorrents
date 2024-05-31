@@ -15,9 +15,9 @@ builder.Services.AddWebTorrentService(new WebTorrentOptions
     //DownloadLimit = 50000,
     Tracker = new TrackerClientOptions
     {
-        Announce = new string[] { "wss://pi.spawndev.com:44365/", "wss://psi.spawndev.com:44365/" },
+        // optionally set the default trackers to use for seeding
+        //Announce = new string[] { "wss://pi.spawndev.com:44365", "wss://psi.spawndev.com:44365" },
     }
-
 }, webTorrentService =>
 {
     webTorrentService.Verbose = true;
@@ -28,4 +28,10 @@ builder.Services.AddSingleton<DHTFactory>();
 builder.Services.AddSingleton<AppService>();
 builder.Services.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddRadzenComponents();
-await builder.Build().BlazorJSRunAsync();
+var host = builder.Build();
+await host.StartBackgroundServices();
+#if DEBUG
+var JS = host.Services.GetRequiredService<BlazorJSRuntime>();
+
+#endif
+await host.BlazorJSRunAsync();
