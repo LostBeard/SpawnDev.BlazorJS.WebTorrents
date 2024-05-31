@@ -65,3 +65,8 @@ await torrent.DestroyAsync(new DestroyTorrentOptions { DestroyStore = true });
 ![Screenshot 3](https://raw.githubusercontent.com/LostBeard/SpawnDev.BlazorJS.WebTorrents/main/SpawnDev.BlazorJS.WebTorrents.Demo/wwwroot/screenshots/WebTorrents3.jpg)
 
 ![Screenshot 4](https://raw.githubusercontent.com/LostBeard/SpawnDev.BlazorJS.WebTorrents/main/SpawnDev.BlazorJS.WebTorrents.Demo/wwwroot/screenshots/WebTorrents4.jpg)
+
+![Screenshot 5](https://raw.githubusercontent.com/LostBeard/SpawnDev.BlazorJS.WebTorrents/main/SpawnDev.BlazorJS.WebTorrents.Demo/wwwroot/screenshots/WebTorrentsAddSeed1.jpg)
+
+![Screenshot 6](https://raw.githubusercontent.com/LostBeard/SpawnDev.BlazorJS.WebTorrents/main/SpawnDev.BlazorJS.WebTorrents.Demo/wwwroot/screenshots/WebTorrentsAddSeed2.jpg)
+
