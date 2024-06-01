@@ -66,7 +66,7 @@
                         <RadzenTextArea Style="width: 100%;" Placeholder="@TrackersPlaceHolder" Name="Trackers" @bind-Value=@model.Trackers />
                     </p>
                     <p>
-                        <RadzenButton ButtonType="ButtonType.Button" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="AddDefaultTrackers" Text="Add Public Trackers" />
+                        <RadzenButton ButtonType="ButtonType.Button" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="AddPublicTrackers" Text="Add Public Trackers" />
                         @if (WebTorrentService.Announce.Length > 0)
                         {
                             <RadzenButton ButtonType="ButtonType.Button" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="AddClientTrackers" Text="Add Client Trackers" />
@@ -106,12 +106,12 @@
     List<string> WebSeedsList => Regex.Split(model.WebSeeds.Trim(), @",?\s+|,\s*", RegexOptions.Compiled | RegexOptions.Multiline).Select(o => o.Trim()).Where(o => o != "").ToList();
     string[] TrackersList => Regex.Split(model.Trackers.Trim(), @",?\s+|,\s*", RegexOptions.Compiled | RegexOptions.Multiline).Select(o => o.Trim()).Where(o => o != "").ToArray();
 
-    async Task AddDefaultTrackers()
+    async Task AddPublicTrackers()
     {
         var trackers = model.Trackers.Trim();
         if (trackers != "") trackers += "\n";
         var changed = false;
-        foreach (var tracker in WebTorrentService.DefaultTrackers)
+        foreach (var tracker in WebTorrentService.PublicTrackers)
         {
             if (!trackers.Contains(tracker))
             {
@@ -146,7 +146,7 @@
     }
 
     string? _TrackersPlaceHolder = null;
-    string TrackersPlaceHolder => _TrackersPlaceHolder ??= string.Join("\n", WebTorrentService.Announce.Length > 0 ? WebTorrentService.Announce : WebTorrentService.DefaultTrackers);
+    string TrackersPlaceHolder => _TrackersPlaceHolder ??= string.Join("\n", WebTorrentService.Announce.Length > 0 ? WebTorrentService.Announce : WebTorrentService.PublicTrackers);
 
     RadzenDataGrid<File>? grid = null;
 
@@ -190,7 +190,6 @@
         if (trackers.Length == 0) trackers = WebTorrentService.Announce;
         var ret = new AddSeedOptions
             {
-                // files
                 SeedOptions = new SeedTorrentOptions
                 {
                     Name = string.IsNullOrEmpty(model.Name.Trim()) ? null : model.Name.Trim(),
