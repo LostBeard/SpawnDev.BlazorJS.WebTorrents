@@ -214,6 +214,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
                 OnTorrentWireRemove?.Invoke(torrent, wire);
             });
             OnTorrentWireAdd?.Invoke(torrent, wire);
+            // IExtensionFactory services create their extensions for this wire
             var wireExtensionFactoryServices = WireExtensionServices.Select(o => (IExtensionFactory)ServiceProvider.GetRequiredService(o.ServiceType)).ToList();
             foreach (var factory in wireExtensionFactoryServices)
             {

@@ -118,9 +118,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <param name="torrent"></param>
         /// <param name="extensionName"></param>
         /// <param name="extensionConstructor"></param>
-        public void Use(Torrent torrent, string extensionName, Func<Torrent,  Wire, Extension> extensionConstructor)
+        public void Use(Torrent torrent, string extensionName, Func<Torrent, Wire, Extension> extensionConstructor)
         {
-            Use(extensionName, (wire) => extensionConstructor(torrent, wire));
+            var torrentCopy = torrent.JSRefCopy<Torrent>();
+            Use(extensionName, (wire) => extensionConstructor(torrentCopy, wire));
         }
         /// <summary>
         /// Send data to the named extension on the other end of the wire<br />

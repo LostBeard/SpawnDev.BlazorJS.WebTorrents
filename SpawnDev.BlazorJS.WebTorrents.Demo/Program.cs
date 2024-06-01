@@ -24,6 +24,10 @@ builder.Services.AddWebTorrentService(new WebTorrentOptions
 });
 builder.Services.AddSingleton<MimeTypeService>();
 builder.Services.AddSingleton<FetchStatsService>();
+// DHTFactory is an IExtensionFactory.
+// WebTorrentService will call IExtensionFactory.Create on all services implementing IExtensionFactory when a new wire connects
+// to implementing wire extensions
+// DHTFactory is currently for demonstration purposes only and does not actually add dht support
 builder.Services.AddSingleton<DHTFactory>();
 builder.Services.AddSingleton<AppService>();
 builder.Services.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });

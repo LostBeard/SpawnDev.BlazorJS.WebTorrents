@@ -28,7 +28,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="BencodeNET" Version="5.0.0" />
 		<PackageReference Include="SpawnDev.BlazorJS" Version="2.2.105" />
 	</ItemGroup>
 

@@ -1,5 +1,4 @@
-﻿using BencodeNET.Torrents;
-using Radzen;
+﻿using Radzen;
 
 namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
 {

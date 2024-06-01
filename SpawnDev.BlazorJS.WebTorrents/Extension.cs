@@ -1,17 +1,14 @@
-﻿using BencodeNET.Parsing;
-using System.Text.Json.Serialization;
-using Timer = System.Timers.Timer;
+﻿using System.Text.Json.Serialization;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
-
     /// <summary>
-    /// An instance of this class is created and returned by the WireExtensionFactory class for use with a new wire instance (if both sides support it)
+    /// An instance of this class is created and returned by the WireExtensionFactory class for use with a new wire instance (if both sides support it)<br/>
+    /// This object is serialized and passed to javascript. Only the below few properties are needed on that end.<br/>
+    /// that is why the properties after have JsonIgnore.
     /// </summary>
     public abstract class Extension : IDisposable
     {
-        // This object is serialized and passed to javascript. Only the below few properties are needed on that end.
-        // that is why the properties after have JsonIgnore.
         /// <summary>
         /// onHandshake?(infoHash: string, peerId: string, extensions: { [name: string]: boolean }): void;
         /// </summary>
@@ -31,6 +28,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         [JsonPropertyName("onMessage")]
         protected ActionCallback<byte[]> onMessage { get; }
         /// <summary>
+        /// Extension name<br/>
         /// name: string;
         /// </summary>
         [JsonInclude]
@@ -39,51 +37,53 @@ namespace SpawnDev.BlazorJS.WebTorrents
         // ******************************************************************************
         public delegate void MessageReceivedDelegate(Extension extension, byte[] msg);
         public event MessageReceivedDelegate OnMessageReceived;
+        public delegate void HandshakeDelegate(Extension wireExtension, string infoHash, string peerId, Dictionary<string, bool> extensions);
+        public event HandshakeDelegate OnHandshake;
+        public delegate void ExtendedHandshakeDelegate(Extension wireExtension, WireExtendedHandshakeEvent extendedHandshake);
+        public event ExtendedHandshakeDelegate OnExtendedHandshake;
         public event Action<Extension> OnClose;
-        protected CallbackGroup _callbacks = new CallbackGroup();
-        protected BlazorJSRuntime JS;
-        protected Timer _tmr = new Timer();
+        /// <summary>
+        /// The wire this extension instance is on
+        /// </summary>
         [JsonIgnore]
         public Wire Wire { get; private set; }
+        /// <summary>
+        /// Returns true if the peer reported supporting this extension name
+        /// </summary>
         [JsonIgnore]
         public bool SupportedPeer { get; private set; }
+        /// <summary>
+        /// Set to the infohash of this torrent once it is known
+        /// </summary>
         [JsonIgnore]
         public string InfoHash { get; private set; } = "";
+        /// <summary>
+        /// The peer id this wire is connected to
+        /// </summary>
         [JsonIgnore]
         public string PeerId { get; private set; } = "";
+        /// <summary>
+        /// Data received during the extended handshake
+        /// </summary>
         [JsonIgnore]
         public WireExtendedHandshakeEvent? ExtendedHandshake { get; private set; } = null;
-        // https://github.com/Krusen/BencodeNET#encoding
         /// <summary>
         /// Used to encode and decode BEncoded data
         /// </summary>
-        protected BencodeParser BencodeParser = new BencodeParser();
         public Extension(Wire wire, string extensionName)
         {
-            JS = BlazorJSRuntime.JS;
             Name = extensionName;
-            onHandshake = _callbacks.Add(new ActionCallback<string, string, Dictionary<string, bool>>(_OnHandshake));
-            onExtendedHandshake = _callbacks.Add(new ActionCallback<WireExtendedHandshakeEvent>(_OnExtendedHandshake));
-            onMessage = _callbacks.Add(new ActionCallback<byte[]>(_OnMessage));
-            Wire = JS.ReturnMe(wire);
+            onHandshake = new ActionCallback<string, string, Dictionary<string, bool>>(_OnHandshake);
+            onExtendedHandshake = new ActionCallback<WireExtendedHandshakeEvent>(_OnExtendedHandshake);
+            onMessage = new ActionCallback<byte[]>(_OnMessage);
+            Wire = wire.JSRefCopy<Wire>();
             PeerId = Wire.PeerId;
             Wire.OnClose += Wire_OnClose;
-            _tmr.Elapsed += _tmr_Elapsed;
-            _tmr.Interval = 5000;
-            _tmr.Enabled = true;
         }
-
-        protected virtual void Wire_OnClose()
+        void Wire_OnClose()
         {
-            JS.Log($"Wire_OnClose", Wire.PeerId);
             OnClose?.Invoke(this);
         }
-
-        private void _tmr_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
-        {
-            //Send($"........");
-        }
-
         /// <summary>
         /// byte arrays and Uint8Array data will be sent, without change, as a Uint8Array<br />
         /// all other data is BEncoded before being sent
@@ -97,7 +97,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
             var destExt = string.IsNullOrEmpty(extensionName) ? Name : extensionName;
             try
             {
-                JS.Log(Name, "Send", destExt, data);
                 Wire.Extended(destExt, data);
                 return true;
             }
@@ -108,57 +107,39 @@ namespace SpawnDev.BlazorJS.WebTorrents
             }
             return false;
         }
-
-        protected virtual void _OnHandshake(string infoHash, string peerId, Dictionary<string, bool> extensions)
+        void _OnHandshake(string infoHash, string peerId, Dictionary<string, bool> extensions)
         {
             InfoHash = infoHash;
-            JS.Log(Name, "_OnHandshake", infoHash, peerId, extensions);
+            OnHandshake?.Invoke(this, infoHash, peerId, extensions);
         }
-
-        public delegate void SupportedPeerConnectedDelegate(Extension wireExtension, WireExtendedHandshakeEvent extendedHandshake);
-        public event SupportedPeerConnectedDelegate OnSupportedPeerConnected;
-
-        protected virtual void _OnExtendedHandshake(WireExtendedHandshakeEvent extendedHandshake)
+        void _OnExtendedHandshake(WireExtendedHandshakeEvent extendedHandshake)
         {
-            //JS.Log(Name, "_OnExtendedHandshake !!!!!!!!!!!!!!!:", extendedHandshake.Extensions, extendedHandshake);
             ExtendedHandshake = extendedHandshake;
             var m = extendedHandshake.M;
             SupportedPeer = m != null && m.ContainsKey(Name);
-            JS.Log(Name, "_OnExtendedHandshake: supportsExtension", SupportedPeer, extendedHandshake);
-            if (SupportedPeer)
-            {
-                OnSupportedPeerConnected?.Invoke(this, extendedHandshake);
-                //JS.Log($"SupportedPeer: {SupportedPeer}");
-                //Send($"Hello World Ext > {Name}");
-            }
-            else
-            {
-
-            }
+            OnExtendedHandshake?.Invoke(this, extendedHandshake);
         }
-
         /// <summary>
-        /// This method will be called by the web torrent instance when there is a message for this extension
+        /// If using BencodeNet, the below line will decode text<br/>
+        /// var txt = BencodeParser.Parse(buf).ToString();
         /// </summary>
         /// <param name="buf"></param>
         void _OnMessage(byte[] buf)
         {
-            try
-            {
-                var txt = BencodeParser.Parse(buf).ToString();
-                JS.Log(Name, "_OnMessage", txt);
-            }
-            catch (Exception ex)
-            {
-                JS.Log("WARNING: Message is not bencoded.");
-            }
             OnMessageReceived?.Invoke(this, buf);
         }
-
+        public bool IsDisposed { get; private set; }
+        /// <summary>
+        /// Releases resources
+        /// </summary>
         public void Dispose()
         {
+            if (IsDisposed) return;
+            IsDisposed = true;
             Wire.OnClose -= Wire_OnClose;
-            _callbacks.Dispose();
+            onHandshake.Dispose(); 
+            onExtendedHandshake.Dispose(); 
+            onMessage.Dispose();
         }
     }
 }
