@@ -21,6 +21,23 @@ namespace SpawnDev.BlazorJS.WebTorrents
             { "Sintel", "magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fsintel.torrent" },
             { "Tears of Steel", "magnet:?xt=urn:btih:209c8226b299b308beaf2b9cd3fb49212dbd13ec&dn=Tears+of+Steel&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Ftears-of-steel.torrent" },
         };
+        /// <summary>
+        /// Known public trackers
+        /// </summary>
+        public static List<string> PublicTrackers { get; } = new List<string>
+        {
+            "wss://tracker.btorrent.xyz",
+            "wss://tracker.openwebtorrent.com",
+            "wss://tracker.webtorrent.dev",
+            "udp://tracker.leechers-paradise.org:6969",
+            "udp://tracker.coppersurfer.tk:6969",
+            "udp://tracker.opentrackr.org:1337",
+            "udp://explodie.org:6969",
+            "udp://tracker.empire-js.us:1337",
+        };
+        /// <summary>
+        /// If set to true verbose logging will be enabled
+        /// </summary>
         public bool Verbose { get; set; }
         /// <summary>
         /// Called when a torrent is removed
@@ -66,13 +83,16 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// If recent torrents should be loaded with the deselect flag set to true
         /// </summary>
         public bool LoadRecentDeselected { get; set; }
-        // Latest release
-        // https://github.com/webtorrent/webtorrent/releases
-        // current version is 2.2.0 (2024-03-26) (it reports itself as 2.1.36)
         private IServiceProvider ServiceProvider;
         private List<ServiceDescriptor> WireExtensionServices;
-        // to delete FileSystem api data on chrome ....
-        // chrome://settings/content/all?searchSubpage=localhost
+        // FileSystem api data on chrome....
+        // chrome://settings/content/all
+        /// <summary>
+        /// Dependency injection constructor
+        /// </summary>
+        /// <param name="js"></param>
+        /// <param name="serviceDescriptors"></param>
+        /// <param name="serviceProvider"></param>
         public WebTorrentService(BlazorJSRuntime js, IServiceCollection serviceDescriptors, IServiceProvider serviceProvider)
         {
             JS = js;
@@ -80,20 +100,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
             WireExtensionServices = serviceDescriptors.Where(o => typeof(IExtensionFactory).IsAssignableFrom(o.ServiceType) || typeof(IExtensionFactory).IsAssignableFrom(o.ImplementationType)).ToList();
         }
         FileSystemDirectoryHandle? StorageDir = null;
-        /// <summary>
-        /// Known public trackers
-        /// </summary>
-        public static List<string> PublicTrackers { get; } = new List<string>
-        {
-            "wss://tracker.btorrent.xyz",
-            "wss://tracker.openwebtorrent.com",
-            "wss://tracker.webtorrent.dev",
-            "udp://tracker.leechers-paradise.org:6969",
-            "udp://tracker.coppersurfer.tk:6969",
-            "udp://tracker.opentrackr.org:1337",
-            "udp://explodie.org:6969",
-            "udp://tracker.empire-js.us:1337",
-        };
         /// <summary>
         /// Trackers currently set in client.tracker options
         /// </summary>
