@@ -128,6 +128,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
         {
             OnMessageReceived?.Invoke(this, buf);
         }
+        /// <summary>
+        /// Returns true if this instance has been disposed
+        /// </summary>
+        [JsonIgnore]
         public bool IsDisposed { get; private set; }
         /// <summary>
         /// Releases resources
