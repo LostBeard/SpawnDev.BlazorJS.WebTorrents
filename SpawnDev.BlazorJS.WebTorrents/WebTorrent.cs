@@ -34,12 +34,12 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Imports WebTorrent library from the given location or the default one included with the package
         /// </summary>
-        /// <param name="webtorrentJsUrl"></param>
+        /// <param name="webTorrentJsUrl"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static async Task ImportWebTorrent(string? webtorrentJsUrl = null)
+        public static async Task ImportWebTorrent(string? webTorrentJsUrl = null)
         {
-            webtorrentJsUrl = webtorrentJsUrl ?? LatestVersionSrc;
+            webTorrentJsUrl = webTorrentJsUrl ?? LatestVersionSrc;
             var isWebTorrentUndefined = JS.IsUndefined("WebTorrent");
             if (!isWebTorrentUndefined) return;
             var WebTorrentModule = await JS.Import(LatestVersionSrc);

@@ -10,11 +10,13 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Services
         bool InitRunning = false;
         HttpClient HttpClient;
         Dictionary<string, string[]>? __MimeTypeExtensionsMap = null;
+        public Task Ready => _Ready != null ? _Ready : _Ready = InitAsync();
+        private Task? _Ready = null;
         public MimeTypeService(HttpClient httpClient)
         {
             HttpClient = httpClient;
         }
-        public async Task InitAsync()
+        async Task InitAsync()
         {
             if (InitRunning || Loaded || NotFound) return;
             InitRunning = true;

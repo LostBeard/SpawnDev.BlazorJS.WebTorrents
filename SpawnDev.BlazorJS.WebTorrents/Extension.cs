@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using SpawnDev.BlazorJS.JSObjects;
+using System.Text.Json.Serialization;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
@@ -26,7 +27,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         [JsonInclude]
         [JsonPropertyName("onMessage")]
-        protected ActionCallback<byte[]> onMessage { get; }
+        protected ActionCallback<Uint8Array> onMessage { get; }
         /// <summary>
         /// Extension name<br/>
         /// name: string;
@@ -35,7 +36,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         [JsonPropertyName("name")]
         public string Name { get; private set; }
         // ******************************************************************************
-        public delegate void MessageReceivedDelegate(Extension extension, byte[] msg);
+        public delegate void MessageReceivedDelegate(Extension extension, Uint8Array msg);
         public event MessageReceivedDelegate OnMessageReceived;
         public delegate void HandshakeDelegate(Extension wireExtension, string infoHash, string peerId, Dictionary<string, bool> extensions);
         public event HandshakeDelegate OnHandshake;
@@ -75,7 +76,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
             Name = extensionName;
             onHandshake = new ActionCallback<string, string, Dictionary<string, bool>>(_OnHandshake);
             onExtendedHandshake = new ActionCallback<WireExtendedHandshakeEvent>(_OnExtendedHandshake);
-            onMessage = new ActionCallback<byte[]>(_OnMessage);
+            onMessage = new ActionCallback<Uint8Array>(_OnMessage);
             Wire = wire.JSRefCopy<Wire>();
             PeerId = Wire.PeerId;
             Wire.OnClose += Wire_OnClose;
@@ -93,7 +94,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <returns></returns>
         protected virtual bool Send(object data, string? extensionName = null)
         {
-            if (Wire == null || !SupportedPeer) return false;
+            if (Wire == null || (!SupportedPeer && string.IsNullOrEmpty(extensionName))) return false;
             var destExt = string.IsNullOrEmpty(extensionName) ? Name : extensionName;
             try
             {
@@ -102,8 +103,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
             }
             catch (Exception ex)
             {
-                Console.WriteLine("wire ping error");
-                Console.WriteLine(ex.Message);
+                Console.WriteLine($"Wire.Extended error: {ex.Message}");
             }
             return false;
         }
@@ -124,7 +124,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// var txt = BencodeParser.Parse(buf).ToString();
         /// </summary>
         /// <param name="buf"></param>
-        void _OnMessage(byte[] buf)
+        void _OnMessage(Uint8Array buf)
         {
             OnMessageReceived?.Invoke(this, buf);
         }

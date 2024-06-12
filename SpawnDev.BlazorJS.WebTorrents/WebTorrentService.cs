@@ -85,6 +85,8 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public bool LoadRecentDeselected { get; set; }
         private IServiceProvider ServiceProvider;
         private List<ServiceDescriptor> WireExtensionServices;
+        public Task Ready => _Ready != null ? _Ready : _Ready = InitAsync();
+        private Task? _Ready = null;
         // FileSystem api data on chrome....
         // chrome://settings/content/all
         /// <summary>
@@ -112,7 +114,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Initialize the service. (Called automatically by SpawnDev.BlazorJS at start up if registered
         /// </summary>
         /// <returns></returns>
-        public async Task InitAsync()
+        async Task InitAsync()
         {
             if (BeenInit) return;
             BeenInit = true;
@@ -254,6 +256,10 @@ namespace SpawnDev.BlazorJS.WebTorrents
         {
             if (Verbose) JS.Log("Torrent_OnError", torrent, error);
         }
+        void Discovery_OnPeer(DiscoveredPeer peer, string source)
+        {
+            if (Verbose) JS.Log("Discovery_OnPeer", peer, source);
+        }
         void WebTorrent_OnAdd(Torrent torrent)
         {
             if (Verbose) JS.Log("WebTorrent_OnAdd", torrent);
@@ -278,10 +284,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
             torrent.OnMetadata += onMetadata;
             torrent.OnError += onError;
             OnTorrentAdd?.Invoke(torrent);
-        }
-        void Discovery_OnPeer(DiscoveredPeer peer, string source)
-        {
-            if (Verbose) JS.Log("Discovery_OnPeer", peer, source);
         }
         void WebTorrent_OnRemove(Torrent torrent)
         {
