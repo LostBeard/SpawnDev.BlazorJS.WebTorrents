@@ -52,7 +52,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Mime type of the file, falls back to application/octet-stream if the type is not recognized.
         /// </summary>
-        public string Type => JSRef.Call<string>("type");
+        public string Type => JSRef.Get<string>("type");
         /// <summary>
         /// Total verified bytes received from peers, for this file.
         /// </summary>
@@ -129,7 +129,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Create a readable stream to the file. Pieces needed by the stream will be prioritized highly and fetched from the swarm first.
         /// You can pass opts to stream only a slice of a file.
         /// </summary>
-        /// <param name="options"></param>
         /// <returns>Task<ArrayBuffer></returns>
         public Task<ArrayBuffer> ArrayBuffer() => JSRef.CallAsync<ArrayBuffer>("arrayBuffer");
         /// <summary>
