@@ -59,27 +59,27 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Returns the web torrent client peerId
         /// </summary>
-        public string PeerId => JSRef.Get<string>("peerId");
+        public string PeerId => JSRef!.Get<string>("peerId");
         /// <summary>
         /// Total download speed for all torrents, in bytes/sec.
         /// </summary>
-        public double DownloadSpeed => JSRef.Get<double>("downloadSpeed");
+        public double DownloadSpeed => JSRef!.Get<double>("downloadSpeed");
         /// <summary>
         /// Total upload speed for all torrents, in bytes/sec.
         /// </summary>
-        public double UploadSpeed => JSRef.Get<double>("uploadSpeed");
+        public double UploadSpeed => JSRef!.Get<double>("uploadSpeed");
         /// <summary>
         /// Total download progress for all active torrents, from 0 to 1.
         /// </summary>
-        public double Progress => JSRef.Get<double>("progress");
+        public double Progress => JSRef!.Get<double>("progress");
         /// <summary>
         /// Aggregate "seed ratio" for all torrents (uploaded / downloaded).
         /// </summary>
-        public double Ratio => JSRef.Get<double>("ratio");
+        public double Ratio => JSRef!.Get<double>("ratio");
         /// <summary>
         /// An array of all torrents in the client.
         /// </summary>
-        public Array<Torrent> Torrents => JSRef.Get<Array<Torrent>>("torrents");
+        public Array<Torrent> Torrents => JSRef!.Get<Array<Torrent>>("torrents");
         /// <summary>
         /// Deserialization constructor
         /// </summary>
@@ -92,7 +92,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Tracker options that will be used for by added torrents<br />
         /// </summary>
-        public TrackerClientOptions Tracker { get => JSRef.Get<TrackerClientOptions>("tracker"); set => JSRef.Set("tracker", value); }
+        public TrackerClientOptions Tracker { get => JSRef!.Get<TrackerClientOptions>("tracker"); set => JSRef!.Set("tracker", value); }
         /// <summary>
         /// Create a new WebTorrent instance.
         /// </summary>
@@ -171,37 +171,67 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         /// <param name="torrentId"></param>
         /// <returns></returns>
-        public Task<Torrent?> Get(string torrentId) => JSRef.CallAsync<Torrent?>("get", torrentId);
+        public Task<Torrent?> Get(string torrentId) => JSRef!.CallAsync<Torrent?>("get", torrentId);
+        /// <summary>
+        /// Start downloading a new torrent.<br />
+        /// </summary>
+        /// <param name="torrentId"></param>
+        /// <param name="options"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public Torrent Add(Union<string, byte[], Uint8Array> torrentId, AddTorrentOptions options, Action<Torrent> callback) => JSRef!.Call<Torrent>("add", torrentId, options, Callback.CreateOne(callback));
         /// <summary>
         /// Start downloading a new torrent.<br />
         /// </summary>
         /// <param name="torrentId"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public Torrent Add(Union<string, byte[], Uint8Array> torrentId, Action<Torrent> callback, AddTorrentOptions? options = null) => JSRef.Call<Torrent>("add", torrentId, Callback.CreateOne(callback), options);
+        public Torrent Add(Union<string, byte[], Uint8Array> torrentId, Action<Torrent> callback) => JSRef!.Call<Torrent>("add", torrentId, Callback.CreateOne(callback));
+        /// <summary>
+        /// Start downloading a new torrent.<br />
+        /// </summary>
+        /// <param name="torrentId"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public Torrent Add(Union<string, byte[], Uint8Array> torrentId, AddTorrentOptions options) => JSRef!.Call<Torrent>("add", torrentId, options);
+        /// <summary>
+        /// Start downloading a new torrent.<br />
+        /// </summary>
+        /// <param name="torrentId"></param>
+        /// <param name="options"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public Torrent Add(Union<string, byte[], Uint8Array> torrentId, AddTorrentOptions options, Action callback) => JSRef!.Call<Torrent>("add", torrentId, options, Callback.CreateOne(callback));
         /// <summary>
         /// Start downloading a new torrent.<br />
         /// </summary>
         /// <param name="torrentId"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public Torrent Add(Union<string, byte[], Uint8Array> torrentId, Action callback, AddTorrentOptions? options = null) => JSRef.Call<Torrent>("add", torrentId, Callback.CreateOne(callback), options);
+        public Torrent Add(Union<string, byte[], Uint8Array> torrentId, Action callback) => JSRef!.Call<Torrent>("add", torrentId, Callback.CreateOne(callback));
         /// <summary>
         /// Start downloading a new torrent.<br />
         /// </summary>
         /// <param name="torrentId"></param>
         /// <returns></returns>
-        public Torrent Add(Union<string, byte[], Uint8Array> torrentId, AddTorrentOptions? options = null) =>
-            options == null ? JSRef.Call<Torrent>("add", torrentId) : JSRef.Call<Torrent>("add", torrentId, options);
+        public Torrent Add(Union<string, byte[], Uint8Array> torrentId) => JSRef!.Call<Torrent>("add", torrentId);
         /// <summary>
         /// Start downloading a new torrent.<br />
         /// </summary>
         /// <param name="torrentId"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
         public Task<Torrent> AddAsync(Union<string, byte[], Uint8Array> torrentId, AddTorrentOptions? options = null)
         {
             var tcs = new TaskCompletionSource<Torrent>();
-            JSRef!.CallVoid("add", torrentId, Callback.CreateOne<Torrent>((torrent) => { tcs.TrySetResult(torrent); }), options);
+            if (options == null)
+            {
+                JSRef!.CallVoid("add", torrentId, Callback.CreateOne<Torrent>((torrent) => { tcs.TrySetResult(torrent); }));
+            }
+            else
+            {
+                JSRef!.CallVoid("add", torrentId, options, Callback.CreateOne<Torrent>((torrent) => { tcs.TrySetResult(torrent); }));
+            }
             return tcs.Task;
         }
         /// <summary>
@@ -210,16 +240,22 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <param name="torrentId"></param>
         /// <returns>Task that completes when the torrent is completely removed</returns>
         public Task Remove(string torrentId) => JSRef!.CallVoidAsync("remove", torrentId);
+        /// <summary>
+        /// Remove a torrent from the client. Destroy all connections to peers and delete all saved file metadata.
+        /// </summary>
+        /// <param name="torrentId"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
         public Task Remove(string torrentId, DestroyTorrentOptions options) => JSRef!.CallVoidAsync("remove", torrentId, options);
         /// <summary>
         /// Destroy the client, including all torrents and connections to peers. If callback is specified, it will be called when the client has gracefully closed.
         /// </summary>
-        public void Destroy() => JSRef.CallVoid("destroy");
+        public void Destroy() => JSRef!.CallVoid("destroy");
         /// <summary>
         /// Destroy the client, including all torrents and connections to peers. If callback is specified, it will be called when the client has gracefully closed.
         /// </summary>
         /// <param name="callback"></param>
-        public void Destroy(ActionCallback callback) => JSRef.CallVoid("destroy", callback);
+        public void Destroy(ActionCallback callback) => JSRef!.CallVoid("destroy", callback);
         /// <summary>
         /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
         /// </summary>
@@ -234,11 +270,11 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Set global upload throttle rate
         /// </summary>
         /// <param name="rate">rate (must be bigger or equal than zero, or -1 to disable throttling)</param>
-        public void ThrottleUpload(float rate) => JSRef.CallVoid("throttleUpload", rate);
+        public void ThrottleUpload(float rate) => JSRef!.CallVoid("throttleUpload", rate);
         /// <summary>
         /// Set global download throttle rate.
         /// </summary>
         /// <param name="rate">rate (must be bigger or equal than zero, or -1 to disable throttling)</param>
-        public void ThrottleDownload(float rate) => JSRef.CallVoid("throttleDownload", rate);
+        public void ThrottleDownload(float rate) => JSRef!.CallVoid("throttleDownload", rate);
     }
 }
