@@ -15,7 +15,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// A dictionary containing the latest announce message from each tracker<br />
         /// non-spec custom property added in LostBeard build of WebTorrents to allow tracking swarm data
         /// </summary>
-        public Dictionary<string, TrackerAnnounced> Announced => JSRef.Get<Dictionary<string, TrackerAnnounced>>("announced");
+        public Dictionary<string, TrackerAnnounced> Announced => JSRef!.Get<Dictionary<string, TrackerAnnounced>>("announced");
         /// <summary>
         /// Returns the property instanceId, setting to a new value if not set
         /// </summary>
@@ -41,166 +41,166 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Torrent discovery>br />
         /// Not available until after torrent ready event is emitted
         /// </summary>
-        public Discovery Discovery => JSRef.Get<Discovery>("discovery");
+        public Discovery Discovery => JSRef!.Get<Discovery>("discovery");
         /// <summary>
         /// An array of the torrent's Wire connections
         /// </summary>
-        public Array<Wire> Wires => JSRef.Get<Array<Wire>>("wires");
+        public Array<Wire> Wires => JSRef!.Get<Array<Wire>>("wires");
         /// <summary>
         /// Peers (peers underpin wires)
         /// </summary>
-        public Peer[] Peers => JSRef.Get<JSObject>("_peers").Using(o => JS.Call<Peer[]>("Object.values", o));
+        public Peer[] Peers => JSRef!.Get<JSObject>("_peers").Using(o => JS.Call<Peer[]>("Object.values", o));
         /// <summary>
         /// Torrent storage
         /// </summary>
-        public TorrentStore Store => JSRef.Get<TorrentStore>("store");
+        public TorrentStore Store => JSRef!.Get<TorrentStore>("store");
         /// <summary>
         /// Name of the torrent (string).
         /// </summary>
-        public string Name => JSRef.Get<string>("name");
+        public string Name => JSRef!.Get<string>("name");
         /// <summary>
         /// Info hash of the torrent (string).
         /// </summary>
-        public string InfoHash => JSRef.Get<string>("infoHash");
+        public string InfoHash => JSRef!.Get<string>("infoHash");
         /// <summary>
         /// Magnet URI of the torrent (string).
         /// </summary>
-        public string MagnetURI => JSRef.Get<string>("magnetURI");
+        public string MagnetURI => JSRef!.Get<string>("magnetURI");
         /// <summary>
         /// .torrent file of the torrent (Uint8Array).
         /// </summary>
-        public Uint8Array TorrentFile => JSRef.Get<Uint8Array>("torrentFile");
+        public Uint8Array TorrentFile => JSRef!.Get<Uint8Array>("torrentFile");
         /// <summary>
         /// .torrent file of the torrent (Blob). Useful for creating Blob URLs via URL.createObjectURL(blob)
         /// </summary>
-        public Blob TorrentFileBlob => JSRef.Get<Blob>("torrentFileBlob");
+        public Blob TorrentFileBlob => JSRef!.Get<Blob>("torrentFileBlob");
         /// <summary>
         /// Array of all tracker servers. Each announce is an URL (string).
         /// </summary>
-        public Array<string> Announce => JSRef.Get<Array<string>>("announce");
+        public Array<string> Announce => JSRef!.Get<Array<string>>("announce");
         /// <summary>
         /// Array of all files in the torrent. See documentation for File below to learn what methods/properties files have.
         /// </summary>
-        public Array<File> Files => JSRef.Get<Array<File>>("files");
+        public Array<File> Files => JSRef!.Get<Array<File>>("files");
         /// <summary>
         /// Returns the number of files in the torrent
         /// </summary>
-        public int FilesLength => JSRef.Get<int>("files.length");
+        public int FilesLength => JSRef!.Get<int>("files.length");
         /// <summary>
         /// Array of all pieces in the torrent. See documentation for Piece below to learn what properties pieces have. Some pieces can be null.
         /// </summary>
-        public Array<Piece?> Pieces => JSRef.Get<Array<Piece?>>("pieces");
+        public Array<Piece?> Pieces => JSRef!.Get<Array<Piece?>>("pieces");
         /// <summary>
         /// Length in bytes of every piece but the last one.
         /// </summary>
-        public long PieceLength => JSRef.Get<long>("pieceLength");
+        public long PieceLength => JSRef!.Get<long>("pieceLength");
         /// <summary>
         /// Length in bytes of the last piece (<= of torrent.pieceLength).
         /// </summary>
-        public long LastPieceLength => JSRef.Get<long>("lastPieceLength");
+        public long LastPieceLength => JSRef!.Get<long>("lastPieceLength");
         /// <summary>
         /// Time remaining for download to complete (in milliseconds).
         /// </summary>
-        public double? TimeRemaining => JSRef.Get<double?>("timeRemaining");
+        public double? TimeRemaining => JSRef!.Get<double?>("timeRemaining");
         /// <summary>
         /// Total bytes received from peers (including invalid data).
         /// </summary>
-        public long Received => JSRef.Get<long>("received");
+        public long Received => JSRef!.Get<long>("received");
         /// <summary>
         /// Total verified bytes received from peers.
         /// </summary>
-        public long Downloaded => JSRef.Get<long>("downloaded");
+        public long Downloaded => JSRef!.Get<long>("downloaded");
         /// <summary>
         /// Total bytes uploaded to peers.
         /// </summary>
-        public long Uploaded => JSRef.Get<long>("uploaded");
+        public long Uploaded => JSRef!.Get<long>("uploaded");
         /// <summary>
         /// Torrent download speed, in bytes/sec.
         /// </summary>
-        public double DownloadSpeed => JSRef.Get<double>("downloadSpeed");
+        public double DownloadSpeed => JSRef!.Get<double>("downloadSpeed");
         /// <summary>
         /// Torrent upload speed, in bytes/sec.
         /// </summary>
-        public double UploadSpeed => JSRef.Get<double>("uploadSpeed");
+        public double UploadSpeed => JSRef!.Get<double>("uploadSpeed");
         /// <summary>
         /// Torrent download progress, from 0 to 1.
         /// </summary>
-        public double Progress => JSRef.Get<double>("progress");
+        public double Progress => JSRef!.Get<double>("progress");
         /// <summary>
         /// Torrent "seed ratio" (uploaded / downloaded).<br />
         /// This can be null. If null, this property will return 0;
         /// </summary>
-        public double Ratio => JSRef.Get<double?>("ratio") ?? 0;
+        public double Ratio => JSRef!.Get<double?>("ratio") ?? 0;
         /// <summary>
         /// Number of peers in the torrent swarm.
         /// </summary>
-        public int NumPeers => JSRef.Get<int>("numPeers");
+        public int NumPeers => JSRef!.Get<int>("numPeers");
         /// <summary>
         /// Max number of simultaneous connections per web seed, as passed in the options.
         /// </summary>
-        public int MaxWebConns => JSRef.Get<int>("maxWebConns");
+        public int MaxWebConns => JSRef!.Get<int>("maxWebConns");
         /// <summary>
         /// Torrent download location.
         /// </summary>
-        public string Path => JSRef.Get<string>("path");
+        public string Path => JSRef!.Get<string>("path");
         /// <summary>
         /// True when the torrent is ready to be used (i.e. metadata is available and store is ready).
         /// </summary>
-        public bool Ready => JSRef.Get<bool>("ready");
+        public bool Ready => JSRef!.Get<bool>("ready");
         /// <summary>
         /// True when the torrent has stopped connecting to new peers. Note that this does not pause new incoming connections, nor does it pause the streams of existing connections or their wires.
         /// </summary>
-        public bool Paused => JSRef.Get<bool>("paused");
+        public bool Paused => JSRef!.Get<bool>("paused");
         /// <summary>
         /// True when all the torrent files have been downloaded.
         /// </summary>
-        public bool Done => JSRef.Get<bool>("done");
+        public bool Done => JSRef!.Get<bool>("done");
         /// <summary>
         /// Sum of the files length (in bytes).
         /// </summary>
-        public long Length => JSRef.Get<long>("length");
+        public long Length => JSRef!.Get<long>("length");
         /// <summary>
         /// Date of creation of the torrent (as a Date object).
         /// </summary>
-        public DateTime Created => JSRef.Get<DateTime>("created");
+        public DateTime Created => JSRef!.Get<DateTime>("created");
         /// <summary>
         /// Author of the torrent (string).
         /// </summary>
-        public string CreatedBy => JSRef.Get<string>("createdBy");
+        public string CreatedBy => JSRef!.Get<string>("createdBy");
         /// <summary>
         /// WebTorrent client
         /// </summary>
-        public WebTorrent Client => JSRef.Get<WebTorrent>("client");
+        public WebTorrent Client => JSRef!.Get<WebTorrent>("client");
         /// <summary>
         /// A comment optionally set by the author (string).
         /// </summary>
-        public string Comment => JSRef.Get<string>("comment");
+        public string Comment => JSRef!.Get<string>("comment");
         /// <summary>
         /// Bitfield representing the pieces we already have
         /// </summary>
-        public Bitfield? Bitfield => JSRef.Get<Bitfield>("bitfield");
+        public Bitfield? Bitfield => JSRef!.Get<Bitfield>("bitfield");
         /// <summary>
         /// True if this Torrent has been destroyed
         /// </summary>
-        public bool Destroyed => JSRef.Get<bool>("destroyed");
+        public bool Destroyed => JSRef!.Get<bool>("destroyed");
         /// <summary>
         /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
         /// </summary>
-        public void Destroy(DestroyTorrentOptions options) => JSRef.CallVoid("destroy", options);
+        public void Destroy(DestroyTorrentOptions options) => JSRef!.CallVoid("destroy", options);
         /// <summary>
         /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
         /// </summary>
         /// <param name="options"></param>
         /// <param name="callback"></param>
-        public void Destroy(DestroyTorrentOptions options, ActionCallback callback) => JSRef.CallVoid("destroy", options, callback);
+        public void Destroy(DestroyTorrentOptions options, ActionCallback callback) => JSRef!.CallVoid("destroy", options, callback);
         /// <summary>
         /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
         /// </summary>
-        public void Destroy() => JSRef.CallVoid("destroy");
+        public void Destroy() => JSRef!.CallVoid("destroy");
         /// <summary>
         /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
         /// </summary>
-        public void Destroy(ActionCallback callback) => JSRef.CallVoid("destroy", callback);
+        public void Destroy(ActionCallback callback) => JSRef!.CallVoid("destroy", callback);
         /// <summary>
         /// Remove the torrent from its client. Destroy all connections to peers and delete all saved file metadata.
         /// </summary>
@@ -225,7 +225,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Selected pieces for download
         /// </summary>
-        public Selections Selections => JSRef.Get<Selections>("_selections");
+        public Selections Selections => JSRef!.Get<Selections>("_selections");
         /// <summary>
         /// Selects a range of pieces to prioritize starting with start and ending with end (both inclusive) at the given priority. notify is an optional callback to be called when the selection is updated with new data.
         /// </summary>
@@ -233,42 +233,42 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <param name="end"></param>
         /// <param name="priority"></param>
         /// <param name="notify"></param>
-        public void Select(int start, int end, long priority = 0, Callback? notify = null) => JSRef.CallVoid("select", start, end, priority, notify);
+        public void Select(int start, int end, long priority = 0, Callback? notify = null) => JSRef!.CallVoid("select", start, end, priority, notify);
         /// <summary>
         /// Deprioritizes a range of previously selected pieces.
         /// </summary>
         /// <param name="start"></param>
         /// <param name="end"></param>
-        public void Deselect(int start, int end) => JSRef.CallVoid("deselect", start, end);
+        public void Deselect(int start, int end) => JSRef!.CallVoid("deselect", start, end);
         /// <summary>
         /// Marks a range of pieces as critical priority to be downloaded ASAP. From start to end (both inclusive).
         /// </summary>
         /// <param name="start"></param>
         /// <param name="end"></param>
-        public void Critical(int start, int end) => JSRef.CallVoid("critical", start, end);
+        public void Critical(int start, int end) => JSRef!.CallVoid("critical", start, end);
         /// <summary>
         /// Temporarily stop connecting to new peers. Note that this does not pause new incoming connections, nor does it pause the streams of existing connections or their wires.
         /// </summary>
-        public void Pause() => JSRef.CallVoid("pause");
+        public void Pause() => JSRef!.CallVoid("pause");
         /// <summary>
         /// Remove a peer from the torrent swarm. This is advanced functionality. Normally, you should not need to call torrent.removePeer() manually. WebTorrent will automatically remove peers from the torrent swarm when they're slow or don't have pieces that are needed.
         /// </summary>
         /// <param name="peerId"></param>
-        public void RemovePeer(string peerId) => JSRef.CallVoid("removePeer", peerId);
+        public void RemovePeer(string peerId) => JSRef!.CallVoid("removePeer", peerId);
         /// <summary>
         /// Add a web seed to the torrent swarm.<br />
         /// Aeb seed servers must have proper CORS (Cross-origin resource sharing) headers so that data can be fetched across domain.
         /// </summary>
         /// <param name="url"></param>
-        public void AddWebSeed(string url) => JSRef.CallVoid("addWebSeed", url);
+        public void AddWebSeed(string url) => JSRef!.CallVoid("addWebSeed", url);
         /// <summary>
         /// Resume connecting to new peers.
         /// </summary>
-        public void Resume() => JSRef.CallVoid("resume");
+        public void Resume() => JSRef!.CallVoid("resume");
         /// <summary>
         /// Emitted when the info hash of the torrent has been determined.
         /// </summary>
-        public JSEventCallback OnInfoHash { get => new JSEventCallback("infohash", On, RemoveListener); set { } }
+        public JSEventCallback OnInfoHash { get => new JSEventCallback("infoHash", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when the metadata of the torrent has been determined. This includes the full contents of the .torrent file, including list of files, torrent length, piece hashes, piece length, etc.
         /// </summary>
@@ -344,7 +344,8 @@ namespace SpawnDev.BlazorJS.WebTorrents
             files.ToArray().UsingEach(x => x.Select());
         }
         /// <summary>
-        /// Returns when the torrent is ready
+        /// Returns when the torrent is ready<br/>
+        /// 
         /// </summary>
         /// <returns></returns>
         public async Task WhenReady()

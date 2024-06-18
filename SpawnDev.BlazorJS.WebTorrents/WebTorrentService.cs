@@ -458,8 +458,8 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Destroys all torrents if hasBeenConfirmed == true, returns the number of torrents that will be or were affected
         /// </summary>
-        /// <param name="hasBeenConfirmed">Torrents will not actualyl be destroyed if hasBeenConfirmed != true</param>
-        /// <param name="predicate">Allows selcting the torrents to destroy based on a predicate method</param>
+        /// <param name="hasBeenConfirmed">Torrents will not actually be destroyed if hasBeenConfirmed != true</param>
+        /// <param name="predicate">Allows selecting the torrents to destroy based on a predicate method</param>
         /// <returns></returns>
         public int RemoveAllTorrents(bool hasBeenConfirmed, Func<Torrent, bool>? predicate = null)
         {

@@ -179,7 +179,13 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <param name="options"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public Torrent Add(Union<string, byte[], Uint8Array> torrentId, AddTorrentOptions options, Action<Torrent> callback) => JSRef!.Call<Torrent>("add", torrentId, options, Callback.CreateOne(callback));
+        public Torrent Add(Union<string, byte[], Uint8Array> torrentId, AddTorrentOptions? options = null, Action<Torrent>? callback = null)
+        {
+            if (options != null && callback != null) return JSRef!.Call<Torrent>("add", torrentId, options, Callback.CreateOne(callback));
+            if (options == null && callback != null) return JSRef!.Call<Torrent>("add", torrentId, Callback.CreateOne(callback));
+            if (options != null && callback == null) return JSRef!.Call<Torrent>("add", torrentId, options);
+            return JSRef!.Call<Torrent>("add", torrentId);
+        }
         /// <summary>
         /// Start downloading a new torrent.<br />
         /// </summary>
@@ -187,34 +193,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <param name="callback"></param>
         /// <returns></returns>
         public Torrent Add(Union<string, byte[], Uint8Array> torrentId, Action<Torrent> callback) => JSRef!.Call<Torrent>("add", torrentId, Callback.CreateOne(callback));
-        /// <summary>
-        /// Start downloading a new torrent.<br />
-        /// </summary>
-        /// <param name="torrentId"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        public Torrent Add(Union<string, byte[], Uint8Array> torrentId, AddTorrentOptions options) => JSRef!.Call<Torrent>("add", torrentId, options);
-        /// <summary>
-        /// Start downloading a new torrent.<br />
-        /// </summary>
-        /// <param name="torrentId"></param>
-        /// <param name="options"></param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        public Torrent Add(Union<string, byte[], Uint8Array> torrentId, AddTorrentOptions options, Action callback) => JSRef!.Call<Torrent>("add", torrentId, options, Callback.CreateOne(callback));
-        /// <summary>
-        /// Start downloading a new torrent.<br />
-        /// </summary>
-        /// <param name="torrentId"></param>
-        /// <param name="callback"></param>
-        /// <returns></returns>
-        public Torrent Add(Union<string, byte[], Uint8Array> torrentId, Action callback) => JSRef!.Call<Torrent>("add", torrentId, Callback.CreateOne(callback));
-        /// <summary>
-        /// Start downloading a new torrent.<br />
-        /// </summary>
-        /// <param name="torrentId"></param>
-        /// <returns></returns>
-        public Torrent Add(Union<string, byte[], Uint8Array> torrentId) => JSRef!.Call<Torrent>("add", torrentId);
         /// <summary>
         /// Start downloading a new torrent.<br />
         /// </summary>
