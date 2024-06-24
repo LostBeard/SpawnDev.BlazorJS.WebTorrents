@@ -112,6 +112,22 @@ namespace SpawnDev.BlazorJS.WebTorrents
             callbackFN.JSRef!.Set("prototype.name", extensionName);
             JSRef!.CallVoid("use", callback);
         }
+        public void Use(string extensionName, Func<Wire, SimpleExtension> extensionConstructor)
+        {
+            // the "use" method checks for extension.prototype.name
+            var callback = new FuncCallback<Wire, SimpleExtension>(extensionConstructor, true);
+            using var callbackFN = JS.ReturnMe<Function>(callback)!;
+            callbackFN.JSRef!.Set("prototype.name", extensionName);
+            JSRef!.CallVoid("use", callback);
+        }
+        public void Use(string extensionName, Func<SimpleExtension> extensionConstructor)
+        {
+            // the "use" method checks for extension.prototype.name
+            var callback = new FuncCallback<SimpleExtension>(extensionConstructor, true);
+            using var callbackFN = JS.ReturnMe<Function>(callback)!;
+            callbackFN.JSRef!.Set("prototype.name", extensionName);
+            JSRef!.CallVoid("use", callback);
+        }
         /// <summary>
         /// Tell the wire to use Extension constructor
         /// </summary>
@@ -122,6 +138,18 @@ namespace SpawnDev.BlazorJS.WebTorrents
         {
             var torrentCopy = torrent.JSRefCopy<Torrent>();
             Use(extensionName, (wire) => extensionConstructor(torrentCopy, wire));
+        }
+        /// <summary>
+        /// Creates an instance of SimpleExtension, attaches it to the wire and returns it.
+        /// </summary>
+        /// <param name="torrent"></param>
+        /// <param name="extensionName"></param>
+        /// <returns></returns>
+        public SimpleExtension Use(Torrent torrent, string extensionName)
+        {
+            var simpleExtension = new SimpleExtension(torrent, this, extensionName);
+            Use(extensionName, () => simpleExtension);
+            return simpleExtension;
         }
         /// <summary>
         /// Send data to the named extension on the other end of the wire<br />

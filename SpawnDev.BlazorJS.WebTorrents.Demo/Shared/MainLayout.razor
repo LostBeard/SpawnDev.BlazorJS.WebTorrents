@@ -7,7 +7,7 @@
     <RadzenHeader>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
             <RadzenSidebarToggle Style="margin: 0;" Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
-            <div>
+            <div style="width: 100%;">
                 <RadzenMenu Click="OnMenuClicked">
                     <RadzenMenuItem Text="Torrent" Image="favicon.png">
                         <RadzenMenuItem Text="New Seed" Value="@("seed_files")" Icon="add_circle"></RadzenMenuItem>
