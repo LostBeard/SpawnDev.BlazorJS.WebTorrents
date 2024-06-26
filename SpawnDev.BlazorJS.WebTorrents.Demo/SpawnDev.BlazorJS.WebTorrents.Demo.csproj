@@ -11,7 +11,7 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.6" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.6" PrivateAssets="all" />
-		<PackageReference Include="Radzen.Blazor" Version="4.29.2" />
+		<PackageReference Include="Radzen.Blazor" Version="4.32.11" />
 		<PackageReference Include="SpawnDev.BlazorJS.VisNetwork" Version="1.2.0" />
 	</ItemGroup>
 	

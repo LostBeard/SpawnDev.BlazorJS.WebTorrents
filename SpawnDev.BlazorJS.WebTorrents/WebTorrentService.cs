@@ -474,8 +474,22 @@ namespace SpawnDev.BlazorJS.WebTorrents
             });
             return ret;
         }
-        string[] ImageExtensions { get; set; } = new string[] { "png", "jpg", "jpeg", "webm" };
+        string[] ImageExtensions { get; set; } = new string[] { ".png", ".jpg", ".jpeg", ".webm" };
         Dictionary<string, string> TorrentPosters = new Dictionary<string, string>();
+        bool GetFilenameIsImage(string filename)
+        {
+            return ImageExtensions.Contains(GetFilenameExtension(filename), StringComparer.OrdinalIgnoreCase);
+        }
+        string GetFilenameExtension(string filename)
+        {
+            var pos = filename.LastIndexOf(".");
+            return pos == -1 ? "" : filename.Substring(filename.LastIndexOf("."));
+        }
+        string GetFilenameBase(string filename)
+        {
+            var pos = filename.LastIndexOf(".");
+            return pos == -1 ? filename : filename.Substring(0, pos);
+        }
         /// <summary>
         /// Returns a base 64 encoded image that represents the torrents poster image if one can be found and is done being downloaded
         /// </summary>
@@ -485,24 +499,22 @@ namespace SpawnDev.BlazorJS.WebTorrents
         {
             if (string.IsNullOrEmpty(torrent.InfoHash)) return "";
             if (TorrentPosters.TryGetValue(torrent.InfoHash, out var r)) return r;
-            using var files = torrent.Files;
-            foreach (File file in files.ToArray())
+            var files = torrent.Files.Using(o => o.ToArray());
+            var imageFiles = files.Where(o => GetFilenameIsImage(o.Name)).ToList();
+            var posterFile = imageFiles.FirstOrDefault(o => GetFilenameBase(o.Name).Equals("poster"));
+            posterFile ??= imageFiles.FirstOrDefault();
+            if (posterFile != null)
             {
-                var ext = !file.Name.Contains(".") ? "" : file.Name.Substring(file.Name.LastIndexOf(".") + 1);
-                var baseName = !file.Name.Contains(".") ? file.Name : file.Name.Substring(0, file.Name.LastIndexOf("."));
-                if (baseName.Equals("poster", StringComparison.OrdinalIgnoreCase) && ImageExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase))
+                if (posterFile.IsDone())
                 {
-                    if (file.IsDone())
-                    {
-                        using var blob = await file.Blob();
-                        var base64Url = await blob.ToDataURLAsync();
-                        file.Dispose();
-                        TorrentPosters[torrent.InfoHash] = base64Url!;
-                        return base64Url!;
-                    }
+                    using var blob = await posterFile.Blob();
+                    var base64Url = await blob.ToDataURLAsync();
+                    TorrentPosters[torrent.InfoHash] = base64Url!;
+                    files.DisposeAll();
+                    return base64Url!;
                 }
-                file.Dispose();
             }
+            files.DisposeAll();
             return "";
         }
     }
