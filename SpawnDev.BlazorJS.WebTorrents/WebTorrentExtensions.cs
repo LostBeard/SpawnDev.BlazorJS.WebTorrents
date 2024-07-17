@@ -18,7 +18,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
             using var navigator = JS.Get<Navigator>("navigator");
             using var storageManager = navigator.Storage;
             using var rootDir = await storageManager.GetDirectory();
-            var entries = await rootDir.Values();
+            var entries = await rootDir.ValuesList();
             foreach (var entry in entries!)
             {
                 var pos = entry.Name.LastIndexOf(" - ");
@@ -46,7 +46,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
             using var navigator = JS.Get<Navigator>("navigator");
             using var storageManager = navigator.Storage;
             using var rootDir = await storageManager.GetDirectory();
-            var entries = await rootDir.Values();
+            var entries = await rootDir.ValuesList();
             foreach (var entry in entries!)
             {
                 var pos = entry.Name.LastIndexOf(" - ");
@@ -74,7 +74,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
             using var navigator = JS.Get<Navigator>("navigator");
             using var storageManager = navigator.Storage;
             using var rootDir = await storageManager.GetDirectory();
-            var entries = await rootDir.Values();
+            var entries = await rootDir.ValuesList();
             foreach (var entry in entries!)
             {
                 var pos = entry.Name.LastIndexOf(" - ");
