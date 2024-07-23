@@ -136,7 +136,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
             StorageDir = await storage.GetDirectory();
 #if DEBUG
             JS.Set("_wt", Client);
-            JS.Set("_clearTorrentStorage", new ActionCallback<string?>(async (string? name) =>
+            JS.Set("_clearTorrentStorage", Callback.Create(async (string? name) =>
             {
                 if (string.IsNullOrEmpty(name))
                 {
@@ -147,7 +147,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
                     await Client.ClearTorrentStorage(name);
                 }
             }));
-            JS.Set("_getTorrentStorage", new AsyncFuncCallback<List<string>>(Client.GetTorrentStorageNames));
+            JS.Set("_getTorrentStorage", Callback.Create(Client.GetTorrentStorageNames));
 #endif
             if (EnableRecent)
             {
