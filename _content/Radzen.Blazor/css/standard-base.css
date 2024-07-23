@@ -10181,6 +10181,19 @@ p-button[type] {
   --rz-chip-font-size: 0.875rem;
 }
 
+.rz-dropzone {
+  user-select: none;
+}
+
+.rz-dropzone-item {
+  user-select: none;
+  cursor: grab;
+}
+
+.rz-dragging {
+  cursor: grabbing;
+}
+
 :root {
   --rz-input-font-size: var(--rz-body-font-size);
   --rz-input-height: 2.25rem;
@@ -10219,17 +10232,17 @@ p-button[type] {
   outline-offset: var(--rz-input-focus-outline-offset);
 }
 
-div:not(.rz-form-field-content) > .rz-colorpicker.rz-state-disabled, div:not(.rz-form-field-content) > .rz-spinner.rz-state-disabled, .rz-calendar.rz-state-disabled div:not(.rz-form-field-content) > .rz-inputtext, div:not(.rz-form-field-content) > .rz-listbox.rz-state-disabled, div:not(.rz-form-field-content) > .rz-autocomplete-input:disabled, div:not(.rz-form-field-content) > .rz-state-disabled.rz-autocomplete, div:not(.rz-form-field-content) > .rz-state-disabled.rz-multiselect, div:not(.rz-form-field-content) > .rz-state-disabled.rz-dropdown, div:not(.rz-form-field-content) > .rz-colorpicker:disabled, .rz-lookup-search div:not(.rz-form-field-content) > input:disabled, div:not(.rz-form-field-content) > .rz-spinner:disabled, .rz-calendar div:not(.rz-form-field-content) > .rz-inputtext:disabled, div:not(.rz-form-field-content) > .rz-multiselect:disabled, div:not(.rz-form-field-content) > .rz-dropdown:disabled, div:not(.rz-form-field-content) > .mask:disabled, div:not(.rz-form-field-content) > .rz-textarea:disabled, div:not(.rz-form-field-content) > .rz-textbox:disabled {
+div:not(.rz-form-field-content) > .rz-colorpicker.rz-state-disabled, div:not(.rz-form-field-content) > .rz-spinner.rz-state-disabled, div:not(.rz-form-field-content) > .rz-listbox.rz-state-disabled, div:not(.rz-form-field-content) > .rz-autocomplete-input:disabled, div:not(.rz-form-field-content) > .rz-state-disabled.rz-autocomplete, div:not(.rz-form-field-content) > .rz-state-disabled.rz-multiselect, div:not(.rz-form-field-content) > .rz-state-disabled.rz-dropdown, div:not(.rz-form-field-content) > .rz-colorpicker:disabled, .rz-lookup-search div:not(.rz-form-field-content) > input:disabled, div:not(.rz-form-field-content) > .rz-spinner:disabled, .rz-calendar div:not(.rz-form-field-content) > .rz-inputtext:disabled, div:not(.rz-form-field-content) > .rz-multiselect:disabled, div:not(.rz-form-field-content) > .rz-dropdown:disabled, div:not(.rz-form-field-content) > .mask:disabled, div:not(.rz-form-field-content) > .rz-textarea:disabled, div:not(.rz-form-field-content) > .rz-textbox:disabled {
   color: var(--rz-input-disabled-color);
   box-shadow: var(--rz-input-disabled-shadow);
   background-color: var(--rz-input-disabled-background-color);
   border: var(--rz-input-disabled-border);
   opacity: var(--rz-input-disabled-opacity);
 }
-div:not(.rz-form-field-content) > .rz-colorpicker.rz-state-disabled::placeholder, div:not(.rz-form-field-content) > .rz-spinner.rz-state-disabled::placeholder, .rz-calendar.rz-state-disabled div:not(.rz-form-field-content) > .rz-inputtext::placeholder, div:not(.rz-form-field-content) > .rz-listbox.rz-state-disabled::placeholder, div:not(.rz-form-field-content) > .rz-autocomplete-input:disabled::placeholder, div:not(.rz-form-field-content) > .rz-state-disabled.rz-autocomplete::placeholder, div:not(.rz-form-field-content) > .rz-state-disabled.rz-multiselect::placeholder, div:not(.rz-form-field-content) > .rz-state-disabled.rz-dropdown::placeholder, div:not(.rz-form-field-content) > .rz-colorpicker:disabled::placeholder, .rz-lookup-search div:not(.rz-form-field-content) > input:disabled::placeholder, div:not(.rz-form-field-content) > .rz-spinner:disabled::placeholder, .rz-calendar div:not(.rz-form-field-content) > .rz-inputtext:disabled::placeholder, div:not(.rz-form-field-content) > .rz-multiselect:disabled::placeholder, div:not(.rz-form-field-content) > .rz-dropdown:disabled::placeholder, div:not(.rz-form-field-content) > .mask:disabled::placeholder, div:not(.rz-form-field-content) > .rz-textarea:disabled::placeholder, div:not(.rz-form-field-content) > .rz-textbox:disabled::placeholder {
+div:not(.rz-form-field-content) > .rz-colorpicker.rz-state-disabled::placeholder, div:not(.rz-form-field-content) > .rz-spinner.rz-state-disabled::placeholder, div:not(.rz-form-field-content) > .rz-listbox.rz-state-disabled::placeholder, div:not(.rz-form-field-content) > .rz-autocomplete-input:disabled::placeholder, div:not(.rz-form-field-content) > .rz-state-disabled.rz-autocomplete::placeholder, div:not(.rz-form-field-content) > .rz-state-disabled.rz-multiselect::placeholder, div:not(.rz-form-field-content) > .rz-state-disabled.rz-dropdown::placeholder, div:not(.rz-form-field-content) > .rz-colorpicker:disabled::placeholder, .rz-lookup-search div:not(.rz-form-field-content) > input:disabled::placeholder, div:not(.rz-form-field-content) > .rz-spinner:disabled::placeholder, .rz-calendar div:not(.rz-form-field-content) > .rz-inputtext:disabled::placeholder, div:not(.rz-form-field-content) > .rz-multiselect:disabled::placeholder, div:not(.rz-form-field-content) > .rz-dropdown:disabled::placeholder, div:not(.rz-form-field-content) > .mask:disabled::placeholder, div:not(.rz-form-field-content) > .rz-textarea:disabled::placeholder, div:not(.rz-form-field-content) > .rz-textbox:disabled::placeholder {
   color: var(--rz-input-disabled-placeholder-color);
 }
-div:not(.rz-form-field-content) > .rz-colorpicker.rz-state-disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-spinner.rz-state-disabled .rz-inputtext, .rz-calendar.rz-state-disabled div:not(.rz-form-field-content) > .rz-inputtext .rz-inputtext, div:not(.rz-form-field-content) > .rz-listbox.rz-state-disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-autocomplete-input:disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-state-disabled.rz-autocomplete .rz-inputtext, div:not(.rz-form-field-content) > .rz-state-disabled.rz-multiselect .rz-inputtext, div:not(.rz-form-field-content) > .rz-state-disabled.rz-dropdown .rz-inputtext, div:not(.rz-form-field-content) > .rz-colorpicker:disabled .rz-inputtext, .rz-lookup-search div:not(.rz-form-field-content) > input:disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-spinner:disabled .rz-inputtext, .rz-calendar div:not(.rz-form-field-content) > .rz-inputtext:disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-multiselect:disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-dropdown:disabled .rz-inputtext, div:not(.rz-form-field-content) > .mask:disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-textarea:disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-textbox:disabled .rz-inputtext {
+div:not(.rz-form-field-content) > .rz-colorpicker.rz-state-disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-spinner.rz-state-disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-listbox.rz-state-disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-autocomplete-input:disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-state-disabled.rz-autocomplete .rz-inputtext, div:not(.rz-form-field-content) > .rz-state-disabled.rz-multiselect .rz-inputtext, div:not(.rz-form-field-content) > .rz-state-disabled.rz-dropdown .rz-inputtext, div:not(.rz-form-field-content) > .rz-colorpicker:disabled .rz-inputtext, .rz-lookup-search div:not(.rz-form-field-content) > input:disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-spinner:disabled .rz-inputtext, .rz-calendar div:not(.rz-form-field-content) > .rz-inputtext:disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-multiselect:disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-dropdown:disabled .rz-inputtext, div:not(.rz-form-field-content) > .mask:disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-textarea:disabled .rz-inputtext, div:not(.rz-form-field-content) > .rz-textbox:disabled .rz-inputtext {
   background-color: var(--rz-input-disabled-background-color);
   color: var(--rz-input-disabled-color);
 }
@@ -10261,8 +10274,7 @@ input::placeholder {
   transition: var(--rz-input-transition);
   outline: none;
 }
-.rz-form-field-content > *, .rz-form-field-content > .rz-autocomplete, .rz-form-field-content input, .rz-form-field-content .rz-inputtext {
-  border: 0;
+.rz-form-field-content > *, .rz-form-field-content > .rz-autocomplete, .rz-form-field-content input, .rz-form-field-content .rz-inputtext, .rz-form-field-content .rz-calendar.rz-state-disabled .rz-inputtext {
   box-shadow: none;
   background-color: transparent;
   outline: none;
@@ -11859,6 +11871,9 @@ a:focus-visible .rz-fieldset-toggler {
 .rz-dropdown-clear-icon:hover {
   opacity: 1;
 }
+.rz-state-disabled > .rz-dropdown-clear-icon {
+  display: none;
+}
 
 .rz-html-editor-dropdown-items, .rz-splitbutton-menu, .rz-autocomplete-panel, .rz-multiselect-panel, .rz-dropdown-panel {
   position: absolute;
@@ -12596,6 +12611,17 @@ a:focus-visible .rz-fieldset-toggler {
   box-shadow: none;
   color: var(--rz-datepicker-trigger-icon-hover-color);
 }
+.rz-calendar.rz-state-disabled .rz-inputtext {
+  color: var(--rz-input-disabled-color);
+  box-shadow: var(--rz-input-disabled-shadow);
+  background-color: var(--rz-input-disabled-background-color);
+  border: var(--rz-input-disabled-border);
+  opacity: var(--rz-input-disabled-opacity);
+}
+.rz-calendar.rz-state-disabled .rz-inputtext::placeholder {
+  color: var(--rz-input-disabled-placeholder-color);
+}
+
 .rz-calendar-inline {
   background-color: var(--rz-datepicker-panel-background-color);
   border: var(--rz-input-border);
@@ -12619,6 +12645,8 @@ a:focus-visible .rz-fieldset-toggler {
   border: none;
   box-shadow: none;
   cursor: initial;
+  opacity: 1;
+  color: var(--rz-input-disabled-color);
 }
 .rz-datepicker-trigger:not(.rz-state-disabled):hover:not(:active), .rz-datepicker-trigger:not(.rz-state-disabled):hover:active {
   background-color: transparent;
@@ -12921,9 +12949,6 @@ a:focus-visible .rz-fieldset-toggler {
   vertical-align: middle;
   -webkit-appearance: none !important;
 }
-.rz-fileupload .rz-button[disabled] {
-  opacity: 0.5;
-}
 
 .rz-fileupload-choose {
   position: relative;
@@ -12940,6 +12965,9 @@ a:focus-visible .rz-fieldset-toggler {
   opacity: 0;
   min-height: 100%;
   cursor: pointer;
+}
+.rz-fileupload-choose.rz-state-disabled input[type=file] {
+  cursor: default;
 }
 .rz-fileupload-choose:not(.rz-state-disabled) {
   background-color: var(--rz-upload-choose-background-color);
@@ -14076,11 +14104,6 @@ a:focus-visible .rz-fieldset-toggler {
   background-color: var(--rz-paginator-numeric-button-hover-background-color);
   color: var(--rz-paginator-numeric-button-hover-color);
 }
-.rz-paginator-element.rz-state-focused,
-.rz-paginator-page.rz-state-focused {
-  background-color: var(--rz-paginator-numeric-button-hover-background-color);
-  color: var(--rz-paginator-numeric-button-hover-color);
-}
 
 .rz-paginator-bottom {
   border-top: var(--rz-paginator-border);
@@ -14610,6 +14633,8 @@ a:focus-visible .rz-fieldset-toggler {
 }
 
 .rz-scheduler {
+  container-name: scheduler;
+  container-type: inline-size;
   display: flex;
   height: 400px;
   flex-direction: column;
@@ -14646,14 +14671,18 @@ a:focus-visible .rz-fieldset-toggler {
   padding: var(--rz-scheduler-slot-title-padding);
 }
 
+.rz-slot-hours {
+  flex: 0 0 5rem;
+}
 .rz-slot-hours .rz-slot-header {
   height: 1.5rem;
   text-align: right;
   font-size: var(--rz-scheduler-header-font-size);
   padding: 0 0.25rem;
-  width: 5rem;
   border-right: 1px solid var(--rz-scheduler-border-color);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rz-slot-minor {
@@ -14714,10 +14743,12 @@ a:focus-visible .rz-fieldset-toggler {
   text-align: center;
   font-size: var(--rz-scheduler-header-font-size);
   padding: var(--rz-scheduler-header-padding);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .rz-view-header .rz-slot-hour-header {
-  flex: none;
-  width: 80px;
+  flex: 0 0 5rem;
 }
 
 .rz-view {
@@ -14738,6 +14769,14 @@ a:focus-visible .rz-fieldset-toggler {
 .rz-view-content:focus-visible {
   outline: var(--rz-scheduler-focus-outline);
   outline-offset: var(--rz-scheduler-focus-outline-offset);
+}
+.rz-view-content:focus-visible .rz-slot:has(.rz-state-focused) {
+  outline: var(--rz-scheduler-focus-outline);
+  outline-offset: var(--rz-scheduler-focus-outline-offset);
+}
+.rz-view-content:focus-visible .rz-event.rz-state-focused .rz-event-content {
+  outline: var(--rz-scheduler-focus-outline);
+  outline-offset: var(--rz-outline-offset);
 }
 
 .rz-slots {
@@ -14857,7 +14896,8 @@ a:focus-visible .rz-fieldset-toggler {
   border-top: none;
 }
 .rz-day-view .rz-view-header {
-  padding-right: 15px;
+  overflow-y: scroll;
+  scrollbar-width: auto;
 }
 
 .rz-week-view-content {
@@ -14884,20 +14924,13 @@ a:focus-visible .rz-fieldset-toggler {
   border-top: none;
 }
 .rz-week-view .rz-view-header {
-  padding-right: 15px;
+  overflow-y: scroll;
+  scrollbar-width: auto;
 }
 
 .rz-month-view .rz-view-content {
   flex: 1;
   flex-direction: column;
-}
-.rz-month-view .rz-view-content:focus-visible .rz-slot:has(.rz-state-focused) {
-  outline: var(--rz-scheduler-focus-outline);
-  outline-offset: var(--rz-scheduler-focus-outline-offset);
-}
-.rz-month-view .rz-view-content:focus-visible .rz-event.rz-state-focused .rz-event-content {
-  outline: var(--rz-scheduler-focus-outline);
-  outline-offset: var(--rz-outline-offset);
 }
 .rz-month-view .rz-slot {
   flex: 1;
@@ -15053,6 +15086,57 @@ a:focus-visible .rz-fieldset-toggler {
   border-radius: var(--rz-border-radius);
 }
 
+@container scheduler (width < 640px) {
+  .rz-scheduler-nav .rz-scheduler-nav-prev-next {
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    margin-right: 0.5rem;
+    order: 1;
+  }
+  .rz-scheduler-nav .rz-scheduler-nav-title {
+    justify-content: center;
+    width: 100%;
+    order: 3;
+  }
+  .rz-scheduler-nav .rz-scheduler-nav-views {
+    margin-bottom: 0.5rem;
+    justify-content: center;
+    flex-grow: 1;
+    order: 2;
+  }
+  .rz-scheduler-nav .rz-scheduler-nav-views .rz-button {
+    flex-grow: 1;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  .rz-scheduler-nav .rz-scheduler-nav-views .rz-button .rz-button-text {
+    display: none;
+  }
+  .rz-slot-hours,
+  .rz-view-header .rz-slot-hour-header {
+    flex: 0 0 3rem;
+  }
+}
+@container scheduler (width < 1400px) {
+  .rz-planner-view {
+    flex-wrap: wrap;
+    flex-direction: unset;
+  }
+  .rz-planner-view .rz-view-header .rz-slot-header {
+    flex: 0 0 auto;
+    width: var(--rz-scheduler-planner-slot-width);
+  }
+  .rz-planner-view .rz-month {
+    flex: 0 0 auto;
+  }
+  .rz-planner-view .rz-month .rz-slots {
+    flex: 0 0 auto;
+  }
+  .rz-planner-view .rz-month .rz-slot {
+    width: var(--rz-scheduler-planner-slot-width);
+    height: var(--rz-scheduler-planner-slot-height);
+  }
+}
 @media (max-width: 576px) {
   .rz-scheduler-nav .rz-scheduler-nav-prev-next {
     justify-content: space-between;
@@ -15079,8 +15163,9 @@ a:focus-visible .rz-fieldset-toggler {
   .rz-scheduler-nav .rz-scheduler-nav-views .rz-button .rz-button-text {
     display: none;
   }
-  .rz-slot-hours .rz-slot-header {
-    width: auto;
+  .rz-slot-hours,
+  .rz-view-header .rz-slot-hour-header {
+    flex: 0 0 3rem;
   }
 }
 @media (max-width: 1399px) {
@@ -19877,7 +19962,7 @@ button.rz-colorpicker-trigger .rzi:before {
   box-shadow: var(--rz-form-field-shadow);
   transition: var(--rz-input-transition);
 }
-.rz-form-field-content > *, .rz-form-field-content > .rz-autocomplete, .rz-form-field-content input, .rz-form-field-content .rz-inputtext {
+.rz-form-field-content > *, .rz-form-field-content > .rz-autocomplete, .rz-form-field-content input, .rz-form-field-content .rz-inputtext, .rz-form-field-content .rz-calendar.rz-state-disabled .rz-inputtext {
   flex: 1;
 }
 .rz-form-field-content .rz-form-field-start,
@@ -19909,10 +19994,14 @@ button.rz-colorpicker-trigger .rzi:before {
 .rz-form-field.rz-state-disabled.rz-variant-outlined .rz-form-field-content, .rz-form-field.rz-state-disabled.rz-variant-filled .rz-form-field-content, .rz-form-field.rz-state-disabled.rz-variant-flat .rz-form-field-content {
   border: var(--rz-input-disabled-border);
 }
-.rz-form-field.rz-state-disabled .rz-state-disabled,
-.rz-form-field.rz-state-disabled :disabled {
+.rz-form-field.rz-state-disabled :not(.rz-button).rz-state-disabled,
+.rz-form-field.rz-state-disabled :not(.rz-button):disabled {
   color: var(--rz-input-disabled-color);
   opacity: 1;
+}
+.rz-form-field.rz-state-disabled :not(.rz-button).rz-state-disabled::placeholder,
+.rz-form-field.rz-state-disabled :not(.rz-button):disabled::placeholder {
+  color: var(--rz-input-disabled-placeholder-color);
 }
 .rz-form-field.rz-variant-outlined .rz-form-field-start, .rz-form-field.rz-variant-filled .rz-form-field-start, .rz-form-field.rz-variant-flat .rz-form-field-start {
   padding-right: 0;
