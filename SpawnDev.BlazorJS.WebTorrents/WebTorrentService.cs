@@ -85,7 +85,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public bool LoadRecentDeselected { get; set; }
         private IServiceProvider ServiceProvider;
         private List<ServiceDescriptor> WireExtensionServices;
-        public Task Ready => _Ready != null ? _Ready : _Ready = InitAsync();
+        public Task Ready => _Ready ??= InitAsync();
         private Task? _Ready = null;
         // FileSystem api data on chrome....
         // chrome://settings/content/all

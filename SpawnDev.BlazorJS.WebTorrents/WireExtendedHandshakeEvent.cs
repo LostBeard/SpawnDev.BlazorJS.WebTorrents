@@ -23,6 +23,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// List of peer supported extensions
         /// </summary>
-        public List<string> Extensions => JSRef!.Get<JSObject>("m").JSRef!.GetPropertyNames();
+        public List<string> Extensions => JSRef!.Get<JSObject>("m").JSRef!.Keys();
     }
 }
