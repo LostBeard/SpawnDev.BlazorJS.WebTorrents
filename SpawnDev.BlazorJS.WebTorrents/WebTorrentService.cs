@@ -67,7 +67,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// The version of the bundled WebTorrent library release<br/>
         /// This is updated manually when the included library is updated
         /// </summary>
-        public string BundledLibraryVersion { get; } = "2.4.2";
+        public string BundledLibraryVersion { get; } = "2.4.14";
         private BlazorJSRuntime JS;
         private bool BeenInit = false;
         internal WebTorrentOptions? WebTorrentOptions { get; set; }
