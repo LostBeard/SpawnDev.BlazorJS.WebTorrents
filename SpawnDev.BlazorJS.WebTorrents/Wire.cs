@@ -37,56 +37,60 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Remote peer id (hex string)
         /// </summary>
-        public string PeerId => JSRef.Get<string>("peerId");
+        public string PeerId => JSRef!.Get<string>("peerId");
         /// <summary>
         /// Remote address or null if not specified. Not available with some peer types.
         /// </summary>
-        public string? RemoteAddress => JSRef.Get<string?>("remoteAddress");
+        public string? RemoteAddress => JSRef!.Get<string?>("remoteAddress");
         /// <summary>
         /// Remote port or null if not specified. Not available with some peer types.
         /// </summary>
-        public ushort? RemotePort => JSRef.Get<ushort?>("remotePort");
+        public ushort? RemotePort => JSRef!.Get<ushort?>("remotePort");
         /// <summary>
         /// The peers peerId as a Uint8Array
         /// </summary>
-        public Uint8Array PeerIdBuffer => JSRef.Get<Uint8Array>("peerId");
+        public Uint8Array PeerIdBuffer => JSRef!.Get<Uint8Array>("peerId");
         /// <summary>
         /// Connection type ('webrtc', 'tcpIncoming', 'tcpOutgoing', 'utpIncoming', 'utpOutgoing', 'webSeed')
         /// </summary>
-        public string Type => JSRef.Get<string>("type");
+        public string Type => JSRef!.Get<string>("type");
         /// <summary>
         /// Total bytes uploaded to peer.
         /// </summary>
-        public long Uploaded => JSRef.Get<long>("uploaded");
+        public long Uploaded => JSRef!.Get<long>("uploaded");
         /// <summary>
         /// Total bytes downloaded from peer.
         /// </summary>
-        public long Downloaded => JSRef.Get<long>("downloaded");
+        public long Downloaded => JSRef!.Get<long>("downloaded");
         /// <summary>
         /// PeerPieces instance
         /// </summary>
-        public Bitfield PeerPieces => JSRef.Get<Bitfield>("peerPieces");
+        public Bitfield PeerPieces => JSRef!.Get<Bitfield>("peerPieces");
         /// <summary>
         /// Returns the extended handshake as a JSObject
         /// </summary>
-        public JSObject ExtendedHandshake => JSRef.Get<JSObject>("extendedHandshake");
+        public JSObject ExtendedHandshake => JSRef!.Get<JSObject>("extendedHandshake");
+        ///// <summary>
+        ///// ExtendedHandshake properties can be set when an extension is created and those properties will be sent to peers when an extendedHandshake occurs
+        ///// </summary>
+        //public ExtendedHandshake ExtendedHandshake => JSRef!.Get<ExtendedHandshake>("extendedHandshake");
         /// <summary>
         /// The extended handshake from the peer
         /// </summary>
-        public JSObject PeerExtendedHandshake => JSRef.Get<JSObject>("peerExtendedHandshake");
+        public JSObject PeerExtendedHandshake => JSRef!.Get<JSObject>("peerExtendedHandshake");
         /// <summary>
         /// Upload speed to peer, in bytes/sec.
         /// </summary>
         /// <returns></returns>
-        public double UploadSpeed() => JSRef.Call<double>("uploadSpeed");
+        public double UploadSpeed() => JSRef!.Call<double>("uploadSpeed");
         /// <summary>
         /// Download speed from peer, in bytes/sec.
         /// </summary>
-        public double DownloadSpeed() => JSRef.Call<double>("downloadSpeed");
+        public double DownloadSpeed() => JSRef!.Call<double>("downloadSpeed");
         /// <summary>
         /// Close the connection with the peer. This however doesn't prevent the peer from simply re-connecting.
         /// </summary>
-        public void Destroy() => JSRef.CallVoid("destroy");
+        public void Destroy() => JSRef!.CallVoid("destroy");
         /// <summary>
         /// Tell the wire to use the given extension factory<br />
         /// An "extension factory" 
@@ -112,6 +116,9 @@ namespace SpawnDev.BlazorJS.WebTorrents
             callbackFN.JSRef!.Set("prototype.name", extensionName);
             JSRef!.CallVoid("use", callback);
         }
+        /// <summary>
+        /// Tell the wire to use Extension constructor
+        /// </summary>
         public void Use(string extensionName, Func<Wire, SimpleExtension> extensionConstructor)
         {
             // the "use" method checks for extension.prototype.name
@@ -120,6 +127,9 @@ namespace SpawnDev.BlazorJS.WebTorrents
             callbackFN.JSRef!.Set("prototype.name", extensionName);
             JSRef!.CallVoid("use", callback);
         }
+        /// <summary>
+        /// Tell the wire to use Extension constructor
+        /// </summary>
         public void Use(string extensionName, Func<SimpleExtension> extensionConstructor)
         {
             // the "use" method checks for extension.prototype.name
@@ -158,63 +168,59 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         /// <param name="extension"></param>
         /// <param name="data"></param>
-        public void Extended(string extension, object data) => JSRef.CallVoid("extended", extension, data);
-        ///// <summary>
-        ///// ExtendedHandshake properties can be set when an extension is created and those properties will be sent to peers when an extendedHandshake occurs
-        ///// </summary>
-        //public ExtendedHandshake ExtendedHandshake => JSRef.Get<ExtendedHandshake>("extendedHandshake");
+        public void Extended(string extension, object data) => JSRef!.CallVoid("extended", extension, data);
         /// <summary>
         /// Returns true if choking the peer
         /// </summary>
-        public bool AmChoking => JSRef.Get<bool>("amChoking");
+        public bool AmChoking => JSRef!.Get<bool>("amChoking");
         /// <summary>
         /// Returns true if interested in pieces the peer has
         /// </summary>
-        public bool AmInterested => JSRef.Get<bool>("amInterested");
+        public bool AmInterested => JSRef!.Get<bool>("amInterested");
         /// <summary>
         /// Returns true if the peer is a seeder
         /// </summary>
-        public bool IsSeeder => JSRef.Get<bool>("isSeeder");
+        public bool IsSeeder => JSRef!.Get<bool>("isSeeder");
         /// <summary>
         /// Returns true if the peer is choking us
         /// </summary>
-        public bool PeerChoking => JSRef.Get<bool>("peerChoking");
+        public bool PeerChoking => JSRef!.Get<bool>("peerChoking");
         /// <summary>
         /// Returns true if the peer is interested in pieces we have
         /// </summary>
-        public bool PeerInterested => JSRef.Get<bool>("peerInterested");
+        public bool PeerInterested => JSRef!.Get<bool>("peerInterested");
         /// <summary>
         /// Requests
         /// </summary>
-        public Array<Request> Requests => JSRef.Get<Array<Request>>("requests");
+        public Array<Request> Requests => JSRef!.Get<Array<Request>>("requests");
         /// <summary>
         /// Peer requests
         /// </summary>
-        public Array<Request> PeerRequests => JSRef.Get<Array<Request>>("peerRequests");
+        public Array<Request> PeerRequests => JSRef!.Get<Array<Request>>("peerRequests");
         /// <summary>
         /// ExtendedMapping
         /// </summary>
-        public Dictionary<int,string> ExtendedMapping => JSRef.Get<Dictionary<int, string>>("extendedMapping");
+        public Dictionary<int,string> ExtendedMapping => JSRef!.Get<Dictionary<int, string>>("extendedMapping");
         /// <summary>
         /// PeerExtendedMapping
         /// </summary>
-        public Dictionary<string, int> PeerExtendedMapping => JSRef.Get<Dictionary<string, int>>("peerExtendedMapping");
+        public Dictionary<string, int> PeerExtendedMapping => JSRef!.Get<Dictionary<string, int>>("peerExtendedMapping");
         /// <summary>
         /// Returns true if the torrent stroe is readable
         /// </summary>
-        public bool Readable => JSRef.Get<bool>("readable");
+        public bool Readable => JSRef!.Get<bool>("readable");
         /// <summary>
         /// Returns true if the torrent store is writable
         /// </summary>
-        public bool Writable => JSRef.Get<bool>("writable");
+        public bool Writable => JSRef!.Get<bool>("writable");
         /// <summary>
         /// Returns supported extensions
         /// </summary>
-        public Dictionary<string, bool> Extensions => JSRef.Get<Dictionary<string, bool>>("extensions");
+        public Dictionary<string, bool> Extensions => JSRef!.Get<Dictionary<string, bool>>("extensions");
         /// <summary>
         /// Returns peer supported extensions
         /// </summary>
-        public Dictionary<string, bool> PeerExtensions => JSRef.Get<Dictionary<string, bool>>("peerExtensions");
+        public Dictionary<string, bool> PeerExtensions => JSRef!.Get<Dictionary<string, bool>>("peerExtensions");
         // Events
         /// <summary>
         /// Emitted on error
