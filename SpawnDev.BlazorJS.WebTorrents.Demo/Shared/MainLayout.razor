@@ -40,12 +40,21 @@
             <RadzenPanelMenuItem Text="Network" Icon="hub" Path="network" />
             <RadzenPanelMenuItem Target="_blank" Text="GitHub" Image="github-mark-white.svg" Path="https://github.com/LostBeard/SpawnDev.BlazorJS.WebTorrents" />
         </RadzenPanelMenu>
-        <div class="">
-            @if (!string.IsNullOrEmpty(AppService.PosterHref))
-            {
-                <RadzenImage Path="@AppService.PosterHref" Style="width: 100%;" />
-            }
-            <ContentViewer Torrent="@AppService.ViewerTorrent" File="@AppService.ViewerFile" ContentType="@AppService.ViewerContentType"></ContentViewer>
+        <div style="width: 100%; border: 1px solid #050505; margin-top: 1px;">
+            <div style="width: 100%; aspect-ratio: 16 / 9; position: relative;">
+                @if (AppService.ViewerFileSet)
+                {
+                    <ContentViewer Torrent="@AppService.ViewerTorrent" File="@AppService.ViewerFile" ContentType="@AppService.ViewerContentType"></ContentViewer>
+                }
+                else if (!string.IsNullOrEmpty(AppService.PosterHref))
+                {
+                    <RadzenImage Path="@AppService.PosterHref" Style="width: 100%;" />
+                }
+                else
+                {
+                    <RadzenIcon Style="position: absolute; top: 50%; left: 50%; margin-left: -12px; margin-top: -12px;" Icon="image_not_supported"></RadzenIcon>
+                }
+            </div>
         </div>
     </RadzenSidebar>
     <RadzenBody Style="position: relative;">
@@ -143,7 +152,7 @@
                     }
                     catch
                     {
-                        
+
                     }
                     break;
                 case "torrent_file_picker":

@@ -26,6 +26,7 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Services
             await WebTorrentService.Client!.RegisterServerServiceWorker();
         }
         // Content Viewer
+        public bool ViewerFileSet => ViewerFile != null;
         public Torrent? ViewerTorrent { get; private set; }
         public File? ViewerFile { get; private set; }
         public string? ViewerContentType { get; private set; }
@@ -33,7 +34,7 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Services
         public void SetContentViewerFile(Torrent? torrent, File? file)
         {
             ViewerTorrent = torrent;
-            ViewerFile = file;
+            ViewerFile = torrent == null ? null : file;
             ViewerContentType = file == null ? null : MimeTypeService.GetExtensionMimeType(file.Name);
             StateHasChanged();
         }
@@ -64,11 +65,11 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Services
                 await Task.Yield();
                 if (torrentsDataGridItem != null)
                 {
-                    var posterHref = await WebTorrentService.GetTorrentPoster(torrentsDataGridItem.Torrent);
+                    using var posterFile = await WebTorrentService.GetTorrentPosterFile(torrentsDataGridItem.Torrent);
                     // if still selected
                     if (SelectedTorrentsDataGridItemInstanceId == instanceId)
                     {
-                        PosterHref = posterHref;
+                        PosterHref = posterFile?.StreamURL ?? "";
                         StateHasChanged();
                     }
                 }

@@ -3,8 +3,16 @@
 <RadzenDataGrid SelectionMode="DataGridSelectionMode.Single" RowSelect="RowSelect" RowDeselect="RowDeselect"
                 AllowColumnResize="true" @ref="grid" style="height: 100%; width: 100%;" GridLines="DataGridGridLines.Both" TItem="FilesDataGridItem" IsLoading=@isLoading
                 Count="@count" Data="@Files" LoadData="@LoadData" AllowSorting="true" AllowFiltering="true" AllowPaging="false"
-                CellContextMenu="ShowContextMenuWithItems">
+                CellContextMenu="ShowContextMenuWithItems" RowDoubleClick="RowDoubleClicked">
     <Columns>
+        <RadzenDataGridColumn TItem="FilesDataGridItem" Filterable="false" Sortable="false" Property="Progress" Title="%" Width="66px" TextAlign="TextAlign.Right">
+            <Template Context="torrent">
+                @if (CanPlay(torrent.File))
+                {
+                    <RadzenButton Style="border-radius: 1rem;" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => PlayClicked(torrent))" Icon="play_arrow"></RadzenButton>
+                }
+            </Template>
+        </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="FilesDataGridItem" Filterable="false" Property="Progress" Title="%" Width="66px" TextAlign="TextAlign.Right">
             <Template Context="torrent">
                 <RadzenProgressBarCircular Size="ProgressBarCircularSize.Small" ProgressBarStyle="@torrent.ProgressBarStyle" Value="@(Math.Round(torrent.Progress * 100d))" />
@@ -161,12 +169,28 @@
         _tmr.Enabled = false;
         _tmr.Elapsed -= Timer_Elapsed;
     }
+    void PlayClicked(FilesDataGridItem selected)
+    {
+        if (selected == null) return;
+        AppService.SetContentViewerFile(Torrent, selected.File);
+    }
+    void RowDoubleClicked(DataGridRowMouseEventArgs<FilesDataGridItem> args)
+    {
+        var selected = args.Data;
+        if (selected == null) return;
+        var options = new List<ContextMenuItem>();
+        var file = selected.Files.Length == 1 ? selected.Files[0] : selected.File;
+        if (file != null && CanPlay(file))
+        {
+            AppService.SetContentViewerFile(Torrent, file);
+        }
+    }
     void ShowContextMenuWithItems(DataGridCellMouseEventArgs<FilesDataGridItem> args)
     {
         var selected = args.Data;
         if (selected == null) return;
         var options = new List<ContextMenuItem>();
-        var file = selected.Files.Length == 1 ? selected.Files[0] : null;
+        var file = selected.Files.Length == 1 ? selected.Files[0] : selected.File;
         if (file != null && CanPlay(file))
         {
             options.Add(new ContextMenuItem()

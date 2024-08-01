@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SpawnDev.BlazorJS.JSObjects;
 using SpawnDev.BlazorJS.Toolbox;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 
@@ -519,6 +520,16 @@ namespace SpawnDev.BlazorJS.WebTorrents
             }
             files.DisposeAll();
             return "";
+        }
+        public async Task<File?> GetTorrentPosterFile(Torrent torrent)
+        {
+            if (string.IsNullOrEmpty(torrent.InfoHash)) return null;
+            var files = torrent.Files.Using(o => o.ToArray());
+            var imageFiles = files.Where(o => GetFilenameIsImage(o.Name)).ToList();
+            var posterFile = imageFiles.FirstOrDefault(o => GetFilenameBase(o.Name).Equals("poster"));
+            posterFile ??= imageFiles.FirstOrDefault();
+            files.Except(new File[] { posterFile }).ToArray().DisposeAll();
+            return posterFile;
         }
     }
 }
