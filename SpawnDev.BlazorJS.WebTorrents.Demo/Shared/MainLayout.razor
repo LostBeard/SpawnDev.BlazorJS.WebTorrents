@@ -40,11 +40,12 @@
             <RadzenPanelMenuItem Text="Network" Icon="hub" Path="network" />
             <RadzenPanelMenuItem Target="_blank" Text="GitHub" Image="github-mark-white.svg" Path="https://github.com/LostBeard/SpawnDev.BlazorJS.WebTorrents" />
         </RadzenPanelMenu>
-        <div class="rz-p-4">
+        <div class="">
             @if (!string.IsNullOrEmpty(AppService.PosterHref))
             {
                 <RadzenImage Path="@AppService.PosterHref" Style="width: 100%;" />
             }
+            <ContentViewer Torrent="@AppService.ViewerTorrent" File="@AppService.ViewerFile" ContentType="@AppService.ViewerContentType"></ContentViewer>
         </div>
     </RadzenSidebar>
     <RadzenBody Style="position: relative;">
@@ -78,6 +79,7 @@
     {
         NavigationManager.LocationChanged += NavigationManager_LocationChanged;
         AppService.OnStateChanged += AppService_OnStateChanged;
+
     }
     private void NavigationManager_LocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {

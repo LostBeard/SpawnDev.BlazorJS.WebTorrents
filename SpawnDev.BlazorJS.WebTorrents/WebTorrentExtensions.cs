@@ -8,6 +8,25 @@ namespace SpawnDev.BlazorJS.WebTorrents
     public static class WebTorrentExtensions
     {
         static BlazorJSRuntime JS => BlazorJSRuntime.JS;
+
+        /// <summary>
+        /// Registers 
+        /// </summary>
+        /// <param name="_this"></param>
+        /// <param name="createServer"></param>
+        /// <returns></returns>
+        public static async Task RegisterServerServiceWorker(this WebTorrent _this, bool createServer = true)
+        {
+            using var navigator = JS.Get<Navigator>("navigator");
+            using var serviceWorker = navigator.ServiceWorker;
+            using var reg = await serviceWorker.Register("./sw.min.js", new ServiceWorkerRegistrationOptions { Scope = "./" });
+            await serviceWorker.Ready;
+            if (createServer)
+            {
+                _this.CreateServer(new CreateServerOptions { Controller = reg });
+            }
+        }
+
         /// <summary>
         /// Remove all Torrent data from default Torrent store
         /// </summary>

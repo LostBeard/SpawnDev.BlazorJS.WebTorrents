@@ -1,0 +1,11 @@
+﻿<div style="width: 100%; aspect-ratio: 16 / 9;">
+    @switch (ContentTypeMajor)
+    {
+        case "image":
+            <ImageViewer Torrent="@Torrent" File="@File" ContentType="@ContentType" />
+            break;
+        case "video":
+            <VideoPlayer Torrent="@Torrent" File="@File" ContentType="@ContentType" />
+            break;
+    }
+</div>

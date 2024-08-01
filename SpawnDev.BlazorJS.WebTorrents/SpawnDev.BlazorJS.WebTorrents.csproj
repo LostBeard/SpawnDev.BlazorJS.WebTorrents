@@ -20,6 +20,12 @@
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>Blazor;BlazorWebAssembly;WebTorrents;Torrents</PackageTags>
 	</PropertyGroup>
+	
+	<PropertyGroup>
+		<!-- This projects wwwroot folder contents will be located in the implementing projects wwwroot instead of wwwroot/_content/... -->
+		<!-- This is done to work around restrictions related to loading the WebTorrent ServiceWorker -->
+		<StaticWebAssetBasePath Condition="$(StaticWebAssetBasePath) == ''">/</StaticWebAssetBasePath>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<None Include="Assets\icon-128.png" Pack="true" PackagePath="\" />

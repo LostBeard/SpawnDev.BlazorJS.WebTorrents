@@ -35,7 +35,7 @@ builder.Services.AddRadzenComponents();
 var host = builder.Build();
 await host.StartBackgroundServices();
 #if DEBUG
-var JS = host.Services.GetRequiredService<BlazorJSRuntime>();
+
 
 #endif
 await host.BlazorJSRunAsync();

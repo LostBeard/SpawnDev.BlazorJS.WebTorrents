@@ -2,8 +2,41 @@
 
 namespace SpawnDev.BlazorJS.WebTorrents.Demo.Services
 {
-    public class AppService
+    public class AppService : IAsyncBackgroundService
     {
+        //
+        /// <summary>
+        /// Completes when the service is ready
+        /// </summary>
+        public Task Ready => _Ready ??= InitAsync();
+        private Task? _Ready = null;
+        public string PosterHref { get; set; }
+        public event Action OnStateChanged;
+        public void StateHasChanged() => OnStateChanged?.Invoke();
+        WebTorrentService WebTorrentService;
+        MimeTypeService MimeTypeService;
+        public AppService(WebTorrentService webTorrentService, MimeTypeService mimeTypeService)
+        {
+            MimeTypeService = mimeTypeService;
+            WebTorrentService = webTorrentService;
+        }
+        async Task InitAsync()
+        {
+            await WebTorrentService.Ready;
+            await WebTorrentService.Client!.RegisterServerServiceWorker();
+        }
+        // Content Viewer
+        public Torrent? ViewerTorrent { get; private set; }
+        public File? ViewerFile { get; private set; }
+        public string? ViewerContentType { get; private set; }
+        public void UnsetContentViewerFile() => SetContentViewerFile(null, null);
+        public void SetContentViewerFile(Torrent? torrent, File? file)
+        {
+            ViewerTorrent = torrent;
+            ViewerFile = file;
+            ViewerContentType = file == null ? null : MimeTypeService.GetExtensionMimeType(file.Name);
+            StateHasChanged();
+        }
         // Trackers
         public string SelectedTrackersDataGridItemInstanceId => SelectedTrackersDataGridItem?.InstanceId ?? "";
         public TrackersDataGridItem? SelectedTrackersDataGridItem { get; set; }
@@ -66,17 +99,6 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Services
                 StateHasChanged();
                 await Task.Yield();
             }
-        }
-        //
-        public string PosterHref { get; set; }
-        public event Action OnStateChanged;
-        public void StateHasChanged() => OnStateChanged?.Invoke();
-        WebTorrentService WebTorrentService;
-        MimeTypeService MimeTypeService;
-        public AppService(WebTorrentService webTorrentService, MimeTypeService mimeTypeService)
-        {
-            MimeTypeService = mimeTypeService;
-            WebTorrentService = webTorrentService;
         }
     }
 }

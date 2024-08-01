@@ -74,6 +74,13 @@
         }
         grid?.Reload();
     }
+    string[] CanPlayTypes = new string[] { "image", "video" };
+    bool CanPlay(File file)
+    {
+        var contentType = MimeTypeService.GetExtensionMimeType(file.Name);
+        var contentTypeMajor = string.IsNullOrEmpty(contentType) ? null : contentType.Split("/")[0];
+        return CanPlayTypes.Contains(contentTypeMajor);
+    }
     public FilesDataGridItem? SelectedInfo { get; private set; }
     public string SelectedInstanceId => SelectedInfo?.InstanceId ?? "";
     async Task RowSelect(FilesDataGridItem info)
@@ -158,32 +165,62 @@
     {
         var selected = args.Data;
         if (selected == null) return;
-        ContextMenuService.Open(args,
-            new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "Deselect", Disabled = selected.File.IsDone() || selected.Torrent.Selections.Length == 0, Icon = "deselect", Value = () =>
+        var options = new List<ContextMenuItem>();
+        var file = selected.Files.Length == 1 ? selected.Files[0] : null;
+        if (file != null && CanPlay(file))
+        {
+            options.Add(new ContextMenuItem()
                 {
-                    selected.File.Deselect();
-                } },
-                new ContextMenuItem(){ Text = "Select", Disabled = selected.File.IsDone(), Icon = "done", Value = () =>
-                {
-                    selected.File.Select();
-                } },
-                new ContextMenuItem(){ Text = "Save File", Icon = "save", Disabled=!selected.File.IsDone(), Value = async () =>
-                {
-                    try
-                    {
-                        using var blob = await selected.File.Blob();
-                        if (blob != null)
+                    Text = "Play",
+                    Icon = "play_circle",
+                    Value = () =>
                         {
-                            await blob.StartDownload(selected.Name);
+                            AppService.SetContentViewerFile(Torrent, selected.File);
+                        }
+                });
+        }
+        options.Add(new ContextMenuItem()
+            {
+                Text = "Deselect",
+                Disabled = selected.File.IsDone() || selected.Torrent.Selections.Length == 0,
+                Icon = "deselect",
+                Value = () =>
+                    {
+                        selected.File.Deselect();
+                    }
+            });
+        options.Add(new ContextMenuItem()
+            {
+                Text = "Select",
+                Disabled = selected.File.IsDone(),
+                Icon = "done",
+                Value = () =>
+                    {
+                        selected.File.Select();
+                    }
+            });
+        options.Add(new ContextMenuItem()
+            {
+                Text = "Save File",
+                Icon = "save",
+                Disabled = !selected.File.IsDone(),
+                Value = async () =>
+                    {
+                        try
+                        {
+                            using var blob = await selected.File.Blob();
+                            if (blob != null)
+                            {
+                                await blob.StartDownload(selected.Name);
+                            }
+                        }
+                        catch
+                        {
+
                         }
                     }
-                    catch
-                    {
-
-                    }
-                } },
-            }, OnMenuItemClick);
+            });
+        ContextMenuService.Open(args, options, OnMenuItemClick);
     }
     void OnMenuItemClick(MenuItemEventArgs args)
     {
