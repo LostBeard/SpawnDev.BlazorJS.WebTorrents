@@ -9,37 +9,45 @@
         // returns bool
         ObjectPropertyEquals(obj, key, obj2, full) {
             if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { target } = this.pathObjectInfo(obj, key);
+            var { target, shortCircuit } = this.pathObjectInfo(obj, key);
             return full ? target === obj2 : target == obj2;
         }
         // returns string
         ObjectPropertyTypeOf(obj, key) {
             if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { target } = this.pathObjectInfo(obj, key);
+            var { target, shortCircuit } = this.pathObjectInfo(obj, key);
             return typeof target;
         }
-        // returns string or null
+        // returns string or undefined
         ObjectPropertyConstructorName(obj, key) {
             if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { target } = this.pathObjectInfo(obj, key);
+            var { target, shortCircuit } = this.pathObjectInfo(obj, key);
             return target?.constructor?.name;
+        }
+        // returns string[]
+        ObjectPropertyConstructorNames(obj, key) {
+            if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
+            var { target, shortCircuit } = this.pathObjectInfo(obj, key);
+            return this.ObjectConstructorNames(target);
         }
         // returns any
         ObjectPropertyCall(obj, key, args) {
             if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { target, parent } = this.pathObjectInfo(obj, key);
+            var { target, parent, shortCircuit } = this.pathObjectInfo(obj, key);
+            if (shortCircuit) return;
             return target.apply(parent, args);
         }
         // returns any
         ObjectPropertyNew(obj, key, args) {
             if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { target } = this.pathObjectInfo(obj, key);
+            var { target, shortCircuit } = this.pathObjectInfo(obj, key);
+            if (shortCircuit) return;
             return args ? new target(...args) : new target();
         }
         // returns string[]
         ObjectPropertyKeys(obj, key, hasOwnProperty) {
             if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { target } = this.pathObjectInfo(obj, key);
+            var { target, shortCircuit } = this.pathObjectInfo(obj, key);
             var keys = [];
             if (hasOwnProperty && target.hasOwnProperty) {
                 for (var k in target) {
@@ -71,15 +79,15 @@
         // returns bool
         ObjectPropertyInstanceOf(obj, key, type) {
             if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { target } = this.pathObjectInfo(obj, key);
+            var { target, shortCircuit } = this.pathObjectInfo(obj, key);
             return target instanceof type;
         }
-        // returns the value of the property
+        // returns any - the value of the property
         ObjectPropertyGet(obj, key) {
             var ret = null;
             if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { target, parent, targetType } = this.pathObjectInfo(obj, key);
-            if (targetType === "function") {
+            var { target, parent, shortCircuit } = this.pathObjectInfo(obj, key);
+            if (typeof target === "function") {
                 ret = target.bind(parent);
             } else {
                 ret = target;
@@ -89,20 +97,22 @@
         // returns undefined
         ObjectPropertySet(obj, key, value) {
             if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { parent, propertyName } = this.pathObjectInfo(obj, key);
-            if (!parent) return true;
+            var { parent, propertyName, shortCircuit } = this.pathObjectInfo(obj, key);
+            if (shortCircuit) return;
             parent[propertyName] = value;
         }
         // returns bool
         ObjectPropertyDelete(obj, key) {
             if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { parent, propertyName } = this.pathObjectInfo(obj, key);
+            var { parent, propertyName, shortCircuit } = this.pathObjectInfo(obj, key);
+            if (shortCircuit) return true;
             return delete parent[propertyName];
         }
         // returns bool
         ObjectPropertyIn(obj, key) {
             if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { target } = this.pathObjectInfo(obj, key);
+            var { target, shortCircuit } = this.pathObjectInfo(obj, key);
+            if (shortCircuit) return false;
             return key in target;
         }
         // *****************************************************
@@ -121,8 +131,16 @@
             return this.ObjectPropertyConstructorName(globalThis, key);
         }
         // returns string or null
+        GlobalPropertyConstructorNames(key) {
+            return this.ObjectPropertyConstructorNames(globalThis, key);
+        }
+        // returns string or null
         GlobalConstructorName() {
             return this.ObjectConstructorName(globalThis);
+        }
+        // returns string[]
+        GlobalConstructorNames() {
+            return this.ObjectConstructorNames(globalThis);
         }
         // returns any
         GlobalPropertyCall(key, args) {
@@ -177,6 +195,21 @@
         // returns string or null
         ObjectConstructorName(obj) {
             return obj?.constructor?.name;
+        }
+        // returns string[]
+        ObjectConstructorNames(obj) {
+            var constructorNames = [];
+            if (obj === void 0 || obj === null) return constructorNames;
+            var o = obj;
+            var cName;
+            while (1) {
+                o = Object.getPrototypeOf(o);
+                cName = o?.constructor?.name;
+                if (!cName) break;
+                if (constructorNames.indexOf(cName) !== -1) continue;
+                constructorNames.push(cName);
+            }
+            return constructorNames;
         }
         // returns any
         ObjectCall(obj, args) {
@@ -252,7 +285,7 @@
         // ************ Internal Methods ************
         // ****************************************
         createJSObjectReference(o) {
-            let mustWrap = this.createJSObjectReferenceMustWrapType(o);
+            var mustWrap = this.createJSObjectReferenceMustWrapType(o);
             if (mustWrap) o = this.wrapJSObject(o);
             return DotNet.createJSObjectReference(o);
         }
@@ -297,8 +330,8 @@
                 case DotNet.JSCallResultType.JSStreamReference:
                     {
                         // TODO test and fix if needed
-                        const n = DotNet.createJSStreamReference(value);
-                        const r = JSON.stringify(n);
+                        var n = DotNet.createJSStreamReference(value);
+                        var r = JSON.stringify(n);
                         return BINDING.js_string_to_mono_string(r)
                     }
                 case DotNet.JSCallResultType.JSVoidResult:
@@ -330,31 +363,40 @@
             var parent = rootObject;
             var target;
             var propertyName;
-            //if (path === null || path === void (0)) {
-            //    // undefined and null can actually be property keys but that fact is ignored here atm
-            //    target = parent;
-            //    parent = null;
-            //} else
-            if (typeof path === 'string' && typeof parent[path] === 'undefined') {
+            var shortCircuit = false;
+            if (typeof path === 'string' && !(path in parent)) {
                 var parts = path.split('.');
                 propertyName = parts[parts.length - 1];
+                var part;
                 for (var i = 0; i < parts.length - 1; i++) {
-                    parent = parent[parts[i]];
+                    part = parts[i];
+                    if (part[part.length - 1] === '?') {
+                        // ? null conditonal found
+                        // if parent does not exist allow undefined/null parent instead of throwing exception
+                        part = part.substring(0, part.length - 1);
+                        parent = parent[part];
+                        if (parent === void 0 || parent === null) {
+                            shortCircuit = true;
+                            break;
+                        }
+                    }
+                    else {
+                        parent = parent[part];
+                    }
                 }
-                target = parent[propertyName];
+                if (!shortCircuit) {
+                    target = parent[propertyName];
+                }
             }
             else {
                 propertyName = path;
                 target = parent[propertyName];
             }
-            var targetType = typeof target;
-            var exists = targetType !== 'undefined' || (parent && propertyName in parent);
             return {
-                parent,         // may be null even if target exists (Ex. if no path was given)
-                propertyName,   // any or null; may be null even if target exists (Ex. if no path was given)
-                target,         // may be undefined if it does not currently exist
-                targetType,     // will always be a string of the target type (Ex. 'undefined', 'object', 'string', 'number')
-                exists,         // will always be a bool value (true or false)
+                shortCircuit,   // bool - true if the pathfinding short circuited due to a null-conditional
+                parent,         // any - only null or undefined if short circuited due to a null-conditional
+                propertyName,   // any
+                target,         // any
             };
         }
     }
@@ -385,8 +427,6 @@
                         if (!value._returnVoid) return ret;
                     } catch (ex) {
                         console.error('Callback invokeMethod error:', args, ret, ex);
-                        //value.isDisposed = true;
-                        //blazorJSInterop.disposeCallback(callbackId);
                     }
                 };
                 blazorJSInterop.callbacks[callbackId] = callback;
