@@ -225,58 +225,58 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Emitted on error
         /// </summary>
-        public JSEventCallback OnError { get => new JSEventCallback("error", On, RemoveListener); set { } }
+        public ActionEvent OnError { get => new ActionEvent("error", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when a bitfield is received<br />
         /// bitfield: bitfield instance
         /// </summary>
-        public JSEventCallback<Bitfield> OnBitfield { get => new JSEventCallback<Bitfield>("bitfield", On, RemoveListener); set { } }
+        public ActionEvent<Bitfield> OnBitfield { get => new ActionEvent<Bitfield>("bitfield", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted whe na keep alive message is received
         /// </summary>
-        public JSEventCallback OnKeepAlive { get => new JSEventCallback("keep-alive", On, RemoveListener); set { } }
+        public ActionEvent OnKeepAlive { get => new ActionEvent("keep-alive", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted on timeout
         /// </summary>
-        public JSEventCallback OnTimeout { get => new JSEventCallback("timeout", On, RemoveListener); set { } }
+        public ActionEvent OnTimeout { get => new ActionEvent("timeout", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when connection choked
         /// </summary>
-        public JSEventCallback OnChoke { get => new JSEventCallback("choke", On, RemoveListener); set { } }
+        public ActionEvent OnChoke { get => new ActionEvent("choke", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when connection unchoked
         /// </summary>
-        public JSEventCallback OnUnchoke { get => new JSEventCallback("unchoke", On, RemoveListener); set { } }
+        public ActionEvent OnUnchoke { get => new ActionEvent("unchoke", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when interested message received
         /// </summary>
-        public JSEventCallback OnInterested { get => new JSEventCallback("interested", On, RemoveListener); set { } }
+        public ActionEvent OnInterested { get => new ActionEvent("interested", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when uninterested message received
         /// </summary>
-        public JSEventCallback OnUninterested { get => new JSEventCallback("uninterested", On, RemoveListener); set { } }
+        public ActionEvent OnUninterested { get => new ActionEvent("uninterested", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted on upload<br />
         /// length: int
         /// </summary>
-        public JSEventCallback<int> OnUpload { get => new JSEventCallback<int>("upload", On, RemoveListener); set { } }
+        public ActionEvent<int> OnUpload { get => new ActionEvent<int>("upload", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted on have message<br />
         /// index: int
         /// </summary>
-        public JSEventCallback<int> OnHave { get => new JSEventCallback<int>("have", On, RemoveListener); set { } }
+        public ActionEvent<int> OnHave { get => new ActionEvent<int>("have", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted on download<br />
         /// length: int
         /// </summary>
-        public JSEventCallback<int> OnDownload { get => new JSEventCallback<int>("download", On, RemoveListener); set { } }
+        public ActionEvent<int> OnDownload { get => new ActionEvent<int>("download", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted on handshake<br />
         /// infoHash: string<br />
         /// peerId: string<br />
         /// extensions: Extension[] (TODO - verify)
         /// </summary>
-        public JSEventCallback<string, string, Array<JSObject>> OnHandshake { get => new JSEventCallback<string, string, Array<JSObject>>("handshake", On, RemoveListener); set { } }
+        public ActionEvent<string, string, Array<JSObject>> OnHandshake { get => new ActionEvent<string, string, Array<JSObject>>("handshake", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted on piece request received<br />
         /// index: number<br />
@@ -284,28 +284,28 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// length: number<br />
         /// respond: () => void
         /// </summary>
-        public JSEventCallback<int, int, int, Function> OnRequest { get => new JSEventCallback<int, int, int, Function>("request", On, RemoveListener); set { } }
+        public ActionEvent<int, int, int, Function> OnRequest { get => new ActionEvent<int, int, int, Function>("request", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when a piece is received<br />
         /// index: number<br />
         /// offset: number<br />
         /// buffer: Buffer
         /// </summary>
-        public JSEventCallback<int, int, Uint8Array> OnPiece { get => new JSEventCallback<int, int, Uint8Array>("piece", On, RemoveListener); set { } }
+        public ActionEvent<int, int, Uint8Array> OnPiece { get => new ActionEvent<int, int, Uint8Array>("piece", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when a piece request is cancelled
         /// </summary>
-        public JSEventCallback<int, int, int> OnCancel { get => new JSEventCallback<int, int, int>("cancel", On, RemoveListener); set { } }
+        public ActionEvent<int, int, int> OnCancel { get => new ActionEvent<int, int, int>("cancel", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted on extended<br />
         /// ext: "handshake" | string<br />
         /// buf: any
         /// </summary>
-        public JSEventCallback<string, JSObject> OnExtended { get => new JSEventCallback<string, JSObject>("extended", On, RemoveListener); set { } }
+        public ActionEvent<string, JSObject> OnExtended { get => new ActionEvent<string, JSObject>("extended", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted on unknown message received<br />
         /// buffer: Buffer
         /// </summary>
-        public JSEventCallback<JSObject> OnUnknownMessage { get => new JSEventCallback<JSObject>("unknownmessage", On, RemoveListener); set { } }
+        public ActionEvent<JSObject> OnUnknownMessage { get => new ActionEvent<JSObject>("unknownmessage", On, RemoveListener); set { } }
     }
 }

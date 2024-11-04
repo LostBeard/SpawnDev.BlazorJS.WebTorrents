@@ -31,24 +31,24 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Emitted when there is a warning. This is purely informational and it is not necessary to listen to this event, but it may aid in debugging.
         /// </summary>
-        public JSEventCallback<JSObject> OnWarning { get => new JSEventCallback<JSObject>("warning", On, RemoveListener); set { } }
+        public ActionEvent<JSObject> OnWarning { get => new ActionEvent<JSObject>("warning", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted on a fatal error. 
         /// </summary>
-        public JSEventCallback<JSObject?> OnError { get => new JSEventCallback<JSObject?>("error", On, RemoveListener); set { } }
+        public ActionEvent<JSObject?> OnError { get => new ActionEvent<JSObject?>("error", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted on tracker announce
         /// </summary>
-        public JSEventCallback<TrackerUpdateMessage> OnTrackerAnnounce { get => new JSEventCallback<TrackerUpdateMessage>("trackerAnnounce", On, RemoveListener); set { } }
+        public ActionEvent<TrackerUpdateMessage> OnTrackerAnnounce { get => new ActionEvent<TrackerUpdateMessage>("trackerAnnounce", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted on dht announce
         /// </summary>
-        public JSEventCallback OnDhtAnnounce { get => new JSEventCallback("dhtAnnounce", On, RemoveListener); set { } }
+        public ActionEvent OnDhtAnnounce { get => new ActionEvent("dhtAnnounce", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when a peer is discovered<br />
         /// peer Peer - the peer<br />
         /// source string - the peer source
         /// </summary>
-        public JSEventCallback<DiscoveredPeer, string> OnPeer { get => new JSEventCallback<DiscoveredPeer, string>("peer", On, RemoveListener); set { } }
+        public ActionEvent<DiscoveredPeer, string> OnPeer { get => new ActionEvent<DiscoveredPeer, string>("peer", On, RemoveListener); set { } }
     }
 }

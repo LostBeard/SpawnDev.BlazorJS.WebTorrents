@@ -268,65 +268,65 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Emitted when the info hash of the torrent has been determined.
         /// </summary>
-        public JSEventCallback OnInfoHash { get => new JSEventCallback("infoHash", On, RemoveListener); set { } }
+        public ActionEvent OnInfoHash { get => new ActionEvent("infoHash", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when the metadata of the torrent has been determined. This includes the full contents of the .torrent file, including list of files, torrent length, piece hashes, piece length, etc.
         /// </summary>
-        public JSEventCallback OnMetadata { get => new JSEventCallback("metadata", On, RemoveListener); set { } }
+        public ActionEvent OnMetadata { get => new ActionEvent("metadata", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when the torrent is ready to be used (i.e. metadata is available and store is ready).
         /// </summary>
-        public JSEventCallback OnReady { get => new JSEventCallback("ready", On, RemoveListener); set { } }
+        public ActionEvent OnReady { get => new ActionEvent("ready", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when there is a warning. This is purely informational and it is not necessary to listen to this event, but it may aid in debugging.
         /// </summary>
-        public JSEventCallback<JSObject> OnWarning { get => new JSEventCallback<JSObject>("warning", On, RemoveListener); set { } }
+        public ActionEvent<JSObject> OnWarning { get => new ActionEvent<JSObject>("warning", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when the torrent encounters a fatal error. The torrent is automatically destroyed and removed from the client when this occurs.
         /// </summary>
-        public JSEventCallback<JSObject?> OnError { get => new JSEventCallback<JSObject?>("error", On, RemoveListener); set { } }
+        public ActionEvent<JSObject?> OnError { get => new ActionEvent<JSObject?>("error", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when the torrent is closed
         /// </summary>
-        public JSEventCallback OnClose { get => new JSEventCallback("close", On, RemoveListener); set { } }
+        public ActionEvent OnClose { get => new ActionEvent("close", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when all the torrent files have been downloaded.
         /// </summary>
-        public JSEventCallback OnDone { get => new JSEventCallback("done", On, RemoveListener); set { } }
+        public ActionEvent OnDone { get => new ActionEvent("done", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted whenever data is downloaded. Useful for reporting the current torrent status.
         /// </summary>
-        public JSEventCallback<long> OnDownload { get => new JSEventCallback<long>("download", On, RemoveListener); set { } }
+        public ActionEvent<long> OnDownload { get => new ActionEvent<long>("download", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted whenever data is uploaded. Useful for reporting the current torrent status.
         /// </summary>
-        public JSEventCallback<long> OnUpload { get => new JSEventCallback<long>("upload", On, RemoveListener); set { } }
+        public ActionEvent<long> OnUpload { get => new ActionEvent<long>("upload", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted whenever a new peer is connected for this torrent. wire is an instance of bittorrent-protocol, which is a node.js-style duplex stream to the remote peer. This event can be used to specify custom BitTorrent protocol extensions.
         /// </summary>
-        public JSEventCallback<Wire> OnWire { get => new JSEventCallback<Wire>("wire", On, RemoveListener); set { } }
+        public ActionEvent<Wire> OnWire { get => new ActionEvent<Wire>("wire", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted every couple of seconds when no peers have been found. announceType is either 'tracker', 'dht', 'lsd', or 'ut_pex' depending on which announce occurred to trigger this event. <br />
         /// Note that if you're attempting to discover peers from a tracker, a DHT, a LSD, and PEX you'll see this event separately for each.
         /// </summary>
-        public JSEventCallback<string> OnNoPeers { get => new JSEventCallback<string>("noPeers", On, RemoveListener); set { } }
+        public ActionEvent<string> OnNoPeers { get => new ActionEvent<string>("noPeers", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted every time a piece is verified, the value of the event is the index of the verified piece.<br />
         /// int index
         /// </summary>
-        public JSEventCallback<int> OnVerified { get => new JSEventCallback<int>("verified", On, RemoveListener); set { } }
+        public ActionEvent<int> OnVerified { get => new ActionEvent<int>("verified", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when _gcSelections is called ond there are torrent._selections.length == 0. May repeat
         /// </summary>
-        public JSEventCallback OnIdle { get => new JSEventCallback("idle", On, RemoveListener); set { } }
-        public JSEventCallback OnInterested { get => new JSEventCallback("interested", On, RemoveListener); set { } }
-        public JSEventCallback OnUninterested { get => new JSEventCallback("uninterested", On, RemoveListener); set { } }
-        public JSEventCallback OnHotSwap { get => new JSEventCallback("hotswap", On, RemoveListener); set { } }
-        public JSEventCallback<TrackerUpdateMessage> OnTrackerAnnounce { get => new JSEventCallback<TrackerUpdateMessage>("trackerAnnounce", On, RemoveListener); set { } }
-        public JSEventCallback OnDhtAnnounce { get => new JSEventCallback("dhtAnnounce", On, RemoveListener); set { } }
-        public JSEventCallback<JSObject> OnInvalidPeer { get => new JSEventCallback<JSObject>("invalidPeer", On, RemoveListener); set { } }
-        public JSEventCallback<JSObject> OnBlockedPeer { get => new JSEventCallback<JSObject>("blockedPeer", On, RemoveListener); set { } }
-        public JSEventCallback<JSObject> OnPeer { get => new JSEventCallback<JSObject>("peer", On, RemoveListener); set { } }
+        public ActionEvent OnIdle { get => new ActionEvent("idle", On, RemoveListener); set { } }
+        public ActionEvent OnInterested { get => new ActionEvent("interested", On, RemoveListener); set { } }
+        public ActionEvent OnUninterested { get => new ActionEvent("uninterested", On, RemoveListener); set { } }
+        public ActionEvent OnHotSwap { get => new ActionEvent("hotswap", On, RemoveListener); set { } }
+        public ActionEvent<TrackerUpdateMessage> OnTrackerAnnounce { get => new ActionEvent<TrackerUpdateMessage>("trackerAnnounce", On, RemoveListener); set { } }
+        public ActionEvent OnDhtAnnounce { get => new ActionEvent("dhtAnnounce", On, RemoveListener); set { } }
+        public ActionEvent<JSObject> OnInvalidPeer { get => new ActionEvent<JSObject>("invalidPeer", On, RemoveListener); set { } }
+        public ActionEvent<JSObject> OnBlockedPeer { get => new ActionEvent<JSObject>("blockedPeer", On, RemoveListener); set { } }
+        public ActionEvent<JSObject> OnPeer { get => new ActionEvent<JSObject>("peer", On, RemoveListener); set { } }
         /// <summary>
         /// Deselects all files
         /// </summary>

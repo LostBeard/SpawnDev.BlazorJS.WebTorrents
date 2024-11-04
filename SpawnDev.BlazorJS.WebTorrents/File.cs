@@ -168,6 +168,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Emitted when the file has been downloaded.
         /// </summary>
-        public JSEventCallback OnDone { get => new JSEventCallback("done", On, RemoveListener); set { } }
+        public ActionEvent OnDone { get => new ActionEvent("done", On, RemoveListener); set { } }
     }
 }

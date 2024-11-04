@@ -101,19 +101,19 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Emitted when a torrent is ready to be used (i.e. metadata is available and store is ready). See the torrent section for more info on what methods a torrent has.
         /// </summary>
-        public JSEventCallback<Torrent> OnTorrent { get => new JSEventCallback<Torrent>("torrent", On, RemoveListener); set { } }
+        public ActionEvent<Torrent> OnTorrent { get => new ActionEvent<Torrent>("torrent", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when the client encounters a fatal error. The client is automatically destroyed and all torrents are removed and cleaned up when this occurs.
         /// </summary>
-        public JSEventCallback<JSObject> OnError { get => new JSEventCallback<JSObject>("error", On, RemoveListener); set { } }
+        public ActionEvent<JSObject> OnError { get => new ActionEvent<JSObject>("error", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when a torrent is added to client.torrents. This allows attaching to torrent events that may be emitted before the client 'torrent' event is emitted. See the torrent section for more info on what methods a `torrent` has.
         /// </summary>
-        public JSEventCallback<Torrent> OnAdd { get => new JSEventCallback<Torrent>("add", On, RemoveListener); set { } }
+        public ActionEvent<Torrent> OnAdd { get => new ActionEvent<Torrent>("add", On, RemoveListener); set { } }
         /// <summary>
         /// Emitted when a torrent is removed from client.torrents. See the torrent section for more info on what methods a `torrent` has.
         /// </summary>
-        public JSEventCallback<Torrent> OnRemove { get => new JSEventCallback<Torrent>("remove", On, RemoveListener); set { } }
+        public ActionEvent<Torrent> OnRemove { get => new ActionEvent<Torrent>("remove", On, RemoveListener); set { } }
         /// <summary>
         /// Starts the WebTorrent service worker web server to enable streaming torrents to the document<br />
         /// NOTE: Requires registering a service-worker.js script in the app's index.html and adding the below line<br /><br />

@@ -27,6 +27,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// Emitted when the stream is closed
         /// </summary>
-        public JSEventCallback OnClose { get => new JSEventCallback("close", On, RemoveListener); set { } }
+        public ActionEvent OnClose { get => new ActionEvent("close", On, RemoveListener); set { } }
     }
 }

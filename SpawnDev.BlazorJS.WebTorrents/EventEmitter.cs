@@ -25,7 +25,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// eventName string | Symbol - The name of the event being listened for<br />
         /// listener Function - The event handler function
         /// </summary>
-        public JSEventCallback<JSObject, Function> OnNewListener { get => new JSEventCallback<JSObject, Function>("newListener", On, RemoveListener); set { } }
+        public ActionEvent<JSObject, Function> OnNewListener { get => new ActionEvent<JSObject, Function>("newListener", On, RemoveListener); set { } }
         /// <summary>
         /// Add an event handler
         /// </summary>
