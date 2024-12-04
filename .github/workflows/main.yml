@@ -18,7 +18,6 @@ jobs:
       uses: actions/setup-dotnet@v3.0.3
       with:
         dotnet-version: '9'
-        dotnet-quality: 'preview'
 
     # Install dotnet wasm buildtools workload
     - name: Install .NET WASM Build Tools
