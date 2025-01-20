@@ -1,21 +1,21 @@
 :root,
-.rz-software {
+.rz-software-dark {
   --rz-white: #ffffff;
   --rz-black: #000000;
-  --rz-base: #dadfe2;
+  --rz-base: #505f65;
   --rz-base-50: #ffffff;
-  --rz-base-100: #f6f7fa;
-  --rz-base-200: #e9edf0;
-  --rz-base-300: #dadfe2;
-  --rz-base-400: #c1c9cb;
-  --rz-base-500: #616c75;
-  --rz-base-600: #5e696e;
-  --rz-base-700: #545e61;
+  --rz-base-100: #f5f8f9;
+  --rz-base-200: #e9eef0;
+  --rz-base-300: #dae0e2;
+  --rz-base-400: #c1c8cb;
+  --rz-base-500: #95a2a8;
+  --rz-base-600: #77858b;
+  --rz-base-700: #505f65;
   --rz-base-800: #3a474d;
   --rz-base-900: #28363c;
-  --rz-base-light: #e9edf0;
+  --rz-base-light: #c1c9cb;
   --rz-base-lighter: #ffffff;
-  --rz-base-dark: #5e696e;
+  --rz-base-dark: #3a474d;
   --rz-base-darker: #28363c;
   --rz-primary: #08697d;
   --rz-primary-light: #267b8d;
@@ -47,7 +47,7 @@
   --rz-danger-lighter: rgba(189, 0, 57, 0.2);
   --rz-danger-dark: #9f0030;
   --rz-danger-darker: #8e002b;
-  --rz-on-base: #28363c;
+  --rz-on-base: #ffffff;
   --rz-on-base-light: #28363c;
   --rz-on-base-lighter: #28363c;
   --rz-on-base-dark: #ffffff;
@@ -82,6 +82,6 @@
   --rz-on-danger-lighter: #bd0039;
   --rz-on-danger-dark: #ffffff;
   --rz-on-danger-darker: #ffffff;
-  --rz-link-color: #297aae;
-  --rz-link-hover-color: #005185;
+  --rz-link-color: #62c2d5;
+  --rz-link-hover-color: #82cfde;
 }
