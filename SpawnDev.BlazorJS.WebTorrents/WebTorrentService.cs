@@ -70,7 +70,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// Example link to the version used:<br/>
         /// https://raw.githubusercontent.com/webtorrent/webtorrent/refs/heads/master/dist/webtorrent.min.js
         /// </summary>
-        public string BundledLibraryVersion { get; } = "2.6.3";
+        public string BundledLibraryVersion { get; } = "2.8.3";
         private BlazorJSRuntime JS;
         private bool BeenInit = false;
         internal WebTorrentOptions? WebTorrentOptions { get; set; }
