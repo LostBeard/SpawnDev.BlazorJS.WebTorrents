@@ -1,8 +1,16 @@
 (function () {
+    // helper function used in place of 'in' operator for hecking if a property exists to allow a consistent operation regardless of obj's type
+    function _in(key, obj) {
+        if (obj === null || obj === void 0) return false;
+        if (typeof obj === 'object') return key in obj;
+        return obj[key] !== void 0;
+    }
     class BlazorJSInterop {
         constructor() {
+            this.reviverAttached = false;
             this.callbacks = {};
             this.asyncCallbacks = {};
+            this.verbose = false; // set to true to enable verbose logging
         }
         // *************************************************
         // ************ Object Property Methods ************
@@ -114,7 +122,7 @@
             if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
             var { parent, propertyName, shortCircuit } = this.pathObjectInfo(obj, key);
             if (shortCircuit) return false;
-            return propertyName in parent;
+            return _in(propertyName, parent);
         }
         // *****************************************************
         // ************ globalThis Property Methods ************
@@ -373,7 +381,7 @@
             var target;
             var propertyName;
             var shortCircuit = false;
-            if (typeof path === 'string' && !(path in parent)) {
+            if (typeof path === 'string' && !(_in(path, parent))) {
                 var parts = path.split('.');
                 propertyName = parts[parts.length - 1];
                 var part;
@@ -408,80 +416,89 @@
                 target,         // any
             };
         }
+        customReviverfunction(key, value) {
+            var _this = this;
+            if (value && typeof value === 'object') {
+                if (_in('_callbackId', value)) {
+                    var _callbackId = value._callbackId;
+                    var callback = _this.callbacks[_callbackId];
+                    if (callback) return callback;
+                    callback = function fn() {
+                        if (callback !== _this.callbacks[_callbackId]) {
+                            if (_this.verbose) console.warn('Disposed callback called.', _callbackId);
+                            return;
+                        }
+                        var ret = null;
+                        var args = ["Invoke"];
+                        var paramTypes = value._paramTypes;
+                        for (var i = 0; i < paramTypes.length; i++) {
+                            var v = i < arguments.length ? arguments[i] : null;
+                            var jsCallResultType = paramTypes[i];
+                            v = _this.serializeToDotNet(v, jsCallResultType);
+                            args.push(v);
+                        }
+                        try {
+                            ret = value._callback.invokeMethod.apply(value._callback, args);
+                            if (!value._returnVoid) return ret;
+                        } catch (ex) {
+                            console.error('Callback invokeMethod error:', args, ret, ex);
+                        }
+                    };
+                    _this.callbacks[_callbackId] = callback;
+                    return callback;
+                }
+                else if (_in('_callbackAsyncId', value)) {
+                    var _callbackId = value._callbackAsyncId;
+                    var callback = _this.asyncCallbacks[_callbackId];
+                    if (callback) return callback;
+                    callback = function fn() {
+                        if (callback !== _this.asyncCallbacks[_callbackId]) {
+                            if (_this.verbose) console.warn('Disposed async callback called.', _callbackId);
+                            return;
+                        }
+                        var ret = null;
+                        var args = ["InvokeAsync"];
+                        var paramTypes = value._paramTypes;
+                        for (var i = 0; i < paramTypes.length; i++) {
+                            var v = i < arguments.length ? arguments[i] : null;
+                            var jsCallResultType = paramTypes[i];
+                            v = _this.serializeToDotNet(v, jsCallResultType);
+                            args.push(v);
+                        }
+                        try {
+                            // call async invoke
+                            ret = value._callback.invokeMethodAsync.apply(value._callback, args);
+                            if (!value._returnVoid) return ret;
+                        } catch (ex) {
+                            console.error('Callback invokeMethod error:', args, ret, ex);
+                        }
+                    };
+                    _this.asyncCallbacks[_callbackId] = callback;
+                    return callback;
+                }
+                else if (_in('__wrappedJSObject', value)) {
+                    return value.__wrappedJSObject;
+                }
+                else if (_in('__undefinedref__', value)) {
+                    return;
+                }
+                else if (_in('$bigint', value)) {
+                    return BigInt(value.$bigint);
+                }
+            }
+            return value;
+        }
+        attachReviver() {
+            if (globalThis.DotNet && !this.reviverAttached) {
+                globalThis.DotNet.attachReviver(blazorJSInterop.customReviverfunction.bind(this));
+                this.reviverAttached = true;
+            }
+            return this.reviverAttached;
+        }
     }
     var blazorJSInterop = new BlazorJSInterop();
     globalThis.blazorJSInterop = blazorJSInterop;
-    DotNet.attachReviver(function (key, value) {
-        if (value && typeof value === 'object') {
-            if ('_callbackId' in value) {
-                var _callbackId = value._callbackId;
-                var callback = blazorJSInterop.callbacks[_callbackId];
-                if (callback) return callback;
-                callback = function fn() {
-                    if (callback !== blazorJSInterop.callbacks[_callbackId]) {
-                        console.warn('Disposed callback called.');
-                        return;
-                    }
-                    var ret = null;
-                    var args = ["Invoke"];
-                    var paramTypes = value._paramTypes;
-                    for (var i = 0; i < paramTypes.length; i++) {
-                        var v = i < arguments.length ? arguments[i] : null;
-                        var jsCallResultType = paramTypes[i];
-                        v = blazorJSInterop.serializeToDotNet(v, jsCallResultType);
-                        args.push(v);
-                    }
-                    try {
-                        ret = value._callback.invokeMethod.apply(value._callback, args);
-                        if (!value._returnVoid) return ret;
-                    } catch (ex) {
-                        console.error('Callback invokeMethod error:', args, ret, ex);
-                    }
-                };
-                blazorJSInterop.callbacks[_callbackId] = callback;
-                return callback;
-            }
-            else if ('_callbackAsyncId' in value) {
-                var _callbackId = value._callbackAsyncId;
-                var callback = blazorJSInterop.asyncCallbacks[_callbackId];
-                if (callback) return callback;
-                callback = function fn() {
-                    if (callback !== blazorJSInterop.asyncCallbacks[_callbackId]) {
-                        console.warn('Disposed callback called.');
-                        return;
-                    }
-                    var ret = null;
-                    var args = ["InvokeAsync"];
-                    var paramTypes = value._paramTypes;
-                    for (var i = 0; i < paramTypes.length; i++) {
-                        var v = i < arguments.length ? arguments[i] : null;
-                        var jsCallResultType = paramTypes[i];
-                        v = blazorJSInterop.serializeToDotNet(v, jsCallResultType);
-                        args.push(v);
-                    }
-                    try {
-                        // call async invoke
-                        ret = value._callback.invokeMethodAsync.apply(value._callback, args);
-                        if (!value._returnVoid) return ret;
-                    } catch (ex) {
-                        console.error('Callback invokeMethod error:', args, ret, ex);
-                    }
-                };
-                blazorJSInterop.asyncCallbacks[_callbackId] = callback;
-                return callback;
-            }
-            else if ('__wrappedJSObject' in value) {
-                return value.__wrappedJSObject;
-            }
-            else if ('__undefinedref__' in value) {
-                return;
-            }
-            else if ('$bigint' in value) {
-                return BigInt(value.$bigint);
-            }
-        }
-        return value;
-    });
+    blazorJSInterop.attachReviver();
     // Below code adds support for serializing BigInt
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt#use_within_json
     BigInt.prototype.toJSON = function () {
