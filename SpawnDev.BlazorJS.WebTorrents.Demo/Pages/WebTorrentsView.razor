@@ -35,7 +35,7 @@
 
 @code {
     [Inject]
-    WebTorrentService WebTorrentService { get; set; }
+    WebTorrentService WebTorrentService { get; set; } = default!;
 
     Torrent? SelectedTorrent { get; set; }
     string SelectedTorrentInstanceId = "";

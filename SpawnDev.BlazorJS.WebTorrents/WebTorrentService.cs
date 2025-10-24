@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SpawnDev.BlazorJS.JSObjects;
 using SpawnDev.BlazorJS.Toolbox;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 
@@ -371,6 +370,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         {
             try
             {
+                await StorageDir!.CreatePathDirectory($"recent/{torrent.InfoHash}");
                 await StorageDir!.Write($"recent/{torrent.InfoHash}/main.torrent", torrent.TorrentFile);
                 await StorageDir!.WriteJSON($"recent/{torrent.InfoHash}/torrent.json", new RecentTorrent
                 {

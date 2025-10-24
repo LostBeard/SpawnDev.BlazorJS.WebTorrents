@@ -18,6 +18,6 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// 
         /// </summary>
-        public string ScrapeUrl => JSRef.Get<string>("scrapeUrl");
+        public string ScrapeUrl => JSRef!.Get<string>("scrapeUrl");
     }
 }

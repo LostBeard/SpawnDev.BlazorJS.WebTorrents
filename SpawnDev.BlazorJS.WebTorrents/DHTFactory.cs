@@ -14,10 +14,10 @@
         public Extension CreateExtension(Torrent torrent, Wire wire)
         {
             Console.WriteLine($"DHTFactory.CreateExtension()");
-            var ret = new DHT(torrent, wire, ExtensionName);
+            var ret = new DHT(JS, torrent, wire, ExtensionName);
             DHTs.Add(wire.InstanceId, ret);
-            JS.Log($"ext_{wire.InstanceId}", ret);
-            JS.Set($"ext_{wire.InstanceId}", ret);
+            //JS.Log($"ext_{wire.InstanceId}", ret);
+            //JS.Set($"ext_{wire.InstanceId}", ret);
             return ret;
         }
     }

@@ -36,14 +36,47 @@ namespace SpawnDev.BlazorJS.WebTorrents
         [JsonPropertyName("name")]
         public string ExtensionName { get; private set; }
         // ******************************************************************************
+        /// <summary>
+        /// Message event delegate
+        /// </summary>
+        /// <param name="simpleExtension"></param>
+        /// <param name="msg"></param>
         public delegate void MessageReceivedDelegate(SimpleExtension simpleExtension, Uint8Array msg);
-        public event MessageReceivedDelegate OnMessageReceived;
+        /// <summary>
+        /// Triggered when a message is received for this extension
+        /// </summary>
+        public event MessageReceivedDelegate OnMessageReceived = default!;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="simpleExtension"></param>
+        /// <param name="infoHash"></param>
+        /// <param name="peerId"></param>
+        /// <param name="extensions"></param>
         public delegate void HandshakeDelegate(SimpleExtension simpleExtension, string infoHash, string peerId, Dictionary<string, bool> extensions);
-        public event HandshakeDelegate OnHandshake;
+        /// <summary>
+        /// 
+        /// </summary>
+        public event HandshakeDelegate OnHandshake = default!;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="simpleExtension"></param>
+        /// <param name="extendedHandshake"></param>
         public delegate void ExtendedHandshakeDelegate(SimpleExtension simpleExtension, WireExtendedHandshakeEvent extendedHandshake);
-        public event ExtendedHandshakeDelegate OnExtendedHandshake;
+        /// <summary>
+        /// 
+        /// </summary>
+        public event ExtendedHandshakeDelegate OnExtendedHandshake = default!;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="simpleExtension"></param>
         public delegate void CloseDelegate(SimpleExtension simpleExtension);
-        public event CloseDelegate OnClose;
+        /// <summary>
+        /// 
+        /// </summary>
+        public event CloseDelegate OnClose = default!;
         /// <summary>
         /// The wire this extension instance is on
         /// </summary>

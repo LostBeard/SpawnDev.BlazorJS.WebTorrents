@@ -22,6 +22,7 @@ builder.Services.AddWebTorrentService(new WebTorrentOptions
 {
     webTorrentService.Verbose = true;
 });
+builder.Services.AddSingleton<FetchStatsService>();
 builder.Services.AddSingleton<MimeTypeService>();
 builder.Services.AddSingleton<FetchStatsService>();
 // DHTFactory is an IExtensionFactory.
@@ -32,8 +33,8 @@ builder.Services.AddSingleton<FetchStatsService>();
 builder.Services.AddSingleton<AppService>();
 builder.Services.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddRadzenComponents();
-var host = builder.Build();
-await host.StartBackgroundServices();
+var host =   await builder.Build().StartBackgroundServices();
+
 #if DEBUG
 
 

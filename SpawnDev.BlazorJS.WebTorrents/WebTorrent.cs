@@ -3,6 +3,13 @@ using SpawnDev.BlazorJS.JSObjects;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
+    // Specific version
+    // https://cdn.jsdelivr.net/npm/webtorrent@2.8.4/dist/sw.min.js
+    // https://cdn.jsdelivr.net/npm/webtorrent@2.8.4/dist/webtorrent.min.js
+    // Latest version
+    // https://cdn.jsdelivr.net/npm/webtorrent/dist/webtorrent.min.js
+    // https://cdn.jsdelivr.net/npm/webtorrent/dist/sw.min.js
+    //
     // https://raw.githubusercontent.com/webtorrent/webtorrent/master/webtorrent.min.js
     // https://github.com/webtorrent/webtorrent/blob/master/webtorrent.min.js
     // https://github.com/webtorrent/webtorrent/blob/master/docs/api.md
@@ -42,7 +49,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
             webTorrentJsUrl = webTorrentJsUrl ?? LatestVersionSrc;
             var isWebTorrentUndefined = JS.IsUndefined("WebTorrent");
             if (!isWebTorrentUndefined) return;
-            var WebTorrentModule = await JS.Import(LatestVersionSrc);
+            var WebTorrentModule = await JS.Import(webTorrentJsUrl);
             if (WebTorrentModule == null) throw new Exception("WebTorrentService could not be initialized.");
             var WebTorrentClass = WebTorrentModule.GetExport<Function>("default");
             // set WebTorrent on the global scope so it can be used globally
