@@ -102,7 +102,7 @@
         }
     }
     [Inject]
-    protected NavigationManager NavigationManager { get; set; }
+    protected NavigationManager NavigationManager { get; set; } = default!;
     public Type? PageType { get; private set; }
     public string PageTypeName => PageType?.Name ?? "";
     public string Location { get; private set; } = "";

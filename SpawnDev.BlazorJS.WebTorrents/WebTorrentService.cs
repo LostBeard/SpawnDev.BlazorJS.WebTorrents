@@ -26,14 +26,17 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// </summary>
         public static List<string> PublicTrackers { get; } = new List<string>
         {
+            "wss://tracker.ghostchu-services.top:443/announce",
+            "wss://tracker.files.fm:7073/announce",
+            "wss://tracker.webtorrent.dev",
             "wss://tracker.btorrent.xyz",
             "wss://tracker.openwebtorrent.com",
-            "wss://tracker.webtorrent.dev",
             "udp://tracker.leechers-paradise.org:6969",
             "udp://tracker.coppersurfer.tk:6969",
             "udp://tracker.opentrackr.org:1337",
             "udp://explodie.org:6969",
             "udp://tracker.empire-js.us:1337",
+
         };
         /// <summary>
         /// If set to true verbose logging will be enabled
@@ -255,7 +258,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
                 using var discovery = torrent.Discovery;
                 discovery.OnPeer += Discovery_OnPeer;
             });
-            
+
         }
         void Torrent_OnError(Torrent torrent, JSObject? error)
         {
@@ -471,7 +474,8 @@ namespace SpawnDev.BlazorJS.WebTorrents
         {
             var ret = 0;
             using var torrents = Client!.Torrents;
-            torrents.ToArray().UsingEach(t => {
+            torrents.ToArray().UsingEach(t =>
+            {
                 if (predicate == null || predicate(t))
                 {
                     if (hasBeenConfirmed) t.Destroy(new DestroyTorrentOptions { DestroyStore = true });
