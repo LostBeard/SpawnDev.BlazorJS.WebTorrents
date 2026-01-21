@@ -16,18 +16,12 @@ if (!Element.prototype.closest) {
   };
 }
 
-if (document.fonts && document.body) {
-  document.body.classList.add('rz-icons-loading');
-  document.fonts.load('16px Material Symbols').then(() => {
-      document.body.classList.remove('rz-icons-loading');
-  })
-}
-
 var resolveCallbacks = [];
 var rejectCallbacks = [];
 var radzenRecognition;
 
 window.Radzen = {
+    selectedNavigationSelector: undefined,
     isRTL: function (el) {
         return el && getComputedStyle(el).direction == 'rtl';
     },
@@ -347,13 +341,15 @@ window.Radzen = {
 
     var inputs = el.getElementsByTagName('input');
 
-    if (Radzen[id].keyPress && Radzen[id].paste) {
+    if (Radzen[id].keyPress && Radzen[id].keyDown && Radzen[id].paste) {
+        var isAndroid = navigator.userAgent.match(/Android/i);
         for (var i = 0; i < inputs.length; i++) {
-            inputs[i].removeEventListener('keypress', Radzen[id].keyPress);
+            inputs[i].removeEventListener(isAndroid ? 'textInput' : 'keypress', Radzen[id].keyPress);
             inputs[i].removeEventListener('keydown', Radzen[id].keyDown);
             inputs[i].removeEventListener('paste', Radzen[id].paste);
         }
         delete Radzen[id].keyPress;
+        delete Radzen[id].keyDown;
         delete Radzen[id].paste;
     }
 
@@ -368,12 +364,14 @@ window.Radzen = {
 
       Radzen[id].inputs = [...el.querySelectorAll('.rz-security-code-input')];
 
+      var isAndroid = navigator.userAgent.match(/Android/i);
+
       Radzen[id].paste = function (e) {
           if (e.clipboardData) {
               var value = e.clipboardData.getData('text');
 
               if (value) {
-                  for (var i = 0; i < value.length; i++) {
+                  for (var i = 0; i < Math.min(value.length, Radzen[id].inputs.length); i++) {
                       if (isNumber && isNaN(+value[i])) {
                           continue;
                       }
@@ -409,6 +407,11 @@ window.Radzen = {
               return;
           }
 
+          // Android-specific: prevent default to avoid double input
+          if (isAndroid && e.type === 'textInput') {
+              e.preventDefault();
+          }
+
           if (e.currentTarget.value == ch) {
               return;
           }
@@ -427,7 +430,7 @@ window.Radzen = {
       }
 
       Radzen[id].keyDown = function (e) {
-          var keyCode = e.data ? e.data.charCodeAt(0) : e.which;
+          var keyCode = e.which || e.keyCode;
           if (keyCode == 8) {
               e.currentTarget.value = '';
 
@@ -444,8 +447,8 @@ window.Radzen = {
       }
 
       for (var i = 0; i < Radzen[id].inputs.length; i++) {
-          Radzen[id].inputs[i].addEventListener(navigator.userAgent.match(/Android/i) ? 'textInput' : 'keypress', Radzen[id].keyPress);
-          Radzen[id].inputs[i].addEventListener(navigator.userAgent.match(/Android/i) ? 'textInput' : 'keydown', Radzen[id].keyDown);
+          Radzen[id].inputs[i].addEventListener(isAndroid ? 'textInput' : 'keypress', Radzen[id].keyPress);
+          Radzen[id].inputs[i].addEventListener('keydown', Radzen[id].keyDown);
           Radzen[id].inputs[i].addEventListener('paste', Radzen[id].paste);
       }
   },
@@ -786,9 +789,9 @@ window.Radzen = {
 
     return [table.nextSelectedIndex, table.nextSelectedCellIndex];
   },
-  uploadInputChange: function (e, url, auto, multiple, clear, parameterName) {
+  uploadInputChange: function (e, url, auto, multiple, clear, parameterName, method = 'POST', stream = false) {
       if (auto) {
-          Radzen.upload(e.target, url, multiple, clear, parameterName);
+          Radzen.upload(e.target, url, multiple, clear, parameterName, method, stream);
           e.target.value = '';
       } else {
           Radzen.uploadChange(e.target);
@@ -836,38 +839,61 @@ window.Radzen = {
       }
     }
   },
-  removeFileFromUpload: function (fileInput, name) {
-    var uploadComponent = Radzen.uploadComponents && Radzen.uploadComponents[fileInput.id];
+  removeFileFromUpload: function (ref, name, id) {
+    var uploadComponent = (Radzen.uploadComponents && Radzen.uploadComponents[ref]) ?? Radzen.uploadComponents[id];
     if (!uploadComponent) return;
+    if (!uploadComponent.files) return;
     var file = uploadComponent.files.find(function (f) { return f.name == name; })
     if (!file) { return; }
     var localFile = uploadComponent.localFiles.find(function (f) { return f.Name == name; });
     if (localFile) {
       URL.revokeObjectURL(localFile.Url);
+      var localIndex = uploadComponent.localFiles.indexOf(localFile);
+      if (localIndex != -1) {
+        uploadComponent.localFiles.splice(localIndex, 1);
+      }
     }
     var index = uploadComponent.files.indexOf(file)
     if (index != -1) {
         uploadComponent.files.splice(index, 1);
     }
-    fileInput.value = '';
+    var fileInput = document.getElementById(id).querySelector('input[type="file"]');
+    if (fileInput && uploadComponent.files.length == 0) {
+        fileInput.value = '';
+    }
   },
   removeFileFromFileInput: function (fileInput) {
     fileInput.value = '';
   },
-  upload: function (fileInput, url, multiple, clear, parameterName) {
+  upload: function (fileInput, url, multiple, clear, parameterName, method = 'POST', stream = false) {
     var uploadComponent = Radzen.uploadComponents && Radzen.uploadComponents[fileInput.id];
     if (!uploadComponent) { return; }
     if (!uploadComponent.files || clear) {
         uploadComponent.files = Array.from(fileInput.files);
     }
-    var data = new FormData();
-    var files = [];
-    var cancelled = false;
-    for (var i = 0; i < uploadComponent.files.length; i++) {
-      var file = uploadComponent.files[i];
-      data.append(parameterName || (multiple ? 'files' : 'file'), file, file.name);
-      files.push({Name: file.name, Size: file.size});
-    }
+    
+	function asFormData() {
+		var data = new FormData();
+		var files = [];
+		for (var i = 0; i < uploadComponent.files.length; i++) {
+			var file = uploadComponent.files[i];
+			data.append(parameterName || (multiple ? 'files' : 'file'), file, file.name);
+			files.push({Name: file.name, Size: file.size});
+		}
+		return {data, files}
+	}
+	
+	function asStream() {
+		if (uploadComponent.files.length > 0) {
+			var file = uploadComponent.files[0];
+			return {data: file, files: [{Name: file.name, Size: file.size}]};
+		}
+		return {data: null, files: []}
+	}
+
+  	var cancelled = false;
+	var {data, files} = stream ? asStream() : asFormData();
+	
     var xhr = new XMLHttpRequest();
     xhr.withCredentials = true;
     xhr.upload.onprogress = function (e) {
@@ -914,7 +940,7 @@ window.Radzen = {
       }
     };
     uploadComponent.invokeMethodAsync('GetHeaders').then(function (headers) {
-      xhr.open('POST', url, true);
+      xhr.open(method, url, true);
       for (var name in headers) {
         xhr.setRequestHeader(name, headers[name]);
       }
@@ -933,21 +959,63 @@ window.Radzen = {
       : null;
     return uiCulture || 'en-US';
   },
-  numericOnPaste: function (e, min, max) {
-    if (e.clipboardData) {
-      var value = e.clipboardData.getData('text');
+  numericOnPaste: function (e, min, max, locale = navigator.language) {
+    if (!e.clipboardData) return;
 
-      if (value && !isNaN(+value)) {
-        var numericValue = +value;
-        if (min != null && numericValue >= min) {
-            return;
-        }
-        if (max != null && numericValue <= max) {
-            return;
-        }
-      }
+    let value = e.clipboardData.getData("text");
+    if (!value) {
+        e.preventDefault();
+        return;
+    }
 
-      e.preventDefault();
+    value = String(value).trim();
+
+    const parts = new Intl.NumberFormat(locale).formatToParts(1234567.89);
+
+    let group = ",";
+    let decimal = ".";
+
+    for (const p of parts) {
+        if (p.type === "group") group = p.value;
+        if (p.type === "decimal") decimal = p.value;
+    }
+
+    value = value.replace(/[\u00A0\u202F]/g, " ");
+
+    if (group) {
+        const escapedGroup = group.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        value = value.replace(new RegExp(escapedGroup, "g"), "");
+    }
+
+    if (group === " ") {
+        value = value.replace(/ /g, "");
+    }
+
+    if (decimal !== ".") {
+        const escapedDecimal = decimal.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        value = value.replace(new RegExp(escapedDecimal, "g"), ".");
+    }
+
+    if (!/^[+-]?(\d+(\.\d*)?|\.\d+)$/.test(value)) {
+        e.preventDefault();
+        return;
+    }
+
+    const numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue)) {
+        e.preventDefault();
+        return;
+    }
+
+    if (min != null && numericValue < min) {
+        e.preventDefault();
+        return;
+    }
+
+    if (max != null && numericValue > max) {
+        e.preventDefault();
+        return;
     }
   },
   numericOnInput: function (e, min, max, isNullable) {
@@ -987,9 +1055,9 @@ window.Radzen = {
           return;
     }
 
-    var ch = String.fromCharCode(e.charCode);
+    var ch = e.key;
 
-    if ((isInteger ? /^[-\d]$/ : /^[-\d,.]$/).test(ch)) {
+    if (/\p{Nd}/u.test(ch) || ch === '-' || (!isInteger && ch === decimalSeparator)) {
       return;
     }
 
@@ -1136,6 +1204,9 @@ window.Radzen = {
     }
 
     popup.style.display = 'block';
+    popup.onanimationend = null;
+    popup.classList.add("rz-open");
+    popup.classList.remove("rz-close");
 
     var rect = popup.getBoundingClientRect();
     rect.width = x ? rect.width + 20 : rect.width;
@@ -1228,8 +1299,11 @@ window.Radzen = {
         }
 
         var closestLink = e.target.closest && (e.target.closest('.rz-link') || e.target.closest('.rz-navigation-item-link'));
-        if (e.type == 'resize' && !/Android/i.test(navigator.userAgent) || closestLink && closestLink.closest && closestLink.closest('a')) {
-            if (Radzen.closeAllPopups) {
+        if (e.type == 'resize' && !/Android/i.test(navigator.userAgent)) {
+            if (closestLink && closestLink.closest && closestLink.closest('a') && e.button == 0) {
+                closestLink.closest('a').click();
+                Radzen.closeAllPopups();
+            } else {
                 Radzen.closeAllPopups();
             }
         }
@@ -1280,7 +1354,7 @@ window.Radzen = {
             if (firstFocusable) {
                 firstFocusable.focus();
             }
-        }, 500);
+        }, 200);
     }
   },
   closeAllPopups: function (e, id) {
@@ -1327,7 +1401,12 @@ window.Radzen = {
         Radzen[id + 'FZL'] = null;
       }
 
-      popup.style.display = 'none';
+      popup.onanimationend = function () {
+          popup.style.display = 'none';
+          popup.onanimationend = null;
+      }
+      popup.classList.add("rz-close");
+      popup.classList.remove("rz-open");
     }
     document.removeEventListener('mousedown', Radzen[id]);
     window.removeEventListener('resize', Radzen[id]);
@@ -1347,7 +1426,10 @@ window.Radzen = {
     if (Radzen.activeElement && Radzen.activeElement == document.activeElement ||
         Radzen.activeElement && document.activeElement == document.body ||
         Radzen.activeElement && document.activeElement &&
-            (document.activeElement.classList.contains('rz-dropdown-filter') || document.activeElement.classList.contains('rz-lookup-search-input'))) {
+            (document.activeElement.classList.contains('rz-dropdown-filter') || 
+             document.activeElement.classList.contains('rz-lookup-search-input') ||
+             document.activeElement.classList.contains('rz-multiselect-filter-container') ||
+             document.activeElement.closest('.rz-multiselect-filter-container') !== null)) {
         setTimeout(function () {
             if (e && e.target && e.target.tabIndex != -1) {
                 Radzen.activeElement = e.target;
@@ -1404,23 +1486,20 @@ window.Radzen = {
   },
   focusFirstFocusableElement: function (el) {
       var focusable = Radzen.getFocusableElements(el);
-      var editor = el.querySelector('.rz-html-editor');
+      if (!focusable || !focusable.length) return;
 
-      if (editor && !focusable.includes(editor.previousElementSibling)) {
-          var editable = el.querySelector('.rz-html-editor-content');
-          if (editable) {
-              var selection = window.getSelection();
-              var range = document.createRange();
-              range.setStart(editable, 0);
-              range.setEnd(editable, 0);
-              selection.removeAllRanges();
-              selection.addRange(range);
-          }
+      var first = focusable[0];
+      
+      if (first.classList.contains('rz-html-editor-content')) {
+          var sel = window.getSelection();
+          var range = document.createRange();
+          range.setStart(first, 0);
+          range.setEnd(first, 0);
+          sel.removeAllRanges();
+          sel.addRange(range);
+          first.focus();
       } else {
-          var firstFocusable = focusable[0];
-          if (firstFocusable) {
-              firstFocusable.focus();
-          }
+          first.focus();
       }
   },
   openSideDialog: function (options) {
@@ -1432,6 +1511,77 @@ window.Radzen = {
               Radzen.focusFirstFocusableElement(lastDialog);
           }
       }, 500);
+  },
+  createSideDialogResizer: function(handle, sideDialog, options) {
+      const normalizeDir = (value) => {
+          if (typeof value === 'string' && value.length) {
+              return value.toLowerCase();
+          }
+          if (typeof value === 'number') {
+              const positions = ['right', 'left', 'top', 'bottom'];
+              return positions[value] || 'right';
+          }
+          return 'right';
+      };
+
+      const dir = normalizeDir(options?.position);
+
+      let start = null;
+
+      const onDown = (e) => {
+          e.preventDefault();
+
+          start = {x: e.clientX, y: e.clientY, w: sideDialog.clientWidth, h: sideDialog.clientHeight};
+
+          document.addEventListener('pointermove', onMove);
+          document.addEventListener('pointerup', onUp, {once: true});
+          document.addEventListener('pointercancel', onUp, {once: true});
+      };
+
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+      const applyWidth = (w) => {
+          sideDialog.style.width = Math.round(w) + 'px';
+      };
+      const applyHeight = (h) => {
+          sideDialog.style.height = `${Math.round(h)}px`;
+      };
+
+      const onMove = (e) => {
+          if (!start) return;
+
+          const dx = e.clientX - start.x;
+          const dy = e.clientY - start.y;
+
+          switch (dir) {
+              case 'right':
+                  applyWidth(clamp(start.w - dx, options.minWidth, Infinity));
+                  break;
+              case 'left':
+                  applyWidth(clamp(start.w + dx, options.minWidth, Infinity));
+                  break;
+              case 'bottom':
+                  applyHeight(clamp(start.h - dy, options.minHeight, Infinity));
+                  break;
+              case 'top':
+                  applyHeight(clamp(start.h + dy, options.minHeight, Infinity));
+                  break;
+          }
+      };
+
+      const onUp = (e) => {
+          start = null;
+          document.removeEventListener('pointermove', onMove);
+      };
+
+      handle.addEventListener('pointerdown', onDown);
+
+      return {
+          dispose() {
+              handle.removeEventListener('pointerdown', onDown);
+              document.removeEventListener('pointermove', onMove);
+          }
+      };
   },
   openDialog: function (options, dialogService, dialog) {
     if (Radzen.closeAllPopups) {
@@ -1542,8 +1692,17 @@ window.Radzen = {
       e.preventDefault();
   },
   getFocusableElements: function (element) {
-    return [...element.querySelectorAll('a, button, input, textarea, select, details, iframe, embed, object, summary dialog, audio[controls], video[controls], [contenteditable], [tabindex]')]
-        .filter(el => el && el.tabIndex > -1 && !el.hasAttribute('disabled') && el.offsetParent !== null);
+    return [...element.querySelectorAll('a, button, input, textarea, select, details, iframe, embed, object, summary, dialog, audio[controls], video[controls], [contenteditable], [tabindex]')]
+      .filter(el => {
+        if (!el || el.hasAttribute('disabled') || el.offsetParent === null) return false;
+    
+        // If this is inside a .rz-html-editor with tabindex="-1", skip it
+        var editorParent = el.closest('.rz-html-editor');
+        if (editorParent && editorParent.hasAttribute('tabindex') && editorParent.tabIndex === -1) return false;
+        else if (editorParent) return true;
+    
+        return el.tabIndex > -1;
+    });
   },
   focusTrap: function (e) {
     e = e || window.event;
@@ -1658,7 +1817,7 @@ window.Radzen = {
         reader.addEventListener(
           'load',
           function () {
-            if (maxWidth > 0 && maxHeight > 0) {
+            if (fileInput.files[0] && fileInput.files[0].type.includes('image') && maxWidth > 0 && maxHeight > 0) {
               var img = document.createElement("img");
               img.onload = function (event) {
                 // Dynamically create a canvas element
@@ -1702,14 +1861,26 @@ window.Radzen = {
       var children = item.querySelector('.rz-navigation-menu');
 
       if (children) {
-        children.style.display = active ? '' : 'none';
+        if (active) {
+          children.onanimationend = null;
+          children.style.display = '';
+          children.classList.add('rz-open');
+          children.classList.remove('rz-close');
+        } else {
+          children.onanimationend = function () {
+            children.style.display = 'none';
+            children.onanimationend = null;
+          }
+          children.classList.remove('rz-open');
+          children.classList.add('rz-close');
+        }
       }
 
       var icon = item.querySelector('.rz-navigation-item-icon-children');
 
       if (icon) {
-        var deg = active ? '180deg' : 0;
-        icon.style.transform = 'rotate(' + deg + ')';
+        icon.classList.toggle('rz-state-expanded', active);
+        icon.classList.toggle('rz-state-collapsed', !active);
       }
     }
 
@@ -1734,6 +1905,7 @@ window.Radzen = {
     document.addEventListener('click', target.clickHandler);
   },
   destroyChart: function (ref) {
+    if(!ref) return;
     ref.removeEventListener('mouseleave', ref.mouseLeaveHandler);
     delete ref.mouseLeaveHandler;
     ref.removeEventListener('mouseenter', ref.mouseEnterHandler);
@@ -1937,72 +2109,100 @@ window.Radzen = {
         instance.invokeMethodAsync('OnSelectionChange');
       }
     };
-    ref.pasteListener = function (e) {
-      var item = e.clipboardData.items[0];
+    ref.handleInsert = function (e, transfer, hasDelegate) {
 
-      if (item.kind == 'file') {
-        e.preventDefault();
-        var file = item.getAsFile();
+      if (transfer.files.length > 0) {
+        for (const file of transfer.files) {
+          ref.handleFileInsert(e, file, hasDelegate);
+          }
+      }
+      else if (hasDelegate) {
+        ref.handleTextInsert(e, transfer)
+      }
+    };
+    ref.handleFileInsert = function (event, file, hasDelegate) {
+      event.preventDefault();
 
-        if (uploadUrl) {
-            var xhr = new XMLHttpRequest();
-            var data = new FormData();
-            data.append("file", file);
-            xhr.onreadystatechange = function (e) {
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                    var status = xhr.status;
-                    if (status === 0 || (status >= 200 && status < 400)) {
-                        var result = JSON.parse(xhr.responseText);
-                        var html = '<img src="' + result.url + '">';
-                        if (paste) {
-                            instance.invokeMethodAsync('OnPaste', html)
-                                .then(function (html) {
-                                    document.execCommand("insertHTML", false, html);
-                                });
-                        } else {
-                          document.execCommand("insertHTML", false, '<img src="' + result.url + '">');
-                        }
-                        instance.invokeMethodAsync('OnUploadComplete', xhr.responseText);
-                    } else {
-                        instance.invokeMethodAsync('OnError', xhr.responseText);
-                    }
-                }
-            }
-            instance.invokeMethodAsync('GetHeaders').then(function (headers) {
-                xhr.open('POST', uploadUrl, true);
-                for (var name in headers) {
-                    xhr.setRequestHeader(name, headers[name]);
-                }
-                xhr.send(data);
-            });
-        } else {
-            var reader = new FileReader();
-            reader.onload = function (e) {
-              var html = '<img src="' + e.target.result + '">';
-
-              if (paste) {
+      if (uploadUrl) {
+        var xhr = new XMLHttpRequest();
+        var data = new FormData();
+        data.append("file", file);
+        xhr.onreadystatechange = function (e) {
+          if (xhr.readyState === XMLHttpRequest.DONE) {
+            var status = xhr.status;
+            if (status === 0 || (status >= 200 && status < 400)) {
+              var result = JSON.parse(xhr.responseText);
+              var html = '<img src="' + result.url + '">';
+              if (hasDelegate) {
                 instance.invokeMethodAsync('OnPaste', html)
                   .then(function (html) {
                     document.execCommand("insertHTML", false, html);
                   });
               } else {
-                document.execCommand("insertHTML", false, html);
+                document.execCommand("insertHTML", false, '<img src="' + result.url + '">');
               }
-            };
-            reader.readAsDataURL(file);
+              instance.invokeMethodAsync('OnUploadComplete', xhr.responseText);
+            } else {
+              instance.invokeMethodAsync('OnError', xhr.responseText);
+            }
+          }
         }
-      } else if (paste) {
-        e.preventDefault();
-        var data = e.clipboardData.getData('text/html') || e.clipboardData.getData('text/plain');
+        instance.invokeMethodAsync('GetHeaders').then(function (headers) {
+          xhr.open('POST', uploadUrl, true);
+          for (var name in headers) {
+            xhr.setRequestHeader(name, headers[name]);
+          }
+          xhr.send(data);
+        });
+      } else {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          var html = '<img src="' + e.target.result + '">';
 
-        instance.invokeMethodAsync('OnPaste', data)
-          .then(function (html) {
-            document.execCommand("insertHTML", false, html);
-          });
+          if (hasDelegate) {
+            instance.invokeMethodAsync('OnPaste', html)
+              .then(function (html) {
+                document.execCommand("insertHTML", false, html);
+              });
+            } else {
+              document.execCommand("insertHTML", false, html);
+            }
+        };
+        reader.readAsDataURL(file);
       }
+    }
+    ref.handleTextInsert = function (e, transfer) {
+      e.preventDefault();
+
+      var data = transfer.getData('text/html') || transfer.getData('text/plain');
+
+      const startMarker = "<!--StartFragment-->";
+      const endMarker = "<!--EndFragment-->";
+
+      const startIndex = data.indexOf(startMarker);
+      const endIndex = data.indexOf(endMarker);
+
+      // check if the pasted data contains fragment markers
+      if (startIndex != -1 || endIndex != -1 || endIndex > startIndex) {
+        // only paste the fragment
+        data = data.substring(startIndex + startMarker.length, endIndex).trim();
+      }
+
+      instance.invokeMethodAsync('OnPaste', data)
+        .then(ref.focus())
+        .then(function (html) {
+          document.execCommand("insertHTML", false, html);
+        });
+    }
+    ref.pasteListener = function (e) {
+      ref.handleInsert(e, e.clipboardData, paste);
+    };
+    ref.dropListener = function (e) {
+      ref.handleInsert(e, e.dataTransfer, paste);
     };
     ref.addEventListener('input', ref.inputListener);
     ref.addEventListener('paste', ref.pasteListener);
+    ref.addEventListener('drop', ref.dropListener);
     ref.addEventListener('keydown', ref.keydownListener);
     ref.addEventListener('click', ref.clickListener);
     document.addEventListener('selectionchange', ref.selectionChangeListener);
@@ -2053,7 +2253,11 @@ window.Radzen = {
       if (target.nodeType == 3) {
         target = target.parentElement;
       } else {
-        target = target.childNodes[selection.focusOffset];
+        if (img) {
+          target = target.childNodes[range.startOffset]
+        } else {
+          target = target.childNodes[selection.focusOffset];
+        }
         if (target) {
           innerHTML = target.outerHTML;
         }
@@ -2074,6 +2278,7 @@ window.Radzen = {
     if (ref) {
       ref.removeEventListener('input', ref.inputListener);
       ref.removeEventListener('paste', ref.pasteListener);
+      ref.removeEventListener('drop', ref.dropListener);
       ref.removeEventListener('keydown', ref.keydownListener);
       ref.removeEventListener('click', ref.clickListener);
       document.removeEventListener('selectionchange', ref.selectionChangeListener);
@@ -2116,22 +2321,23 @@ window.Radzen = {
     document.removeEventListener('touchmove', ref.touchMoveHandler)
     document.removeEventListener('touchend', ref.mouseUpHandler);
   },
-  startColumnReorder: function(id) {
+  startColumnReorder: function(id, gridId) {
+      var grid = document.getElementById(gridId);
       var el = document.getElementById(id + '-drag');
-      var cell = el.parentNode.parentNode;
+      Radzen[id + 'cell'] = el.parentNode.parentNode;
       var visual = document.createElement("th");
-      visual.className = cell.className + ' rz-column-draggable';
-      visual.style = cell.style;
+      visual.className = Radzen[id + 'cell'].className + ' rz-column-draggable';
+      visual.style = Radzen[id + 'cell'].style;
       visual.style.display = 'none';
       visual.style.position = 'absolute';
-      visual.style.height = cell.offsetHeight + 'px';
-      visual.style.width = cell.offsetWidth + 'px';
+      visual.style.height = Radzen[id + 'cell'].offsetHeight + 'px';
+      visual.style.width = Radzen[id + 'cell'].offsetWidth + 'px';
       visual.style.zIndex = 2000;
-      visual.innerHTML = cell.firstChild.outerHTML;
+      visual.innerHTML = Radzen[id + 'cell'].firstChild.outerHTML;
       visual.id = id + 'visual';
       document.body.appendChild(visual);
 
-      var resizers = cell.parentNode.querySelectorAll('.rz-column-resizer');
+      var resizers = Radzen[id + 'cell'].parentNode.querySelectorAll('.rz-column-resizer');
       for (let i = 0; i < resizers.length; i++) {
           resizers[i].style.display = 'none';
       }
@@ -2142,14 +2348,14 @@ window.Radzen = {
               document.body.removeChild(el);
               Radzen[id + 'end'] = null;
               Radzen[id + 'move'] = null;
-              var resizers = cell.parentNode.querySelectorAll('.rz-column-resizer');
+              var resizers = Radzen[id + 'cell'].parentNode.querySelectorAll('.rz-column-resizer');
               for (let i = 0; i < resizers.length; i++) {
                   resizers[i].style.display = 'block';
               }
           }
       }
-      document.removeEventListener('click', Radzen[id + 'end']);
-      document.addEventListener('click', Radzen[id + 'end']);
+      grid.removeEventListener('click', Radzen[id + 'end']);
+      grid.addEventListener('click', Radzen[id + 'end']);
 
       Radzen[id + 'move'] = function (e) {
           var el = document.getElementById(id + 'visual');
@@ -2168,8 +2374,8 @@ window.Radzen = {
               el.style.left = e.clientX + scrollLeft + 10 + 'px';
           }
       }
-      document.removeEventListener('mousemove', Radzen[id + 'move']);
-      document.addEventListener('mousemove', Radzen[id + 'move']);
+      grid.removeEventListener('mousemove', Radzen[id + 'move']);
+      grid.addEventListener('mousemove', Radzen[id + 'move']);
   },
   stopColumnResize: function (id, grid, columnIndex) {
     var el = document.getElementById(id + '-resizer');
@@ -2218,9 +2424,14 @@ window.Radzen = {
               if (Radzen[el]) {
                   var widthFloat = (Radzen[el].width - (Radzen.isRTL(cell) ? -1 : 1) * (Radzen[el].clientX - e.clientX));
                   var minWidth = parseFloat(cell.style.minWidth || 0)
+                  var maxWidth = parseFloat(cell.style.maxWidth || 0)
 
                   if (widthFloat < minWidth) {
                       widthFloat = minWidth;
+                  }
+
+                  if (cell.style.maxWidth && widthFloat > maxWidth) {
+                      widthFloat = maxWidth;
                   }
 
                   var width = widthFloat + 'px';
@@ -2495,5 +2706,153 @@ window.Radzen = {
         tooltipContent.classList.remove('rz-top-chart-tooltip');
         tooltipContent.classList.remove('rz-bottom-chart-tooltip');
         tooltipContent.classList.add(tooltipContentClassName);
+    },
+    navigateTo: function (selector, scroll) {
+      if (selector.startsWith('#')) {
+        history.replaceState(null, '', location.pathname + location.search + selector);
+      }
+
+      if (scroll) {
+        const target = document.querySelector(selector);
+          if (target) {
+            this.selectedNavigationSelector = selector;
+            target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'start' });
+        }
+      }
+    },
+    registerScrollListener: function (element, ref, selectors, selector) {
+        let currentSelector;
+        const container = selector ? document.querySelector(selector) : document.documentElement;
+        const elements = selectors.map(document.querySelector, document);
+
+        this.unregisterScrollListener(element);
+
+        // helper to get current scroll position of container
+        const getScrollPosition = () => container && container.tagName === 'HTML' ? (window.scrollY || document.documentElement.scrollTop) : (container ? container.scrollTop : 0);
+        // store last scroll position on the element so we can determine direction
+        let lastScrollPosition = getScrollPosition();
+
+        let timeoutId = null;
+        const debounce = (callback, wait) => {
+            return () => {
+                window.clearTimeout(timeoutId);
+                timeoutId = window.setTimeout(() => {
+                    callback();
+                }, wait);
+            };
+        }
+
+        element.scrollHandler = () => {
+            const containerRect = container && container.tagName === 'HTML'
+                ? { top: 0, bottom: window.innerHeight, height: window.innerHeight, clientHeight: window.innerHeight }
+                : container.getBoundingClientRect();
+
+            const scrollTop = getScrollPosition();
+            //When loading the page or when no scrolling has been execute -> always look at the top of the container
+            const isDown = lastScrollPosition != 0 && scrollTop > lastScrollPosition;
+            // determine threshold based on scroll direction with a small offset
+            const threshold = isDown ? containerRect.bottom - 5 : containerRect.top + 5;
+            lastScrollPosition = scrollTop;
+            let min = Number.MAX_SAFE_INTEGER;
+            let match;
+            for (let i = 0; i < elements.length; i++) {
+                const elm = elements[i];
+                if (!elm) continue;
+
+                const rect = elm.getBoundingClientRect();
+                const diff = Math.abs(rect.top - threshold);
+
+                if (!match && rect.top < threshold) {
+                    match = selectors[i];
+                    min = diff;
+                    continue;
+                }
+
+                if (match && rect.top > threshold) continue;
+
+                if (diff < min) {
+                    match = selectors[i];
+                    min = diff;
+                }                
+            }
+
+            if (match && match !== currentSelector) {
+                currentSelector = match;
+                if (!this.selectedNavigationSelector || (match === this.selectedNavigationSelector)) {
+                    this.navigateTo(currentSelector, false);
+                    ref.invokeMethodAsync('ScrollIntoView', currentSelector);
+                }
+            }
+            // clear selected navigation selector after scroll completes
+            if (this.selectedNavigationSelector && match === this.selectedNavigationSelector) {
+                debounce(() => { this.selectedNavigationSelector = undefined; }, 100)();
+            }
+        };
+
+        document.addEventListener('scroll', element.scrollHandler, true);
+        window.addEventListener('resize', element.scrollHandler, true);
+    },
+    unregisterScrollListener: function (element) {
+      document.removeEventListener('scroll', element.scrollHandler, true);
+      window.removeEventListener('resize', element.scrollHandler, true);
+    },
+    setTheme: function (href, wcagHref) {
+      const theme = document.getElementById('radzen-theme-link');
+      if (theme && theme.href != href) {
+        theme.href = href;
+      }
+
+      let wcagTheme = document.getElementById('radzen-wcag-theme-link');
+
+      if (!wcagTheme && wcagHref) {
+        wcagTheme = document.createElement('link');
+        wcagTheme.id = 'radzen-wcag-theme-link';
+        wcagTheme.rel = 'stylesheet';
+        wcagTheme.href = wcagHref;
+        theme.parentNode.insertBefore(wcagTheme, theme.nextSibling);
+      } else if (wcagTheme && wcagTheme.href != wcagHref) {
+        if (!wcagHref) {
+          wcagTheme.parentNode.removeChild(wcagTheme);
+          return;
+        } else {
+          wcagTheme.href = wcagHref;
+        }
+      }
+    },
+    createDraggable: function(element, ref, onDragStart) {
+      function handleDragStart(e) {
+        e.dataTransfer.setData('', e.target.id);
+        ref.invokeMethodAsync(onDragStart);
+      }
+      element.draggable = true;
+      element.addEventListener('dragstart', handleDragStart);
+      return {
+        dispose() {
+          element.removeEventListener('dragstart', handleDragStart);
+        }
+      };
     }
+};
+
+Radzen.registerFabMenu = function(element, dotnet){
+  if(!element) return;
+  if(element.__rzOutsideClickHandler){
+    document.removeEventListener('click', element.__rzOutsideClickHandler);
+    delete element.__rzOutsideClickHandler;
+  }
+  const handler = function(e){
+    if(!element.contains(e.target)){
+      dotnet.invokeMethodAsync('CloseAsync');
+    }
+  };
+  element.__rzOutsideClickHandler = handler;
+  document.addEventListener('click', handler);
+};
+Radzen.unregisterFabMenu = function(element){
+  if(!element) return;
+  const handler = element.__rzOutsideClickHandler;
+  if(handler){
+    document.removeEventListener('click', handler);
+    delete element.__rzOutsideClickHandler;
+  }
 };
