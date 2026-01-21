@@ -17,11 +17,11 @@ jobs:
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v3.0.3
       with:
-        dotnet-version: '9'
+        dotnet-version: '10'
 
     # Install dotnet wasm buildtools workload
     - name: Install .NET WASM Build Tools
-      run: dotnet workload install wasm-tools-net8        
+      run: dotnet workload install wasm-tools        
 
     # publishes Blazor project to the publish-folder
     - name: Publish .NET Core Project
