@@ -33,7 +33,7 @@ builder.Services.AddSingleton<FetchStatsService>();
 builder.Services.AddSingleton<AppService>();
 builder.Services.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddRadzenComponents();
-var host =   await builder.Build().StartBackgroundServices();
+var host = await builder.Build().StartBackgroundServices();
 
 #if DEBUG
 

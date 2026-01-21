@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace SpawnDev.BlazorJS.WebTorrents
+﻿namespace SpawnDev.BlazorJS.WebTorrents
 {
     /// <summary>
     /// Tracker announce message

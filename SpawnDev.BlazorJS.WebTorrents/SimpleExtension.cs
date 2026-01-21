@@ -101,7 +101,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// The peer id this wire is connected to
         /// </summary>
         [JsonIgnore]
-        public string PeerId { get; private set; } 
+        public string PeerId { get; private set; }
         /// <summary>
         /// Data received during the extended handshake
         /// </summary>
@@ -184,8 +184,8 @@ namespace SpawnDev.BlazorJS.WebTorrents
             Wire.Dispose();
             Torrent.Dispose();
             Wire.OnClose -= Wire_OnClose;
-            onHandshake.Dispose(); 
-            onExtendedHandshake.Dispose(); 
+            onHandshake.Dispose();
+            onExtendedHandshake.Dispose();
             onMessage.Dispose();
         }
     }

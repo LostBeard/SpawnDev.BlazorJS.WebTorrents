@@ -141,8 +141,8 @@ namespace SpawnDev.BlazorJS.WebTorrents
             if (IsDisposed) return;
             IsDisposed = true;
             Wire.OnClose -= Wire_OnClose;
-            onHandshake.Dispose(); 
-            onExtendedHandshake.Dispose(); 
+            onHandshake.Dispose();
+            onExtendedHandshake.Dispose();
             onMessage.Dispose();
         }
     }

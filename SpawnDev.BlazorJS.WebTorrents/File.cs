@@ -2,7 +2,6 @@
 using Microsoft.JSInterop;
 using SpawnDev.BlazorJS.JSObjects;
 using System.Security.Cryptography;
-using System.Text.Json.Serialization;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {

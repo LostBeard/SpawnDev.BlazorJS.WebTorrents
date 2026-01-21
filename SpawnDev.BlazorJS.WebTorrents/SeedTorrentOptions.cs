@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {

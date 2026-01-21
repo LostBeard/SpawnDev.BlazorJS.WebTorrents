@@ -1,5 +1,4 @@
 ﻿using Microsoft.JSInterop;
-using static SpawnDev.BlazorJS.WebTorrents.Demo.Services.FetchStatsService;
 
 namespace SpawnDev.BlazorJS.WebTorrents.Demo.Services
 {

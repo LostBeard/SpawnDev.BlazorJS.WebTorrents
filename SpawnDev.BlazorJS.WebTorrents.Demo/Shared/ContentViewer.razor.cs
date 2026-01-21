@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using SpawnDev.BlazorJS.WebTorrents.Demo.Services;
 
 namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
 {

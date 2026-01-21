@@ -1,5 +1,4 @@
 ﻿using SpawnDev.BlazorJS.JSObjects;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace SpawnDev.BlazorJS.WebTorrents
 {
@@ -17,7 +16,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         }
         void Wire_OnExtended(string ext, JSObject buf)
         {
-            JS.Log("Wire_OnExtended",  ext, buf);
+            JS.Log("Wire_OnExtended", ext, buf);
         }
         void Wire_OnHandshake(string infoHash, string peerId, Array<JSObject> extensions /* Extension[] */)
         {

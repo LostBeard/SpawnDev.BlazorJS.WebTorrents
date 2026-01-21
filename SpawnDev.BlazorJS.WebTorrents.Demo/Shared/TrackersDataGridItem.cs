@@ -24,7 +24,7 @@ namespace SpawnDev.BlazorJS.WebTorrents.Demo.Shared
         {
             Torrent = torrent;
             Tracker = tracker;
-            WebSocketTracker = WebSocketTracker.IsThisTackerType(Tracker) ? Tracker.JSRefCopy< WebSocketTracker>() : null;
+            WebSocketTracker = WebSocketTracker.IsThisTackerType(Tracker) ? Tracker.JSRefCopy<WebSocketTracker>() : null;
             HTTPTracker = HTTPTracker.IsThisTackerType(Tracker) ? Tracker.JSRefCopy<HTTPTracker>() : null;
         }
     }

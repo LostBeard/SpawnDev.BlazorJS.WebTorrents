@@ -5,7 +5,7 @@
                 Count="@count" Data="@Files" LoadData="@LoadData" AllowSorting="true" AllowFiltering="true" AllowPaging="false"
                 CellContextMenu="ShowContextMenuWithItems" RowDoubleClick="RowDoubleClicked">
     <Columns>
-        <RadzenDataGridColumn TItem="FilesDataGridItem" Filterable="false" Sortable="false" Property="Progress" Title="%" Width="66px" TextAlign="TextAlign.Right">
+        <RadzenDataGridColumn TItem="FilesDataGridItem" Filterable="false" Sortable="false" Property="Progress" Title="" Width="66px" TextAlign="TextAlign.Right">
             <Template Context="torrent">
                 @if (CanPlay(torrent.File))
                 {

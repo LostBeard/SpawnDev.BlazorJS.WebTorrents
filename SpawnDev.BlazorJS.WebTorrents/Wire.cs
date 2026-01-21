@@ -200,7 +200,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         /// <summary>
         /// ExtendedMapping
         /// </summary>
-        public Dictionary<int,string> ExtendedMapping => JSRef!.Get<Dictionary<int, string>>("extendedMapping");
+        public Dictionary<int, string> ExtendedMapping => JSRef!.Get<Dictionary<int, string>>("extendedMapping");
         /// <summary>
         /// PeerExtendedMapping
         /// </summary>
