@@ -364,7 +364,9 @@ namespace SpawnDev.BlazorJS.WebTorrents
         public async Task WhenReady(CancellationToken cancellationToken)
         {
             if (Ready) return;
-            var tcs = new TaskCompletionSource(cancellationToken);
+            var tcs = new TaskCompletionSource();
+            // Wire up cancellation so the TCS actually gets cancelled when the token fires
+            using var ctr = cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
             OnReady += tcs.SetResult;
             try
             {
@@ -384,16 +386,7 @@ namespace SpawnDev.BlazorJS.WebTorrents
         {
             if (Ready) return;
             using var cts = new CancellationTokenSource(timeoutMS);
-            var tcs = new TaskCompletionSource(cts);
-            OnReady += tcs.SetResult;
-            try
-            {
-                await tcs.Task;
-            }
-            finally
-            {
-                OnReady -= tcs.SetResult;
-            }
+            await WhenReady(cts.Token);
         }
     }
 }
